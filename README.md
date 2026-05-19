@@ -22,7 +22,10 @@ A hierarchical Virtual Resource Manager (VRM) implementation in Rust, designed t
         - [Step 5 Configure VRM-Rust](#step-5-configure-vrm-rust)
         - [Step 6 Run the VRM-Rust with Demo data](#step-6-run-the-vrm-rust-with-demo-data)
   - [Project Structure (Overview)](#project-structure-overview)
-  - [Ideas](#ideas)
+  - [VRM-Rust Prototype Documentation: Ideas, Unimplemented Features, and Optimizations](#vrm-rust-prototype-documentation-ideas-unimplemented-features-and-optimizations)
+    - [Ideas](#ideas)
+    - [Not Implemented](#not-implemented)
+    - [Optimizations](#optimizations)
 
 <details><summary>VRM-Rust Overview</summary>
 
@@ -222,16 +225,29 @@ cargo run -- --input-file src/data/workflow_with_direct_mapping.json --config-fi
 │   │   └── test/                        # Utilized VRM-Rust configuration and workflow for tests 
 │   ├──domain  
 │   │   ├── simulator/                   # Manges the system time of the VRM-Rust system (GlobalClock) 
-│   │   ├── 
-│   │   ├── 
-│   │   └── 
+│   │   ├── client/                      # Contains the parses the client DTO object
+│   │   ├── reservation/                 # Contains the reservation types and reservation management logic
+│   │   ├── resource/                    # Contains the resource types and the resource management logic 
+│   │   ├── rms/                         # Contains the VRM simulator and the Slurm adapter (Adapter logic for AcI and HPC) 
+│   │   ├── schedule/                    # Contains the link and node schedules 
+│   │   ├── utils/                       # Contains the id system, static variables, logging and dummy workflow generator
+│   │   ├── vrm_component/               # Contains the ADC and AcI
+│   │   └── workflow/                    # Manges the workflow construction process
 |   └──  loader/                         # Parser to load JSON files
 ├── tests/              # Integration tests with sample avatars
 └── Cargo.toml          # Build configuration
 ```
 
-## Ideas 
-This section lists all unfinished concepts of the VRM-Rust prototype. These unfinished concepts are marked with **Idea:** in the project. 
-- The client, should have the ability to request all his currently scheduled reservations on the system. The current state of this feature is, that the data is aggregate, but the new request typ is not implemented. See in vrm_manager.rs function get_managed_reservations_for_client. 
-- 
+## VRM-Rust Prototype Documentation: Ideas, Unimplemented Features, and Optimizations
+### Ideas 
+This section lists all unfinished concepts of the VRM-Rust prototype. These unfinished concepts are marked with **Idea:** in the project.
+- The client should have the ability to request all of their currently scheduled reservations on the system. The current state of this feature is that the data is aggregated, but the new request type is not implemented. See the `get_managed_reservations_for_client` function in `vrm_manager.rs`. 
+- A mechanism should exist that periodically deletes all reservations in the `ReservationStore` with the state Rejected, Deleted, or Finished. For reservations in the rejected state, the system must also check if the reservation has been deleted from the schedule and the RMS system (if committed or reserved). The idea is to use the `on_reservation_change` notification functionality in `vrm_state_listener.rs` to notify the `vrm_manager`, which can then add the reservation to the deletion list in the `ReservationStore`. However, the reservation should only be deleted after a grace period (which is important for debugging and tracking purposes). The idea is, that `ReservationStore` periodically checks (e.g., every 30s) which reservations can be deleted. If a reservation is on the deletion list, a reference bit is added. If it already has a reference bit, it is deleted. This ensures that the reservation is not immediately deleted. This feature must also handle the cleanup in the `VrmComponent`s. These components track the committed reservations, so if a reservation is deleted, these systems should be notified too. 
 
+### Not Implemented 
+This section lists all unimplemented functionalities of the VRM system. The corresponding code sections are marked with **Unimplemented:**. 
+- All functionalities of the `SlottedLinkSchedule` regarding fragmentation calculation and creating system metrics. The mocks for these functions are located in the file `link_strategy.rs`. The aggregation functionality for the fragmentation calculation and system metrics in higher components is already implemented. All results that return **-1** are considered unimplemented by these components and are therefore treated as invalid.  
+- Rescheduling functionality: In case a node is taken offline, the corresponding scheduled reservations on this node must be rescheduled on different nodes. This is currently not done. The `update_nodes` function in the `ResourceStore` simply deletes all reservations associated with the corresponding node. 
+
+### Optimizations
+This section lists parts of the VRM implementation that could function as a bottleneck in later stages of the system. These sections are highlighted with **Optimization:**.
