@@ -178,13 +178,11 @@ impl VrmComponent for ADC {
         if self.reservation_store.is_workflow(reservation_id) {
             let mut is_deleted = true;
             for workflow_res_id in self.reservation_store.get_workflow_res_ids(reservation_id).unwrap().iter() {
-                if let Some(component_id) = self.manager.get_handler_id(workflow_res_id.clone()) {
-                    self.delete_task_at_component(component_id, *workflow_res_id, shadow_schedule_id.clone());
-                } else {
-                    is_deleted = false;
+                if !self.manager.delete_task_at_component(*workflow_res_id, shadow_schedule_id.clone()) {
                     log::error!("ErrorAdcWorkflowDeletion: No handler found for reservation {:?}", reservation_id);
                     self.reservation_store.update_state(*workflow_res_id, ReservationState::Rejected);
                     self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
+                    is_deleted = false;
                 }
             }
 
@@ -202,14 +200,8 @@ impl VrmComponent for ADC {
         }
 
         // Handle cleanup of atomic Reservation
-        if let Some(component_id) = self.manager.get_handler_id(reservation_id) {
-            self.delete_task_at_component(component_id, reservation_id, shadow_schedule_id);
-            return reservation_id;
-        } else {
-            log::error!("ADC Delete: No handler found for reservation {:?}", reservation_id);
-            self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
-            return reservation_id;
-        }
+        self.manager.delete_task_at_component(reservation_id, shadow_schedule_id);
+        return reservation_id;
     }
 
     fn get_load_metric(&self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> RmsLoadMetric {

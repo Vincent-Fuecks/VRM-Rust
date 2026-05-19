@@ -65,12 +65,11 @@ impl ADC {
                 // D. Re-reserve them in the Shadow Schedule context
                 let mut shadow_db = HashMap::new();
                 for res_id in sorted_ids {
-                    self.manager.reserve_task_at_best_vrm_component(
+                    self.manager.reserve_reservation_at_best_vrm_component(
                         res_id,
                         Some(shadow_id.clone()),
                         &mut shadow_db,
                         ProbeReservationComparator::ESTReservationCompare,
-                        |_, _| Ordering::Equal,
                     );
                 }
 
@@ -91,37 +90,6 @@ impl ADC {
                 }
             }
         }
-    }
-
-    // TODO Should work with GridComponent
-    /// Removes an VrmComponent from the registry based on its unique identifier.
-    fn delete_vrm_component(&mut self, vrm_component: Box<dyn VrmComponent>) -> bool {
-        log::debug!("ACD {} deletes VrmComponent {}", self.id, vrm_component.get_id());
-        return self.manager.delete_vrm_component(vrm_component.get_id());
-    }
-
-    /// Adds a new `GridComponent` to the domain and initializes its local schedule view.
-    fn add_vrm_component(&mut self, vrm_component: VrmComponentProxy) -> bool {
-        log::debug!("ADC: {} adds AcI: {}", self.id, vrm_component.get_id());
-        return self.manager.add_vrm_component(
-            vrm_component,
-            self.simulator.clone(),
-            self.reservation_store.clone(),
-            self.num_of_slots,
-            self.slot_width,
-        );
-    }
-
-    fn reserve_commit(reservation_id: ReservationId) {
-        todo!()
-    }
-
-    fn reserve_probe(reservation_id: ReservationId) {
-        todo!()
-    }
-
-    fn reserve_reserve(reservation_id: ReservationId) {
-        todo!()
     }
 
     /// Submits a task to the first VrmComponent that accepts the reservation based on the defined `VrmComponentOrder`.
@@ -176,79 +144,9 @@ impl ADC {
         return reservation_id;
     }
 
-    /// Probes all available VrmComponents and selects the best candidate based on the provided comparison function.
-    ///
-    /// This implements a "Best Fit" strategy, useful for optimizing resource utilization or
-    /// meeting Earliest Finish Time (EFT) constraints.
-    /// TODO should be moved to VrmComponentManager
-    pub fn submit_task_at_best_vrm_component(
-        &mut self,
-        reservation_id: ReservationId,
-        shadow_schedule_id: Option<ShadowScheduleId>,
-        grid_component_res_database: &mut HashMap<ReservationId, ComponentId>,
-        probe_reservation_comparator: ProbeReservationComparator,
-    ) -> Option<ReservationId> {
-        let mut probe_reservations = ProbeReservations::new(reservation_id, self.reservation_store.clone());
-
-        let res_snapshot = match self.reservation_store.get_reservation_snapshot(reservation_id) {
-            Some(snapshot) => snapshot,
-            None => {
-                log::error!("Cannot submit task: snapshot for {:?} not found.", reservation_id);
-                return None;
-            }
-        };
-
-        for component_id in self.manager.get_random_ordered_vrm_components() {
-            if self.manager.can_component_handel(component_id.clone(), res_snapshot.clone()) {
-                let probe_res = self.manager.get_vrm_component_mut(component_id.clone()).probe(reservation_id, shadow_schedule_id.clone());
-
-                probe_reservations.add_probe_reservations(probe_res);
-            }
-        }
-
-        for _ in 0..TRY_N_PROMOTIONS {
-            if let Some((component_id, shadow_schedule_id)) = probe_reservations.prompt_best(reservation_id, probe_reservation_comparator.clone()) {
-                self.manager.reserve(component_id.clone(), reservation_id, shadow_schedule_id);
-
-                if self.reservation_store.is_reservation_state_at_least(reservation_id, ReservationState::ReserveAnswer) {
-                    log::info!("Reservation {:?} successful!", reservation_id);
-
-                    // Update local schedule
-                    self.manager.reserve_without_check(component_id.clone(), reservation_id);
-
-                    // Register new schedule Sub-Task
-                    // Update grid_component_res_database for rollback and for ADC to keep track
-                    // Update Transaction Log
-                    if grid_component_res_database.contains_key(&reservation_id) {
-                        log::error!(
-                            "ErrorReservationWasReservedInMultipleGridComponents: The reservation {:?} was multiple times to the GirdComponent {} submitted.",
-                            self.reservation_store.get_name_for_key(reservation_id),
-                            component_id,
-                        );
-                    }
-
-                    grid_component_res_database.insert(reservation_id, component_id);
-                    return Some(reservation_id);
-                }
-            }
-        }
-        return None;
-    }
-
-    /// Deletes a task from the underlying component and cleans up the associated local schedule.
-    pub fn delete_task_at_component(
-        &mut self,
-        component_id: ComponentId,
-        reservation_id: ReservationId,
-        shadow_schedule_id: Option<ShadowScheduleId>,
-    ) {
-        todo!()
-    }
-
     pub fn log_state_probe(&mut self, num_of_answers: i64, arrival_time_at_aci: i64) {
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
         let processing_time = self.simulator.get_system_time_s() - arrival_time_at_aci;
-        // TODO
         tracing::info!(
             target: ANALYTICS_TARGET,
             Time = now,

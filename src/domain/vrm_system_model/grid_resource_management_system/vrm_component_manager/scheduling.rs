@@ -7,6 +7,7 @@ use crate::domain::vrm_system_model::grid_resource_management_system::vrm_compon
 use crate::domain::vrm_system_model::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::domain::vrm_system_model::reservation::reservation::ReservationState;
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationId;
+use crate::domain::vrm_system_model::utils::config::TRY_N_PROMOTIONS;
 use crate::domain::vrm_system_model::utils::id::{ComponentId, ShadowScheduleId};
 
 use super::VrmComponentManager;
@@ -71,8 +72,10 @@ impl VrmComponentManager {
                 container.vrm_component.reserve(reservation_id, shadow_schedule_id);
 
                 if self.reservation_store.is_reservation_state_at_least(reservation_id, ReservationState::ReserveAnswer) {
-                    self.not_committed_reservations.insert(reservation_id, component_id);
+                    self.not_committed_reservations.insert(reservation_id, component_id.clone());
                 }
+                println!("{:?}", component_id.clone());
+                self.res_to_vrm_component.insert(reservation_id, component_id);
 
                 return reservation_id;
             }
@@ -150,6 +153,8 @@ impl VrmComponentManager {
         } else {
             target_component = self.res_to_vrm_component.get(&reservation_id).cloned();
         }
+
+        println!("{:?}", target_component);
 
         match target_component {
             Some(component_id) => {
@@ -248,86 +253,6 @@ impl VrmComponentManager {
         }
     }
 
-    /// Probes all available VrmComponents and selects the best candidate based on the provided comparison function.
-    ///
-    /// This implements a "Best Fit" strategy, useful for optimizing resource utilization or
-    /// meeting Earliest Finish Time (EFT) constraints.
-    pub fn reserve_task_at_best_vrm_component<F>(
-        &mut self,
-        reservation_id: ReservationId,
-        shadow_schedule_id: Option<ShadowScheduleId>,
-        grid_component_res_database: &mut HashMap<ReservationId, ComponentId>,
-        probe_reservation_comparator: ProbeReservationComparator,
-        reservation_order: F,
-    ) -> Option<ReservationId>
-    where
-        F: Fn(ReservationId, ReservationId) -> Ordering + 'static,
-    {
-        let try_n_probe_reservations = 5;
-        let mut probe_reservations = ProbeReservations::new(reservation_id, self.reservation_store.clone());
-
-        for component_id in self.get_random_ordered_vrm_components() {
-            // Get Reservation Clone of the ShadowScheduleId or MasterSchedule
-            let res_snapshot = if let Some(sid) = &shadow_schedule_id {
-                if let Some((_, store)) = self.shadow_schedule_reservations.get(sid) {
-                    store.get_reservation_snapshot(reservation_id)
-                } else {
-                    self.reservation_store.get_reservation_snapshot(reservation_id)
-                }
-            } else {
-                self.reservation_store.get_reservation_snapshot(reservation_id)
-            };
-
-            if let Some(res) = res_snapshot {
-                if self.can_component_handel(component_id.clone(), res) {
-                    probe_reservations
-                        .add_probe_reservations(self.get_vrm_component_mut(component_id.clone()).probe(reservation_id, shadow_schedule_id.clone()));
-                }
-            }
-        }
-
-        for _ in 0..=try_n_probe_reservations {
-            if let Some((component_id, shadow_schedule_id)) = probe_reservations.prompt_best(reservation_id, probe_reservation_comparator.clone()) {
-                self.reserve(component_id, reservation_id, shadow_schedule_id);
-
-                // TODO
-                todo!();
-                // TODO
-                // 1. Prepare the gate
-                // let gate = self.sync_registry.create_gate(reservation_id);
-
-                // 2. Trigger the AcI by updating the store
-                self.reservation_store.update_state(reservation_id, ReservationState::ReserveProbeReservation);
-
-                // TODO Add parameter to a config
-                // 3. BLOCK here. This thread sleeps until AcI calls notify().
-                // let result = gate.wait_with_timeout(std::time::Duration::from_secs(15));
-
-                // 4. Clean up the registry
-                // self.sync_registry.remove_gate(reservation_id);
-
-                // Check if update of local schedule was successful
-                // if result.state == ReservationState::ReserveAnswer {
-                //     log::info!("Reservation {:?} successful!", reservation_id);
-
-                //     // Register new schedule Sub-Task
-                //     // Update grid_component_res_database for rollback and for ADC to keep track
-                //     // Update Transaction Log
-                //     if grid_component_res_database.contains_key(&reservation_id) {
-                //         log::error!(
-                //             "ErrorReservationWasReservedInMultipleGridComponents: The reservation {:?} was multiple times to the GirdComponent {} submitted.",
-                //             self.reservation_store.get_name_for_key(reservation_id),
-                //             result.aci_id.clone().unwrap(),
-                //         );
-                //     }
-                //     grid_component_res_database.insert(reservation_id, result.aci_id.unwrap());
-                //     return Some(reservation_id);
-                // }
-            }
-        }
-        return None;
-    }
-
     /// Submits a task to the first VrmComponent that accepts the reservation based on the defined `VrmComponentOrder`.
     pub fn reserve_task_at_first_grid_component(
         &mut self,
@@ -372,5 +297,63 @@ impl VrmComponentManager {
         }
 
         return reservation_id;
+    }
+
+    /// Probes all available VrmComponents and selects the best candidate based on the provided comparison function.
+    ///
+    /// This implements a "Best Fit" strategy, useful for optimizing resource utilization or
+    /// meeting Earliest Finish Time (EFT) constraints.
+    pub fn reserve_reservation_at_best_vrm_component(
+        &mut self,
+        reservation_id: ReservationId,
+        shadow_schedule_id: Option<ShadowScheduleId>,
+        grid_component_res_database: &mut HashMap<ReservationId, ComponentId>,
+        probe_reservation_comparator: ProbeReservationComparator,
+    ) -> Option<ReservationId> {
+        let mut probe_reservations = ProbeReservations::new(reservation_id, self.reservation_store.clone());
+
+        let res_snapshot = match self.reservation_store.get_reservation_snapshot(reservation_id) {
+            Some(snapshot) => snapshot,
+            None => {
+                log::error!("Cannot submit task: snapshot for {:?} not found.", reservation_id);
+                return None;
+            }
+        };
+
+        for component_id in self.get_random_ordered_vrm_components() {
+            if self.can_component_handel(component_id.clone(), res_snapshot.clone()) {
+                let probe_res = self.get_vrm_component_mut(component_id.clone()).probe(reservation_id, shadow_schedule_id.clone());
+
+                probe_reservations.add_probe_reservations(probe_res);
+            }
+        }
+
+        for _ in 0..TRY_N_PROMOTIONS {
+            if let Some((component_id, shadow_schedule_id)) = probe_reservations.prompt_best(reservation_id, probe_reservation_comparator.clone()) {
+                self.reserve(component_id.clone(), reservation_id, shadow_schedule_id);
+
+                if self.reservation_store.is_reservation_state_at_least(reservation_id, ReservationState::ReserveAnswer) {
+                    log::info!("Reservation {:?} successful!", reservation_id);
+
+                    // Update local schedule
+                    self.reserve_without_check(component_id.clone(), reservation_id);
+
+                    // Register new schedule Sub-Task
+                    // Update grid_component_res_database for rollback and for ADC to keep track
+                    // Update Transaction Log
+                    if grid_component_res_database.contains_key(&reservation_id) {
+                        log::error!(
+                            "ErrorReservationWasReservedInMultipleGridComponents: The reservation {:?} was multiple times to the GirdComponent {} submitted.",
+                            self.reservation_store.get_name_for_key(reservation_id),
+                            component_id,
+                        );
+                    }
+
+                    grid_component_res_database.insert(reservation_id, component_id);
+                    return Some(reservation_id);
+                }
+            }
+        }
+        return None;
     }
 }

@@ -19,6 +19,7 @@ use crate::{
                 vrm_component_trait::VrmComponent,
             },
             reservation::{
+                probe_reservations::ProbeReservationComparator,
                 reservation::{ReservationProceeding, ReservationState},
                 reservation_store::{ReservationId, ReservationStore},
                 vrm_state_listener::VrmStateListener,
@@ -159,7 +160,7 @@ impl VrmManager {
         while !self.unprocessed_reservations.is_empty() {
             let (reservation_id, res_arrival_time) = self.unprocessed_reservations.remove(0);
             let now = self.simulator.get_system_time_s();
-            
+
             if res_arrival_time > now {
                 let wait_seconds = res_arrival_time - now;
                 if wait_seconds > 0 {
@@ -177,9 +178,7 @@ impl VrmManager {
     }
 
     async fn process_reservation(&mut self, process_res_id: ReservationId) {
-        // TODO implement ReservationListener for this file.
         let use_master_schedule = None;
-
         log::info!("Try to submit Reservation {:?} the the master Adc.", self.reservation_store.get_name_for_key(process_res_id));
 
         // Step 1: Quick reserve via Probe request if Reservation is not a workflow
@@ -188,18 +187,14 @@ impl VrmManager {
             let mut probe_reservations = self.adc_master.probe(process_res_id, use_master_schedule.clone());
 
             // Prompt best ProbeReservation -> Try to reserve ProbeReservation
-            // TODO Must have a reserve function with a component_id
-            // if probe_reservations.prompt_best(process_res_id, ProbeReservationComparator::ESTReservationCompare) {
-            //     self.adc_master.reserve(reservation_id, shadow_schedule_id)
-            //     self.reservation_store.update_state(process_res_id, ReservationState::ReserveProbeReservation);
-
-            //     // Reserve of ProbeReservation was not possible -> Reset Reservation to original
-            //     if !self.reservation_store.is_reservation_state_at_least(process_res_id, ReservationState::ReserveAnswer) {
-            //         probe_reservations.demote();
-            //     } else {
-            //         log::info!("Reservation {:?} was sucessful reseved via probe request.", self.reservation_store.get_name_for_key(process_res_id));
-            //     }
-            // }
+            if let Some((_, _)) = probe_reservations.prompt_best(process_res_id, ProbeReservationComparator::ESTReservationCompare) {
+                // Reserve of ProbeReservation was not possible -> Reset Reservation to original
+                if !self.reservation_store.is_reservation_state_at_least(process_res_id, ReservationState::ReserveAnswer) {
+                    probe_reservations.demote();
+                } else {
+                    log::info!("Reservation {:?} was sucessful reseved via probe request.", self.reservation_store.get_name_for_key(process_res_id));
+                }
+            }
         }
 
         if self.reservation_store.is_reservation_proceeding(process_res_id, ReservationProceeding::Probe) {
@@ -208,8 +203,7 @@ impl VrmManager {
         }
 
         // Step 2: Reserve
-        // TODO del true in if
-        if self.reservation_store.is_reservation_proceeding(process_res_id, ReservationProceeding::Reserve) || true {
+        if self.reservation_store.is_reservation_proceeding(process_res_id, ReservationProceeding::Reserve) {
             log::info!("Try to reserve Reservation {:?}.", self.reservation_store.get_name_for_key(process_res_id));
             self.adc_master.reserve(process_res_id, use_master_schedule.clone());
 

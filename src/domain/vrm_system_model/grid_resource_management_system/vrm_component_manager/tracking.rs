@@ -80,7 +80,7 @@ impl VrmComponentManager {
         }
     }
 
-        pub fn update_commit_tracking(&mut self, reservation_id: ReservationId, component_id: ComponentId) {
+    pub fn update_commit_tracking(&mut self, reservation_id: ReservationId, component_id: ComponentId) {
         if !self.is_reservation_reserved(reservation_id) {
             self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
             log::error!(
@@ -104,8 +104,6 @@ impl VrmComponentManager {
         self.committed_reservations.insert(reservation_id, component_id);
     }
 
-
-    //TODO ShadowSchedule is it right, do to tho this with the reservation_store of the shadow_schedule?
     pub fn update_reserve_tracking(
         &mut self,
         reservation_id: ReservationId,
@@ -150,7 +148,7 @@ impl VrmComponentManager {
             let (shadow_not_committed_reservations, shadow_reservation_store) =
                 self.shadow_schedule_reservations.get_mut(&shadow_schedule_id.clone().unwrap()).expect("ErrorVrmManagerShadowScheduleWasNotFound");
 
-            // TODO: In shadow mode, we often use `res_to_vrm_component` (shadow_map) to track everything.
+            // In shadow mode, we often use `res_to_vrm_component` (shadow_map) to track everything.
             // `not_committed_reservations` is technically derived from state.
             // Here we update the map directly.
 

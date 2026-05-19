@@ -339,8 +339,8 @@ pub fn get_workflow_dto_with_one_task(
     };
 }
 
-pub fn get_clients(client_id: String, workflow_dto: WorkflowDto, reservation_store: ReservationStore) -> Clients {
-    let client_dto = ClientDto { id: client_id, workflows: vec![workflow_dto] };
+pub fn get_clients(client_id: String, workflow_dto: Vec<WorkflowDto>, reservation_store: ReservationStore) -> Clients {
+    let client_dto = ClientDto { id: client_id, workflows: workflow_dto };
     let clients_dto = ClientsDto { clients: vec![client_dto] };
     return Clients::from_dto(clients_dto, reservation_store).expect("Getting Clients was not possible.");
 }

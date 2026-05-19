@@ -42,6 +42,7 @@ pub struct VrmComponentManager {
     /// Contains all commit reservations --> All reservations on the master schedule
     pub committed_reservations: HashMap<ReservationId, ComponentId>,
 
+    /// Contains all not commit reservations --> All reservations on the master schedule
     pub not_committed_reservations: HashMap<ReservationId, ComponentId>,
 
     pub shadow_schedule_reservations: HashMap<ShadowScheduleId, (HashMap<ReservationId, ComponentId>, ReservationStore)>,

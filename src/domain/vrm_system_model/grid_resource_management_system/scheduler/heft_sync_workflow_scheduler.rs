@@ -1,5 +1,6 @@
 use crate::domain::vrm_system_model::grid_resource_management_system::adc::ADC;
 use crate::domain::vrm_system_model::grid_resource_management_system::scheduler::workflow_scheduler::{WorkflowScheduler, WorkflowSchedulerBase};
+use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_order::VrmComponentOrder;
 use crate::domain::vrm_system_model::reservation::probe_reservations::ProbeReservationComparator;
 use crate::domain::vrm_system_model::reservation::reservations::Reservations;
 use std::any::Any;
@@ -418,8 +419,7 @@ impl HEFTSyncWorkflowScheduler {
         adc: &mut ADC,
     ) -> Option<ReservationId> {
         // Request all GirdComponents for reservation candidates and sort them according to EFT (earliest finishing time)
-
-        let candidate_id = adc.submit_task_at_best_vrm_component(
+        let candidate_id = adc.manager.reserve_reservation_at_best_vrm_component(
             reservation_id,
             None,
             grid_component_res_database,
@@ -441,8 +441,13 @@ impl HEFTSyncWorkflowScheduler {
      * @param aisPerReservation a container with all reservations to cancel and the AIs where they are booked.
      */
     pub fn cancel_all_reservations(&mut self, adc: &mut ADC, grid_component_res_database: &mut HashMap<ReservationId, ComponentId>) {
-        for (reservation_id, component_id) in grid_component_res_database.clone() {
-            adc.delete_task_at_component(component_id.clone(), reservation_id.clone(), None)
+        for (reservation_id, _) in grid_component_res_database.clone() {
+            if !adc.manager.delete_task_at_component(reservation_id.clone(), None) {
+                log::error!(
+                    "HEFTSyncWorkflowSchedulerCancelAllReservationsError: Is was not possible to delete the Reservation {:?}.",
+                    reservation_id
+                );
+            }
         }
         grid_component_res_database.clear();
     }
