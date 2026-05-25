@@ -37,6 +37,7 @@ anyhow = "1.0.102"
 async-trait = "0.1.89"
 bimap = "0.6.3"
 logtest = "2.0.0"
+parking_lot = { version = "0.12", features = ["deadlock_detection"] }
 
 [profile.release]
 lto = true          # Enables Link Time Optimization

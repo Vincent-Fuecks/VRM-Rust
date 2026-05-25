@@ -1,6 +1,7 @@
+use parking_lot::RwLock;
 use std::any::Any;
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::time::timeout;
@@ -41,7 +42,12 @@ impl Rms for SlurmRms {
             if let Some(node_res) = reservation.as_node() {
                 payload = TaskSubmission {
                     job: JobProperties {
-                        name: base_id.id.clone(),
+                        name: format!(
+                            "{}, VRM-Res-ID: {:?}, Job-VRM-Name: {:?}",
+                            base_id.id.clone(),
+                            reservation_id,
+                            self.get_reservation_store().get_name_for_key(reservation_id)
+                        ),
                         cpus_per_task: node_res.base.reserved_capacity as u32,
                         nodes: None,
                         memory_per_node: MEMORY_PER_NODE,
@@ -51,6 +57,7 @@ impl Rms for SlurmRms {
                         standard_output: node_res.output_path.clone(),
                         standard_error: node_res.error_path.clone(),
                         environment: node_res.environment.clone(),
+                        dependency: None, // Is handled by the VrmManager
                     },
 
                     script: node_res.task_path.clone(),
@@ -69,18 +76,18 @@ impl Rms for SlurmRms {
         }
 
         // Send NodeReservation to RMS
-        self.rt_handle.block_on(async move {
+        self.rt_handle.spawn(async move {
             let result = timeout(Duration::from_secs(SLURM_RMS_COMMIT_TIMEOUT_S), client.commit(payload)).await;
-            reservation_store.update_state(reservation_id, ReservationState::Committed);
 
             match result {
                 Ok(Ok(task_id)) => {
-                    task_mapping.write().unwrap().insert(reservation_id, task_id);
+                    task_mapping.write().insert(reservation_id, task_id);
                     log::info!(
                         "The reservation {:?} was successfully submitted to the local RMS {:?}",
                         reservation_store.get_name_for_key(reservation_id),
                         base_id
                     );
+                    reservation_store.update_state(reservation_id, ReservationState::Committed);
                 }
                 Ok(Err(e)) => {
                     log::info!(
@@ -107,7 +114,7 @@ impl Rms for SlurmRms {
     fn delete_task(&mut self, reservation_id: ReservationId, shadow_schedule_id: Option<ShadowScheduleId>) {
         if self.get_reservation_store().get_state(reservation_id) != ReservationState::Committed {
             let active_scheduler = self.get_active_schedule(shadow_schedule_id, reservation_id);
-            active_scheduler.write().unwrap().delete_reservation(reservation_id);
+            active_scheduler.write().delete_reservation(reservation_id);
             return;
         }
 
@@ -126,16 +133,16 @@ impl Rms for SlurmRms {
         let base_id = self.base.id.clone();
         let task_mapping = Arc::clone(&self.task_mapping);
         let active_scheduler = Arc::clone(&self.get_active_schedule(shadow_schedule_id, reservation_id));
-        let slurm_task_id = task_mapping.read().unwrap().get_by_left(&reservation_id).cloned();
+        let slurm_task_id = task_mapping.read().get_by_left(&reservation_id).cloned();
 
         if let Some(slurm_task_id) = slurm_task_id {
-            self.rt_handle.block_on(async move {
+            self.rt_handle.spawn(async move {
                 let result = timeout(Duration::from_secs(SLURM_RMS_DELETE_TIMEOUT_S), client.delete(slurm_task_id)).await;
 
                 match result {
                     Ok(Ok(_)) => {
-                        task_mapping.write().unwrap().remove_by_right(&slurm_task_id);
-                        active_scheduler.write().unwrap().delete_reservation(reservation_id);
+                        task_mapping.write().remove_by_right(&slurm_task_id);
+                        active_scheduler.write().delete_reservation(reservation_id);
 
                         if reservation_store.get_state(reservation_id) == ReservationState::Deleted {
                             log::info!(

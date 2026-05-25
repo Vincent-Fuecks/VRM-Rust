@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use vrm_rust_workflow::api::rms_config_dto::rms_dto::{DummyRmsDto, GridNodeDto, NetworkLinkDto, RmsSystemWrapper};
@@ -52,6 +53,7 @@ pub fn create_node_reservation(
 
     let node_res = NodeReservation {
         base,
+        data_dependencies: HashSet::new(),
         current_working_directory: Some("/tmp".to_string()),
         environment: Some(vec!["PATH=/usr/bin:/bin".to_string()]),
         task_path: "/bin/sleep".to_string(),
@@ -147,7 +149,7 @@ pub fn get_direct_mapping_workflow_dto(
         booking_interval_start: 10,
         booking_interval_end: 1000000,
         request_proceeding: workflow_proceeding,
-        state: workflow_state,
+        reservation_state: workflow_state,
 
         tasks: vec![
             // Task c0
@@ -299,7 +301,7 @@ pub fn get_workflow_dto_with_one_task(
         arrival_time: 0,
         booking_interval_start: 10,
         booking_interval_end: 100,
-        state: task_reservation_state,
+        reservation_state: task_reservation_state,
         request_proceeding: task_reservation_proceeding,
 
         tasks: vec![

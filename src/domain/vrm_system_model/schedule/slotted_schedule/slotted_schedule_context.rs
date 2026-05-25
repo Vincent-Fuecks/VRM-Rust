@@ -175,7 +175,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
         let index: i64 = (time as f64 / self.slot_width as f64).floor() as i64;
 
         if index < 0 {
-            log::error!("The requested slot index is negative ({}), because the requested time was negative: {}", index, time,);
+            log::debug!("The requested slot index is negative ({}), because the requested time was negative: {}", index, time,);
 
             return 0;
         }
@@ -474,13 +474,13 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
 
     /// Updates the total resource capacity for all time slots within the schedule.
     ///
-    /// This method performs a global capacity adjustment across all slots of the schedule. 
-    /// If a slot's current **occupied load** exceeds the requested `capacity`, the system 
-    /// will aggressively prune existing reservations from that slot until the load 
+    /// This method performs a global capacity adjustment across all slots of the schedule.
+    /// If a slot's current **occupied load** exceeds the requested `capacity`, the system
+    /// will aggressively prune existing reservations from that slot until the load
     /// satisfies the new constraint.
     ///
     /// # Side Effects
-    /// * **Reservation Eviction**: Reservations are removed based on their presence in 
+    /// * **Reservation Eviction**: Reservations are removed based on their presence in
     ///   the slot's internal tracking list until the load is lowered.
     pub fn update_capacity(&mut self, capacity: usize) {
         let new_capacity = capacity as i64;

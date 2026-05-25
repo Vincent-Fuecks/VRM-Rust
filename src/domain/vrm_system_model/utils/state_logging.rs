@@ -89,7 +89,7 @@ impl BaseLog {
 
         if let Some(res_handle) = reservation_store.get(reservation_id) {
             let (start, end, res_name, capacity, workload, state, proceeding, num_tasks) = {
-                let res = res_handle.read().unwrap();
+                let res = res_handle.read();
 
                 let start = res.get_base_reservation().get_assigned_start();
                 let end = res.get_base_reservation().get_assigned_end();

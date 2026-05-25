@@ -129,9 +129,6 @@ To test VRM-Rust against a Slurm-based system, follow these steps to set up the 
 git clone https://github.com/Vincent-Fuecks/virtual-slurm-environment.git
 cd virtual-slurm-environment
 
-# Generate a JWT key for authentication
-openssl rand -out jwt_hs256.key 32
-
 # Start the cluster to initialize directories
 sudo docker compose up -d
 ```
@@ -139,12 +136,14 @@ sudo docker compose up -d
 ##### Step 2 Configure Authentication
 Inject the JWT key into the docker cluster and set the correct permissions:
 ```bash
+# Generate a JWT key for authentication
+openssl rand -out jwt_hs256.key 32
 
 # Set ownership
-sudo chown 990:990 jwt_jwt_hs256.key
-sudo chown 600 jwt_jwt_hs256.key
+sudo chown 990:990 jwt_hs256.key
+sudo chown 600 jwt_hs256.key
 
-sudo docker compose up -d --force-recreated slurmctld
+sudo docker compose up -d --force-recreate slurmctld
 
 # Copy key to the control daemon
 sudo docker cp jwt_hs256.key slurmctld:/etc/slurm/jwt_hs256.key
@@ -162,7 +161,7 @@ Generate a REST API token for the user **vrmUser**. We’ll set a lifespan of on
 ```bash
 sudo docker compose exec slurmctld scontrol token username=vrmUser lifespan=86400
 ```
-[!IMPORTANT]
+>[!IMPORTANT]
 Copy the token output from the command above. You will need it for the final configuration.
 
 ##### Step 4: Verify Connection
@@ -202,7 +201,7 @@ curl -s -v \
 ```
 
 ##### Step 5 Configure VRM-Rust
-Finally, update the project configuration to point to your new cluster. Open VRM-Rust/src/data/vrm_with_slurm.json and update the following fields:
+Finally, update the project configuration to point to your new cluster. Open `VRM-Rust/src/data/demo/vrm_with_slurm.json` and update the following fields:
 ```json
 {
   "userName": "vrmUser",

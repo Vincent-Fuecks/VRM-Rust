@@ -1,6 +1,6 @@
 use core::f64;
 use std::any::Any;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::api::workflow_dto::reservation_dto::{ReservationProceedingDto, ReservationStateDto};
 use crate::api::workflow_dto::workflow_dto::{TaskDto, WorkflowDto};
@@ -97,18 +97,33 @@ impl Workflow {
             }
         }
 
+        // Add the Data dependencies to all node reservations of the workflow.
+
         // Update ReservationStore information
         for (_, link) in &data_dependencies {
             if let Some(res_handle) = reservation_store.get(link.reservation_id) {
-                let mut res = res_handle.write().unwrap();
+                let mut res = res_handle.write();
+                // Add source and target node to the link reservation
                 res.as_link_mut().unwrap().set_start_point(Some(link.source_node.clone().unwrap().cast()));
                 res.as_link_mut().unwrap().set_end_point(Some(link.target_node.clone().unwrap().cast()));
+
+                // Add the Data dependency to the NodeReservation
+                if let Some(target_node_id) = &link.target_node {
+                    if let Some(target_node) = nodes.get(target_node_id) {
+                        if let Some(source_node) = nodes.get(&link.source_node.clone().unwrap()) {
+                            if let Some(node_handle) = reservation_store.get(target_node.reservation_id) {
+                                let mut res = node_handle.write();
+                                res.as_node_mut().unwrap().data_dependencies.insert(source_node.reservation_id);
+                            }
+                        }
+                    }
+                }
             }
         }
 
         for (_, link) in &sync_dependencies {
             if let Some(res_handle) = reservation_store.get(link.reservation_id) {
-                let mut res = res_handle.write().unwrap();
+                let mut res = res_handle.write();
                 res.as_link_mut().unwrap().set_start_point(Some(link.source_node.clone().unwrap().cast()));
                 res.as_link_mut().unwrap().set_end_point(Some(link.target_node.clone().unwrap().cast()));
             }
@@ -140,7 +155,7 @@ impl Workflow {
             name: ReservationName::new(dto.id.clone()),
             client_id: client_id,
             handler_id: None,
-            state: dto.state.to_reservation_state(), // Workflow state is managed separately
+            state: dto.reservation_state.to_reservation_state(), // Workflow state is managed separately
             request_proceeding: dto.request_proceeding.to_reservation_proceeding(), // Default
             arrival_time: dto.arrival_time,
             booking_interval_start: dto.booking_interval_start,
@@ -187,6 +202,7 @@ impl Workflow {
             };
 
             let node_reservation = NodeReservation {
+                data_dependencies: HashSet::new(),
                 base: node_base,
                 current_working_directory: node_res_dto.current_working_directory.clone(),
                 environment: node_res_dto.environment.clone(),
@@ -919,7 +935,6 @@ impl Workflow {
                 self.update_workflow_assigned_start_and_end(reservation_store.clone(), reservation_id);
             }
             Some(ReservationTyp::Node) => {
-                // No more manual struct copying needed!
                 self.update_workflow_assigned_start_and_end(reservation_store.clone(), reservation_id);
             }
             _ => log::error!("Unknown Reservation type for update."),

@@ -1,8 +1,8 @@
 use anyhow::{Result, anyhow};
 use bimap::{BiHashMap, BiMap};
+use parking_lot::RwLock;
 use std::collections::{HashMap, HashSet};
 use std::i64;
-use std::sync::RwLock;
 use std::{str::FromStr, sync::Arc};
 use tokio::runtime::Handle;
 use tokio::time::{Duration, MissedTickBehavior, interval};
@@ -114,7 +114,7 @@ impl SlurmRms {
 
         let base = RmsBase::new(aci_id.clone(), "Slurm".to_string(), reservation_store, resource_store.clone());
 
-        Ok(SlurmRms {
+        let slurm_rms = SlurmRms {
             base: base,
             aci_id: aci_id,
             simulator: simulator,
@@ -125,7 +125,10 @@ impl SlurmRms {
             slurm_rest_client: rest_api_client,
             task_mapping: Arc::new(RwLock::new(BiMap::new())),
             rt_handle: Handle::current(),
-        })
+        };
+
+        slurm_rms.start_sync();
+        Ok(slurm_rms)
     }
 }
 
@@ -178,7 +181,7 @@ impl SlurmRms {
         let new_node_capacity = resource_store.get_total_node_capacity();
 
         if old_node_capacity != new_node_capacity {
-            let mut guard = node_schedule.write().unwrap();
+            let mut guard = node_schedule.write();
             // Adjust capacity in node schedule accordingly to the new total node capacity.
             guard.update_capacity(new_node_capacity as usize);
         }
@@ -199,61 +202,75 @@ impl SlurmRms {
         let active_slurm_ids: HashSet<u32> = slurm_tasks.jobs.iter().map(|job| job.job_id).collect();
         let mut external_reservations = Vec::new();
 
-        let mut mapping = task_mapping.write().expect("Lock poisoned");
+        // Tasks removed by the RMS scheduling logic
+        let mut to_finish = Vec::new();
+        // Task, were the RMS changed the job status
+        let mut to_update = Vec::new();
 
-        // Tasks deleted by the RMS scheduling logic
-        let to_remove: Vec<(ReservationId, u32)> = mapping
-            .iter()
-            .filter(|(_, slurm_task_id)| !active_slurm_ids.contains(slurm_task_id))
-            .map(|(reservation_id, slurm_task_id)| (reservation_id.clone(), *slurm_task_id))
-            .collect();
+        {
+            let mapping = task_mapping.read();
 
-        // Deletes Reservations by setting them into the Deleted State
-        if !to_remove.is_empty() {
-            for (res_id, slurm_task_id) in to_remove {
-                reservation_store.update_state(res_id, ReservationState::Deleted);
-                mapping.remove_by_right(&slurm_task_id);
+            // Find tasks deleted/finish by the RMS scheduling logic
+            for (reservation_id, slurm_task_id) in mapping.iter() {
+                if !active_slurm_ids.contains(slurm_task_id) {
+                    to_finish.push((*reservation_id, *slurm_task_id));
+                }
             }
-        }
 
-        // Process Task Updates
-        for slurm_task in slurm_tasks.jobs {
-            // Task is tracked in Schedule
-            if let Some(reservation_id) = mapping.get_by_right(&slurm_task.job_id) {
-                if let Some(slurm_task_states) = slurm_task.job_state {
-                    if slurm_task_states.is_empty() {
-                        log::debug!(
-                            "The slurm job {:?} running on RMS {:?} contains no valid state. Possible due to a Slurm cluster failure.",
-                            slurm_task.job_id,
-                            rms_id
-                        );
-                    } else if slurm_task_states.len() > 1 {
-                        log::debug!(
-                            "The slurm job {:?} running on RMS {:?} contains multiple job states {:?}, currently only the first state is taken into account.",
-                            slurm_task.job_id,
-                            rms_id,
-                            slurm_task_states
-                        );
-                    } else {
-                        if let Some(first_state) = slurm_task_states.first() {
-                            if let Ok(new_state) = ReservationState::from_slurm_task_state(first_state) {
-                                let current_state = reservation_store.get_state(*reservation_id);
-
-                                // Task state in RMS and Schedule are different
-                                if current_state != new_state {
-                                    reservation_store.update_state(*reservation_id, new_state);
+            // Process Task Updates
+            for slurm_task in &slurm_tasks.jobs {
+                // Is Task tracked in Schedule?
+                if let Some(reservation_id) = mapping.get_by_right(&slurm_task.job_id) {
+                    if let Some(slurm_task_states) = &slurm_task.job_state {
+                        if slurm_task_states.is_empty() {
+                            log::debug!(
+                                "The slurm job {:?} running on RMS {:?} contains no valid state. Possible due to a Slurm cluster failure.",
+                                slurm_task.job_id,
+                                rms_id
+                            );
+                        } else if slurm_task_states.len() > 1 {
+                            log::debug!(
+                                "The slurm job {:?} running on RMS {:?} contains multiple job states {:?}, currently only the first state is taken into account.",
+                                slurm_task.job_id,
+                                rms_id,
+                                slurm_task_states
+                            );
+                        } else {
+                            if let Some(first_state) = slurm_task_states.first() {
+                                if let Ok(new_state) = ReservationState::from_slurm_task_state(first_state) {
+                                    let current_state = reservation_store.get_state(*reservation_id);
+                                    if current_state != new_state {
+                                        to_update.push((*reservation_id, new_state));
+                                    }
+                                } else {
+                                    log::warn!("Job {} on RMS {:?} has no valid state.", slurm_task.job_id, rms_id);
                                 }
-                            } else {
-                                log::warn!("Job {} on RMS {:?} has no valid state.", slurm_task.job_id, rms_id);
                             }
                         }
                     }
+                } else {
+                    // Aggregate External Reservations
+                    let node_reservation = Reservation::Node(NodeReservation::from_slurm(slurm_task, aci_id.clone().cast()));
+                    external_reservations.push((slurm_task.job_id, node_reservation));
                 }
-            } else {
-                // Aggregate External Reservations
-                let node_reservation = Reservation::Node(NodeReservation::from_slurm(&slurm_task, aci_id.clone().cast()));
-                external_reservations.push((slurm_task.job_id, node_reservation));
             }
+        }
+
+        // Remove reservations from the mapping
+        if !to_finish.is_empty() {
+            let mut mapping = task_mapping.write();
+            for (_, slurm_task_id) in &to_finish {
+                mapping.remove_by_right(slurm_task_id);
+            }
+        }
+
+        // Trigger state updates
+        for (res_id, _) in to_finish {
+            reservation_store.update_state(res_id, ReservationState::Finished);
+        }
+
+        for (res_id, new_state) in to_update {
+            reservation_store.update_state(res_id, new_state);
         }
 
         // Add External Task to Schedule and ReservationStore
@@ -271,9 +288,9 @@ impl SlurmRms {
             log::debug!("INSERT EXTERNAL: RESERVATION {:?} into ReservationStore", res.get_name().clone());
 
             let res_id = reservation_store.add(res);
-            task_mapping.write().unwrap().insert(res_id, slurm_task_id);
+            task_mapping.write().insert(res_id, slurm_task_id);
 
-            let mut guard = node_schedule.write().unwrap();
+            let mut guard = node_schedule.write();
 
             if let Some(_) = guard.reserve(res_id) {
                 log::debug!(

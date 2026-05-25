@@ -144,7 +144,7 @@ pub trait AdvanceReservationRms: Rms + Send + Sync {
     /// If no candidates are found, an empty list is returned.
     fn probe(&mut self, reservation_id: ReservationId, shadow_schedule_id: Option<ShadowScheduleId>) -> ProbeReservations {
         let active_scheduler = self.get_active_schedule(shadow_schedule_id, reservation_id);
-        active_scheduler.write().unwrap().probe(reservation_id)
+        active_scheduler.write().probe(reservation_id)
     }
 
     /// Submits a reservation request to the local RMS.
@@ -166,7 +166,7 @@ pub trait AdvanceReservationRms: Rms + Send + Sync {
     ///   will be `ReservationState::Rejected`
     fn reserve(&mut self, reservation_id: ReservationId, shadow_schedule_id: Option<ShadowScheduleId>) -> Option<ReservationId> {
         let active_scheduler = self.get_active_schedule(shadow_schedule_id, reservation_id);
-        active_scheduler.write().unwrap().reserve(reservation_id)
+        active_scheduler.write().reserve(reservation_id)
     }
 
     /// Destroys the specified **Shadow Schedule**.
@@ -197,7 +197,7 @@ pub trait AdvanceReservationRms: Rms + Send + Sync {
         shadow_schedule_id: Option<ShadowScheduleId>,
     ) -> ProbeReservations {
         let active_scheduler = self.get_active_schedule(shadow_schedule_id, request_id);
-        active_scheduler.write().unwrap().probe_best(request_id, probe_reservation_comparator)
+        active_scheduler.write().probe_best(request_id, probe_reservation_comparator)
     }
 
     fn can_handle_adc_request(&self, res: Reservation) -> bool;

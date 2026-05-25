@@ -1,7 +1,8 @@
 use anyhow::Ok;
+use parking_lot::RwLock;
 use std::{
     collections::{HashMap, HashSet},
-    sync::{Arc, RwLock},
+    sync::Arc,
 };
 use tokio::time::{Duration, sleep};
 
@@ -30,12 +31,20 @@ use crate::{
     error::ConversionError,
 };
 
-use super::utils::id::ClientId;
+use super::{reservation::reservation::ReservationTyp, utils::id::ClientId};
 
 pub struct VrmManager {
     pub adc_master: VrmComponentProxy,
+
+    /// Reservation which were not submitted to the VRM system
     pub unprocessed_reservations: Vec<(ReservationId, i64)>,
+
+    /// Reservations that are still processed by the VRM or RMS (ReservationState is not in a terminal state)
+    /// e.g. a workflow was submitted to the RMS but predecessor task of this workflow still wait to be processed.
     pub open_reservations: Arc<RwLock<HashSet<ReservationId>>>,
+
+    /// Contains all processed reservations of the VRM, that reached a terminal state ReservationState.
+    pub processed_reservations: Arc<RwLock<HashSet<ReservationId>>>,
 
     pub reservation_store: ReservationStore,
     pub simulator: Arc<GlobalClock>,
@@ -48,7 +57,14 @@ impl VrmManager {
         reservation_store: ReservationStore,
         simulator: Arc<GlobalClock>,
     ) -> Self {
-        VrmManager { adc_master, unprocessed_reservations, open_reservations: Arc::new(RwLock::new(HashSet::new())), reservation_store, simulator }
+        VrmManager {
+            adc_master,
+            unprocessed_reservations,
+            open_reservations: Arc::new(RwLock::new(HashSet::new())),
+            processed_reservations: Arc::new(RwLock::new(HashSet::new())),
+            reservation_store,
+            simulator,
+        }
     }
 
     /// Idea: Is should be possible for the client to later request all his currently scheduled reservations on the vrm system.
@@ -157,6 +173,7 @@ impl VrmManager {
     }
 
     pub async fn run_vrm(&mut self) {
+        // Submit all reservation to the VRM system.
         while !self.unprocessed_reservations.is_empty() {
             let (reservation_id, res_arrival_time) = self.unprocessed_reservations.remove(0);
             let now = self.simulator.get_system_time_s();
@@ -174,9 +191,67 @@ impl VrmManager {
 
             self.process_reservation(reservation_id).await;
         }
-        log::info!("VrmManager: Finished processing all unprocessed reservations.");
+        log::info!("VrmManager: Submitted unprocessed reservations to the VRM system.");
+        self.close_open_links();
+        self.reservation_store.print_store_contents();
+
+        // Transfer all reservation in a terminal reservation state.
+        // Workflows that have the proceeding state Commit, will not transfer immediately into a terminal state.
+        while !self.open_reservations.read().is_empty() {
+            let mut reservations_to_remove: Vec<ReservationId> = vec![];
+            let open_ids: Vec<ReservationId> = self.open_reservations.read().iter().cloned().collect();
+
+            for open_res_id in open_ids.iter() {
+                if self.reservation_store.is_reservation_at_cycle_end(*open_res_id) {
+                    reservations_to_remove.push(*open_res_id);
+                }
+
+                if self.reservation_store.is_res_commit_ready(*open_res_id) {
+                    self.try_to_commit_reservation(open_res_id.clone());
+                }
+
+                if self.reservation_store.is_workflow(*open_res_id) {
+                    let mut is_finished = true;
+                    for w_exit_res_id in self.reservation_store.get_workflow_exit_res_ids(*open_res_id).unwrap().iter() {
+                        if matches!(self.reservation_store.get_state(*w_exit_res_id), ReservationState::Deleted | ReservationState::Rejected) {
+                            self.reservation_store.update_state(*open_res_id, ReservationState::Rejected);
+                            is_finished = false;
+                        }
+                        if !matches!(self.reservation_store.get_state(*w_exit_res_id), ReservationState::Finished) {
+                            is_finished = false;
+                        }
+                    }
+
+                    if is_finished {
+                        self.reservation_store.update_state(*open_res_id, ReservationState::Finished);
+                    }
+                }
+            }
+
+            if !reservations_to_remove.is_empty() {
+                let mut guard = self.open_reservations.write();
+                for res_to_remove in reservations_to_remove.iter() {
+                    guard.remove(res_to_remove);
+
+                    if matches!(self.reservation_store.get_state(*res_to_remove), ReservationState::Rejected | ReservationState::Deleted) {
+                        log::debug!(
+                            "Reservation {:?} ({:?}) was closed by VrmManager, in the state {:?}, that signals in error in the life time cycle of the reservation.",
+                            res_to_remove,
+                            self.reservation_store.get_name_for_key(*res_to_remove),
+                            self.reservation_store.get_state(*res_to_remove)
+                        );
+                    }
+                }
+            }
+            sleep(Duration::from_secs(5)).await;
+            self.reservation_store.print_store_contents();
+        }
+
+        log::info!("VrmManager: All reservations in the VRM system reached a terminal state.")
     }
 
+    /// Probes, Reserves, Commits or Deletes the submitted job
+    /// However, workflow will not be fully committed to the underlying rms, because there task execution can depend on previous submitted sub-jobs.
     async fn process_reservation(&mut self, process_res_id: ReservationId) {
         let use_master_schedule = None;
         log::info!("Try to submit Reservation {:?} the the master Adc.", self.reservation_store.get_name_for_key(process_res_id));
@@ -192,7 +267,10 @@ impl VrmManager {
                 if !self.reservation_store.is_reservation_state_at_least(process_res_id, ReservationState::ReserveAnswer) {
                     probe_reservations.demote();
                 } else {
-                    log::info!("Reservation {:?} was sucessful reseved via probe request.", self.reservation_store.get_name_for_key(process_res_id));
+                    log::info!(
+                        "Reservation {:?} was successful reserved via probe request.",
+                        self.reservation_store.get_name_for_key(process_res_id)
+                    );
                 }
             }
         }
@@ -219,30 +297,74 @@ impl VrmManager {
         }
 
         // Step 3: Commit or Delete Reservation
-        if self.reservation_store.is_reservation_proceeding(process_res_id, ReservationProceeding::Commit) {
-            self.adc_master.commit(process_res_id);
+        self.try_to_commit_reservation(process_res_id);
 
-            if self.reservation_store.get_state(process_res_id) == ReservationState::Committed {
-                // Manually add to open reservations on success
-                let mut guard = self.open_reservations.write().unwrap();
-                guard.insert(process_res_id);
-                log::info!("Reservation {:?} was committed successful.", self.reservation_store.get_name_for_key(process_res_id));
-            } else {
-                log::info!("Reservation {:?} could not be committed.", self.reservation_store.get_name_for_key(process_res_id));
-            }
-        } else if self.reservation_store.is_reservation_proceeding(process_res_id, ReservationProceeding::Delete) {
+        if self.reservation_store.is_reservation_proceeding(process_res_id, ReservationProceeding::Delete) {
             self.adc_master.delete(process_res_id, None);
             if self.reservation_store.get_state(process_res_id) == ReservationState::Deleted {
                 log::info!("Reservation {:?} was successfully deleted by the user.", self.reservation_store.get_name_for_key(process_res_id));
             } else {
                 log::info!("Reservation {:?} could not be deleted.", self.reservation_store.get_name_for_key(process_res_id));
             }
-        } else {
-            log::error!(
-                "Unknown Request ProceedingState {:?} for Reservation {:?}.",
-                self.reservation_store.get_reservation_proceeding(process_res_id),
-                self.reservation_store.get_name_for_key(process_res_id)
-            );
+        }
+    }
+
+    /// There is currently now functionality, that is able to reserve links at rms site
+    pub fn close_open_links(&mut self) {
+        let mut link_res_ids: Vec<ReservationId> = vec![];
+
+        for res_id in self.open_reservations.read().clone() {
+            if self.reservation_store.is_link(res_id) {
+                link_res_ids.push(res_id);
+            }
+        }
+
+        for link_id in link_res_ids.iter() {
+            self.open_reservations.write().remove(link_id);
+        }
+    }
+
+    pub fn try_to_commit_reservation(&mut self, process_res_id: ReservationId) {
+        if self.reservation_store.is_reservation_proceeding(process_res_id, ReservationProceeding::Commit) {
+            log::info!("Try to commit Reservation {:?} via Commit request.", self.reservation_store.get_name_for_key(process_res_id));
+
+            if self.reservation_store.is_workflow(process_res_id) {
+                log::info!(
+                    "Reservation {:?} is a workflow therefore first reserve all sub-task of the workflow.",
+                    self.reservation_store.get_name_for_key(process_res_id)
+                );
+                self.adc_master.reserve(process_res_id, None);
+
+                if self.reservation_store.get_state(process_res_id) == ReservationState::ReserveAnswer {
+                    log::info!(
+                        "Workflow {:?} with all its sub-task were successfully reserved.",
+                        self.reservation_store.get_name_for_key(process_res_id)
+                    );
+                } else {
+                    log::info!(
+                        "Workflow {:?} reserve request was unsuccessful. The Reservation is in state {:?}",
+                        self.reservation_store.get_name_for_key(process_res_id),
+                        self.reservation_store.get_state(process_res_id)
+                    );
+                    return;
+                }
+            }
+
+            self.adc_master.commit(process_res_id);
+
+            if self.reservation_store.is_reservation_state_at_least(process_res_id, ReservationState::Committed) {
+                // Manually add to open reservations on success
+                let mut guard = self.open_reservations.write();
+                guard.insert(process_res_id);
+
+                // Add all workflow sub-jobs to the open_reservation list (these are properly not in state committed)
+                for w_sub_job in self.reservation_store.get_workflow_res_ids(process_res_id).unwrap() {
+                    guard.insert(w_sub_job);
+                }
+                log::info!("Reservation {:?} was committed successful.", self.reservation_store.get_name_for_key(process_res_id));
+            } else {
+                log::info!("Reservation {:?} could not be committed.", self.reservation_store.get_name_for_key(process_res_id));
+            }
         }
     }
 }

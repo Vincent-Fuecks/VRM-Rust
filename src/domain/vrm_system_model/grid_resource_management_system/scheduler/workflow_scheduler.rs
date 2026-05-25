@@ -1,4 +1,5 @@
 use crate::domain::vrm_system_model::grid_resource_management_system::adc::ADC;
+use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
 use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationState};
 use crate::domain::vrm_system_model::{
     reservation::{
@@ -49,7 +50,7 @@ pub trait WorkflowScheduler: std::fmt::Debug + Any + Send {
         self.get_reservation_store()
             .get(workflow_id)
             .and_then(|handle| {
-                let res = handle.read().unwrap();
+                let res = handle.read();
                 if let Reservation::Workflow(ref workflow) = *res { Some(workflow.get_all_reservation_ids()) } else { None }
             })
             .unwrap_or_default()
@@ -59,7 +60,7 @@ pub trait WorkflowScheduler: std::fmt::Debug + Any + Send {
     fn finalize_commit(&mut self, workflow_id: ReservationId) {
         let store = self.get_reservation_store();
         if let Some(handle) = store.get(workflow_id) {
-            let mut reservation = handle.write().unwrap();
+            let mut reservation = handle.write();
             if let Reservation::Workflow(ref mut workflow) = *reservation {
                 for res_id in workflow.get_all_reservation_ids() {
                     workflow.update_reservation(store.clone(), res_id);
@@ -70,9 +71,9 @@ pub trait WorkflowScheduler: std::fmt::Debug + Any + Send {
     }
 
     /// Deletes a previously submitted workflow from all booked resource providers and sets all reservations in to `ReservationState::Deleted.
-    fn delete(&mut self, workflow: &mut Workflow, adc: &mut ADC) {
-        for reservation_in in workflow.get_all_reservation_ids() {
-            todo!()
+    fn delete(&mut self, workflow_id: ReservationId) {
+        for sub_res_id in self.get_reservation_store().get_workflow_res_ids(workflow_id).unwrap() {
+            self.get_reservation_store().update_state(sub_res_id, ReservationState::Rejected);
         }
     }
 }

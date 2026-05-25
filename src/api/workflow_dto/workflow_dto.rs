@@ -10,7 +10,7 @@ pub struct WorkflowDto {
     pub arrival_time: i64,
     pub booking_interval_start: i64,
     pub booking_interval_end: i64,
-    pub state: ReservationStateDto,
+    pub reservation_state: ReservationStateDto,
     pub request_proceeding: ReservationProceedingDto,
 
     pub tasks: Vec<TaskDto>,

@@ -1,5 +1,6 @@
+use parking_lot::RwLock;
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use crate::domain::vrm_system_model::{
     reservation::{
@@ -44,8 +45,8 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
             return false;
         }
 
-        let node_schedule_clone = self.get_node_schedule().read().unwrap().clone_box();
-        let network_schedule_clone = self.get_network_schedule().read().unwrap().clone_box();
+        let node_schedule_clone = self.get_node_schedule().read().clone_box();
+        let network_schedule_clone = self.get_network_schedule().read().clone_box();
 
         if !self.get_mut_node_shadow_schedule().insert(shadow_schedule_id.clone(), Arc::new(RwLock::new(node_schedule_clone))).is_none()
             || !self.get_mut_network_shadow_schedule().insert(shadow_schedule_id.clone(), Arc::new(RwLock::new(network_schedule_clone))).is_none()
@@ -98,19 +99,16 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
                     .get(&id)
                     .expect("network_shadow_schedule contains ShadowSchedule.")
                     .write()
-                    .unwrap()
                     .get_fragmentation(start, end)
                     + self
                         .get_node_shadow_schedule()
                         .get(&id)
                         .expect("node_shadow_schedule contains ShadowSchedule.")
                         .write()
-                        .unwrap()
                         .get_fragmentation(start, end)
             }
             None => {
-                self.get_network_schedule().write().unwrap().get_fragmentation(start, end)
-                    + self.get_node_schedule().write().unwrap().get_fragmentation(start, end)
+                self.get_network_schedule().write().get_fragmentation(start, end) + self.get_node_schedule().write().get_fragmentation(start, end)
             }
         }
     }
@@ -122,20 +120,15 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
                     .get(&id)
                     .expect("network_shadow_schedule contains ShadowSchedule.")
                     .write()
-                    .unwrap()
                     .get_system_fragmentation()
                     + self
                         .get_node_shadow_schedule()
                         .get(&id)
                         .expect("node_shadow_schedule contains ShadowSchedule.")
                         .write()
-                        .unwrap()
                         .get_system_fragmentation()
             }
-            None => {
-                self.get_network_schedule().write().unwrap().get_system_fragmentation()
-                    + self.get_node_schedule().write().unwrap().get_system_fragmentation()
-            }
+            None => self.get_network_schedule().write().get_system_fragmentation() + self.get_node_schedule().write().get_system_fragmentation(),
         }
     }
 
@@ -175,7 +168,6 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
                         .get(&id)
                         .expect("network_shadow_schedule contains ShadowSchedule.")
                         .read()
-                        .unwrap()
                         .get_load_metric(start, end),
                 ),
                 link_load_metric: Some(
@@ -183,13 +175,12 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
                         .get(&id)
                         .expect("node_shadow_schedule contains ShadowSchedule.")
                         .read()
-                        .unwrap()
                         .get_load_metric(start, end),
                 ),
             },
             None => RmsLoadMetric {
-                node_load_metric: Some(self.get_node_schedule().read().unwrap().get_load_metric(start, end)),
-                link_load_metric: Some(self.get_network_schedule().read().unwrap().get_load_metric(start, end)),
+                node_load_metric: Some(self.get_node_schedule().read().get_load_metric(start, end)),
+                link_load_metric: Some(self.get_network_schedule().read().get_load_metric(start, end)),
             },
         }
     }
@@ -202,7 +193,6 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
                         .get(&id)
                         .expect("network_shadow_schedule contains ShadowSchedule.")
                         .write()
-                        .unwrap()
                         .get_load_metric_up_to_date(start, end),
                 ),
                 link_load_metric: Some(
@@ -210,13 +200,12 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
                         .get(&id)
                         .expect("node_shadow_schedule contains ShadowSchedule.")
                         .write()
-                        .unwrap()
                         .get_load_metric_up_to_date(start, end),
                 ),
             },
             None => RmsLoadMetric {
-                node_load_metric: Some(self.get_node_schedule().write().unwrap().get_load_metric_up_to_date(start, end)),
-                link_load_metric: Some(self.get_network_schedule().write().unwrap().get_load_metric_up_to_date(start, end)),
+                node_load_metric: Some(self.get_node_schedule().write().get_load_metric_up_to_date(start, end)),
+                link_load_metric: Some(self.get_network_schedule().write().get_load_metric_up_to_date(start, end)),
             },
         }
     }
@@ -229,7 +218,6 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
                         .get(&id)
                         .expect("network_shadow_schedule contains ShadowSchedule.")
                         .write()
-                        .unwrap()
                         .get_simulation_load_metric(),
                 ),
                 link_load_metric: Some(
@@ -237,13 +225,12 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
                         .get(&id)
                         .expect("node_shadow_schedule contains ShadowSchedule.")
                         .write()
-                        .unwrap()
                         .get_simulation_load_metric(),
                 ),
             },
             None => RmsLoadMetric {
-                node_load_metric: Some(self.get_node_schedule().write().unwrap().get_simulation_load_metric()),
-                link_load_metric: Some(self.get_network_schedule().write().unwrap().get_simulation_load_metric()),
+                node_load_metric: Some(self.get_node_schedule().write().get_simulation_load_metric()),
+                link_load_metric: Some(self.get_network_schedule().write().get_simulation_load_metric()),
             },
         }
     }

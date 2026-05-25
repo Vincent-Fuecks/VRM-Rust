@@ -7,13 +7,13 @@
 /// But small number of tries leads to potential rejection ...
 pub const TRY_N_PROMOTIONS: u64 = 50;
 
-/// Defines, what happen with scheduled/running reservations on a managed VrmComponent, 
-/// if this component is is deleted form the VRM system. 
+/// Defines, what happen with scheduled/running reservations on a managed VrmComponent,
+/// if this component is is deleted form the VRM system.
 pub const DELETE_ALL_VRM_MANAGED_RESERVATIONS_IF_VRM_COMPONENT_IS_DELETED: bool = true;
 
 /// Specifies the time interval, in which the ResourceStore and the Schedule of the
 /// corresponding Slurm Rms system is synchronized regarding nodes and tasks.
-pub const SCHEDULE_SYNC_TIMEINTERVAL_S: u64 = 60;
+pub const SCHEDULE_SYNC_TIMEINTERVAL_S: u64 = 5;
 
 /// Specifies the memory each task on the slurm cluster receives.
 /// In a later implementation, this should be handled differently.

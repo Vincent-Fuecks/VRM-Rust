@@ -55,7 +55,7 @@ impl WorkflowScheduler for HEFTSyncWorkflowScheduler {
     fn reserve(&mut self, workflow_res_id: ReservationId, adc: &mut ADC) -> bool {
         // 1. Get exclusive access via the store
         if let Some(workflow_handle) = self.base.reservation_store.get(workflow_res_id) {
-            let mut reservation = workflow_handle.write().unwrap();
+            let mut reservation = workflow_handle.write();
 
             // Local reservation map will be later committed to global state if all reservations where successful
             let mut grid_component_res_database: HashMap<ReservationId, ComponentId> = HashMap::new();
@@ -112,7 +112,7 @@ impl WorkflowScheduler for HEFTSyncWorkflowScheduler {
                             workflow.base.get_name()
                         );
                         self.cancel_all_reservations(adc, &mut grid_component_res_database);
-                        self.base.reservation_store.update_state(workflow_res_id, ReservationState::Rejected);
+                        workflow.set_state(ReservationState::Rejected);
                         return false;
                     }
 
@@ -469,7 +469,7 @@ impl HEFTSyncWorkflowScheduler {
         self.base.reservation_store.set_task_duration(dependency_reservation_id, end - start);
 
         if let Some(res_arc) = self.base.reservation_store.get(dependency_reservation_id) {
-            let mut guard = res_arc.write().expect("Lock poisoned");
+            let mut guard = res_arc.write();
 
             if let Some(link) = guard.as_link_mut() {
                 link.start_point = Some(RouterId::new("localhost"));
@@ -524,7 +524,7 @@ impl HEFTSyncWorkflowScheduler {
         for source_router_id in &source_component_router_id_list {
             for target_router_id in &target_component_router_id_list {
                 if let Some(res_arc) = self.base.reservation_store.get(dependency_reservation_id) {
-                    let mut guard = res_arc.write().expect("Lock poisoned");
+                    let mut guard = res_arc.write();
 
                     if let Some(link) = guard.as_link_mut() {
                         link.start_point = Some(source_router_id.clone());

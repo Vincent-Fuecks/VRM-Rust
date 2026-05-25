@@ -1,4 +1,4 @@
-use std::any::Any;
+use std::{any::Any, collections::HashSet};
 
 use serde::{Deserialize, Serialize};
 
@@ -9,6 +9,8 @@ use crate::domain::vrm_system_model::{
     utils::id::{ClientId, ComponentId, ReservationName, ResourceName},
 };
 
+use super::reservation_store::ReservationId;
+
 /// This structure extends [`ReservationBase`] to include fields specific to
 /// **computational node** (e.g., CPU cores).
 ///
@@ -17,6 +19,9 @@ use crate::domain::vrm_system_model::{
 pub struct NodeReservation {
     /// The common base properties shared by all reservations.
     pub base: ReservationBase,
+
+    /// Data dependencies before the job can start
+    pub data_dependencies: HashSet<ReservationId>,
 
     /// Acts for the root for all provided relative paths on the RMS.
     pub current_working_directory: Option<String>,
@@ -48,6 +53,7 @@ impl NodeReservation {
         reserved_capacity: i64,
         is_moldable: bool,
         frag_delta: f64,
+        data_dependencies: HashSet<ReservationId>,
         current_working_directory: Option<String>,
         environment: Option<Vec<String>>,
         task_path: String,
@@ -75,7 +81,7 @@ impl NodeReservation {
             frag_delta,
         };
 
-        NodeReservation { base, task_path, output_path, error_path, current_working_directory, environment }
+        NodeReservation { base, task_path, output_path, error_path, current_working_directory, environment, data_dependencies }
     }
 }
 
@@ -109,8 +115,21 @@ impl NodeReservation {
         let capacity = task.job_resources.as_ref().unwrap().allocated_cpus.val_or(1);
         let task_id: u32 = task.job_id;
         let task_user = task.user_name.val_or("slurm_import".to_string());
-        let time = task.time.as_ref().unwrap();
-        let duration = time.limit.val_or(0) as i64;
+        let mut arrival_time = 0;
+        let mut booking_interval_start = 0;
+        let mut booking_interval_end = 0;
+        let mut assigned_start = 0;
+        let mut assigned_end = 0;
+        let mut duration = 0;
+
+        if let Some(time) = task.time.as_ref() {
+            arrival_time = time.submission.val_or(0) as i64;
+            booking_interval_start = time.eligible.val_or(0) as i64;
+            booking_interval_end = time.end.val_or(0) as i64;
+            assigned_start = time.start.val_or(0) as i64;
+            assigned_end = time.end.val_or(0) as i64;
+            duration = time.limit.val_or(0) as i64;
+        }
 
         let node_reservation = NodeReservation {
             base: ReservationBase {
@@ -119,17 +138,18 @@ impl NodeReservation {
                 handler_id: Some(aci_id),
                 state: ReservationState::External,
                 request_proceeding: ReservationProceeding::Ignore,
-                arrival_time: time.submission.val_or(0) as i64,
-                booking_interval_start: time.eligible.val_or(0) as i64,
-                booking_interval_end: time.end.val_or(0) as i64,
-                assigned_start: time.start.val_or(0) as i64,
-                assigned_end: time.end.val_or(0) as i64,
+                arrival_time,
+                booking_interval_start,
+                booking_interval_end,
+                assigned_start,
+                assigned_end,
                 task_duration: duration,
                 reserved_capacity: capacity,
                 is_moldable: false,
                 moldable_work: capacity * duration,
                 frag_delta: 0.0,
             },
+            data_dependencies: HashSet::new(),
             current_working_directory: None,
             environment: None,
             task_path: "External-Task".to_string(),

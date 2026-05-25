@@ -1,11 +1,13 @@
 use serde::{Deserialize, Serialize};
-use std::{any::Any, ops::Not};
+use std::{any::Any, collections::HashSet, ops::Not};
 
 use crate::domain::vrm_system_model::{
     reservation::{link_reservation::LinkReservation, node_reservation::NodeReservation},
     utils::id::{ClientId, ComponentId, ReservationName, RouterId},
     workflow::workflow::Workflow,
 };
+
+use super::reservation_store::ReservationId;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Reservation {
@@ -28,6 +30,7 @@ impl Reservation {
 
     pub fn new_node(
         base: ReservationBase,
+        data_dependencies: HashSet<ReservationId>,
         cwd: Option<String>,
         environment: Option<Vec<String>>,
         task_path: String,
@@ -36,6 +39,7 @@ impl Reservation {
     ) -> Self {
         Self::Node(NodeReservation {
             base,
+            data_dependencies,
             current_working_directory: cwd,
             environment: environment,
             task_path: task_path,
@@ -85,6 +89,13 @@ impl Reservation {
     }
 
     pub fn as_node(&self) -> Option<&NodeReservation> {
+        match self {
+            Reservation::Node(n) => Some(n),
+            _ => None,
+        }
+    }
+
+    pub fn as_node_mut(&mut self) -> Option<&mut NodeReservation> {
         match self {
             Reservation::Node(n) => Some(n),
             _ => None,
@@ -398,6 +409,24 @@ impl ReservationState {
 
     pub fn is_reserve_request_valid(&self) -> bool {
         matches!(self, Self::Open | Self::ReserveProbeReservation | Self::ProbeReservation)
+    }
+
+    pub fn is_reservation_at_cycle_end(&self, res_proceeding_state: ReservationProceeding) -> bool {
+        match res_proceeding_state {
+            ReservationProceeding::Commit => {
+                matches!(self, Self::Finished | Self::Rejected | Self::Deleted)
+            }
+            ReservationProceeding::Delete => {
+                matches!(self, Self::Rejected | Self::Deleted)
+            }
+            ReservationProceeding::Ignore => false,
+            ReservationProceeding::Probe => {
+                matches!(self, Self::Finished | Self::Rejected | Self::Deleted | Self::ProbeAnswer)
+            }
+            ReservationProceeding::Reserve => {
+                matches!(self, Self::Finished | Self::Rejected | Self::Deleted | Self::ReserveAnswer)
+            }
+        }
     }
 }
 

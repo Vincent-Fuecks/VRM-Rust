@@ -44,7 +44,7 @@ fn test_co_allocation_graph_creation() {
             .iter()
             .find(|&&rid| {
                 if let Some(res_lock) = store.get(rid) {
-                    let res = res_lock.read().unwrap();
+                    let res = res_lock.read();
                     if let Reservation::Workflow(w) = &*res {
                         // Check if this is the workflow we are looking for
                         return w.base.name.to_string() == "Simulation-Run-0";
@@ -56,7 +56,7 @@ fn test_co_allocation_graph_creation() {
             .expect("Workflow 'Simulation-Run-0' not found in client reservations");
 
         let workflow_lock = store.get(workflow_rid).expect("Workflow not found in store");
-        let workflow_guard = workflow_lock.read().unwrap();
+        let workflow_guard = workflow_lock.read();
         let workflow = match &*workflow_guard {
             Reservation::Workflow(w) => w,
             _ => panic!("Expected Workflow reservation"),
@@ -125,7 +125,7 @@ fn test_workflow_node_creation_for_system_model() {
             .iter()
             .find(|&&rid| {
                 if let Some(res_lock) = store.get(rid) {
-                    let res = res_lock.read().unwrap();
+                    let res = res_lock.read();
                     if let Reservation::Workflow(w) = &*res {
                         return w.base.name.to_string() == "Simulation-Run-0";
                     }
@@ -136,7 +136,7 @@ fn test_workflow_node_creation_for_system_model() {
             .expect("Workflow 'Simulation-Run-0' not found in client reservations");
 
         let workflow_lock = store.get(workflow_rid).unwrap();
-        let workflow_guard = workflow_lock.read().unwrap();
+        let workflow_guard = workflow_lock.read();
         let workflow = match &*workflow_guard {
             Reservation::Workflow(w) => w,
             _ => panic!("Expected Workflow"),
@@ -148,7 +148,7 @@ fn test_workflow_node_creation_for_system_model() {
 
         // Access Reservation via Store
         let res_lock = store.get(node.reservation_id).unwrap();
-        let res_guard = res_lock.read().unwrap();
+        let res_guard = res_lock.read();
         let reservation = match &*res_guard {
             Reservation::Node(n) => n,
             _ => panic!("Expected Node Reservation"),
@@ -226,7 +226,7 @@ fn create_dummy_workflow_dto() -> (WorkflowDto, ClientId) {
         booking_interval_start: 200,
         booking_interval_end: 1000,
         tasks: vec![],
-        state: ReservationStateDto::Open,
+        reservation_state: ReservationStateDto::Open,
         request_proceeding: ReservationProceedingDto::Commit,
     };
 
@@ -327,7 +327,7 @@ fn test_stage_1_generate_workflow_nodes() {
     let get_res = |node_id: &str| -> NodeReservation {
         let node = nodes.get(&WorkflowNodeId::new(node_id)).unwrap();
         let lock = store.get(node.reservation_id).unwrap();
-        let guard = lock.read().unwrap();
+        let guard = lock.read();
         match &*guard {
             Reservation::Node(n) => n.clone(),
             _ => panic!("Expected node"),

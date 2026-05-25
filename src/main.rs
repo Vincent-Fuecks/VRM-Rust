@@ -8,12 +8,15 @@ use crate::domain::vrm_system_model::client::client::Clients;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::registry_client::RegistryClient;
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 
-use clap::Parser;
-use std::sync::{Arc, RwLock};
-
+#[cfg(debug_assertions)]
 use crate::api::vrm_system_model_dto::vrm_dto::VrmDto;
 use crate::error::Result;
 use crate::loader::parser::parse_json_file;
+use clap::Parser;
+use parking_lot::{RwLock, deadlock};
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
 pub mod api;
 pub mod domain;
@@ -33,7 +36,7 @@ pub fn get_vrm_dto(file_path: &str) -> Result<VrmDto> {
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Path to the workflow input file (.json)
-    #[arg(short = 'f', long, default_value = "src/data/workflow_with_direct_mapping.json")]
+    #[arg(short = 'f', long, default_value = "src/data/demo/workflow_with_direct_mapping.json")]
     input_file: String,
 
     /// Path to the output results/statistics file (.csv)
@@ -41,7 +44,7 @@ struct Args {
     output_file: String,
 
     /// Path to the VRM node simulator config
-    #[arg(short = 'c', long, default_value = "src/data/vrm_with_slurm.json")]
+    #[arg(short = 'c', long, default_value = "src/data/demo/vrm_with_slurm.json")]
     config_file: String,
 
     /// Disables Logging
@@ -58,8 +61,11 @@ async fn main() {
         log::set_max_level(log::LevelFilter::Off);
     } else {
         logger::init();
+        // log::set_max_level(log::LevelFilter::Info);
         AnalyticsSystem::init(args.output_file);
     }
+
+    start_deadlock_detector();
 
     let file_path_workflows = &args.input_file;
     let file_path_vrm = &args.config_file;
@@ -80,4 +86,21 @@ async fn main() {
         .expect("Failed to initialize VRM system");
 
     vrm_manager.run_vrm().await;
+}
+
+pub fn start_deadlock_detector() {
+    thread::spawn(move || {
+        loop {
+            thread::sleep(Duration::from_secs(10));
+            let deadlocks = deadlock::check_deadlock();
+            if !deadlocks.is_empty() {
+                for (i, threads) in deadlocks.iter().enumerate() {
+                    eprintln!("Deadlock #{} detected with {} threads:", i, threads.len());
+                    for t in threads {
+                        eprintln!("Thread ID: {:?}", t.thread_id());
+                    }
+                }
+            }
+        }
+    });
 }

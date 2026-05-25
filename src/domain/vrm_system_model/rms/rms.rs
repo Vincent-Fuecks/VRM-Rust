@@ -10,8 +10,9 @@ use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link:
 use crate::domain::vrm_system_model::utils::id::{AciId, ResourceName, RmsId, RouterId, ShadowScheduleId};
 use crate::domain::vrm_system_model::utils::load_buffer::LoadMetric;
 
+use parking_lot::RwLock;
 use std::any::Any;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 pub trait Rms: std::fmt::Debug + Any {
     fn get_base(&self) -> &RmsBase;
@@ -53,7 +54,7 @@ pub trait Rms: std::fmt::Debug + Any {
     /// * `shadow_schedule_id` - If `Some`, deletes from the specified shadow schedule.   
     fn delete_task(&mut self, reservation_id: ReservationId, shadow_schedule_id: Option<ShadowScheduleId>) {
         let active_scheduler = self.get_active_schedule(shadow_schedule_id, reservation_id);
-        active_scheduler.write().unwrap().delete_reservation(reservation_id);
+        active_scheduler.write().delete_reservation(reservation_id);
     }
 
     /// Performs the routing to the correct scheduler

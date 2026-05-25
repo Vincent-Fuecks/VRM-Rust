@@ -2,8 +2,10 @@ use std::{
     any::Any,
     collections::HashMap,
     str::FromStr,
-    sync::{Arc, RwLock},
+    sync::{Arc},
 };
+
+use parking_lot::RwLock;
 
 use crate::{
     api::rms_config_dto::rms_dto::DummyRmsDto,

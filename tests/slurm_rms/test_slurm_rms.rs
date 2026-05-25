@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -171,7 +172,7 @@ async fn test_slurm_rms_delete_task_only_rms() {
 
     // Is RMS cleaned up?
     assert_eq!(reservation_store.get_state(res_id.clone()), ReservationState::Rejected);
-    assert!(!slurm_rms.task_mapping.read().unwrap().contains_left(&res_id));
+    assert!(!slurm_rms.task_mapping.read().contains_left(&res_id));
 
     let error_message = format!(
         "SlurmRmsDeletionCleanupError: The reservation {:?} was not successfully deleted from schedule, but the reservation was successfully deleted from the Rms system.",
@@ -196,7 +197,7 @@ async fn test_slurm_rms_delete_task_from_rms_and_schedule() {
     // 1. Reserve Reservation at node schedule
     {
         // Lock slurm_rms only for this scope
-        let mut guard = slurm_rms.node_schedule.write().unwrap();
+        let mut guard = slurm_rms.node_schedule.write();
         let _reserve_id = guard.reserve(res_id).expect("Failed to reserve the Reservation on node schedule.");
         assert_eq!(reservation_store.get_state(res_id), ReservationState::ReserveAnswer, "Reservation should be reserved in the node schedule.");
     }
@@ -225,7 +226,7 @@ async fn test_slurm_rms_delete_task_from_rms_and_schedule() {
 
     // Is RMS cleaned up?
     assert_eq!(reservation_store.get_state(res_id.clone()), ReservationState::Deleted, "Reservation should be deleted form the ReservationStore.");
-    assert!(!slurm_rms.task_mapping.read().unwrap().contains_left(&res_id));
+    assert!(!slurm_rms.task_mapping.read().contains_left(&res_id));
 }
 
 async fn create_test_slurm_rms(clock: Arc<GlobalClock>) -> Result<SlurmRms, Box<dyn std::error::Error>> {
@@ -298,6 +299,7 @@ fn create_node_reservation(res_name: ReservationName, reservation_state: Reserva
 
     let node_res = NodeReservation {
         base,
+        data_dependencies: HashSet::new(),
         current_working_directory: Some("/tmp".to_string()),
         environment: Some(vec!["PATH=/usr/bin:/bin".to_string()]),
         task_path: "/bin/sleep".to_string(),

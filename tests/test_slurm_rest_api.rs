@@ -138,6 +138,7 @@ async fn commit_task_to_rms(slurm_rms: &mut SlurmRms) -> Result<u32> {
         standard_error: Some("/task-001.error".to_string()),
         standard_output: Some("/task-001.out".to_string()),
         environment: Some(vec!["PATH=/usr/bin:/bin".to_string()]),
+        dependency: None,
     };
 
     let script = "#!/bin/bash\nhostname\nsleep 10".to_string();

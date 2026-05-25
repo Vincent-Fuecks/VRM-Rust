@@ -1,7 +1,6 @@
-use std::{
-    collections::HashSet,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashSet, sync::Arc};
+
+use parking_lot::RwLock;
 
 use crate::domain::vrm_system_model::{
     reservation::{reservation::ReservationState, reservation_store::ReservationId},
@@ -14,9 +13,9 @@ use super::reservation_notification_listener::ReservationNotificationListener;
 /// within the VRM.
 ///
 /// The `VrmStateListener` implements a **Subscription (Abo)** pattern. It monitors
-/// state transitions from the `ReservationStore` and ensures that the local `open_reservations` 
-/// set accurately reflects the distributed state of the grid. It specifically handles 
-/// the lifecycle of resource allocations by removing IDs when they reach terminal 
+/// state transitions from the `ReservationStore` and ensures that the local `open_reservations`
+/// set accurately reflects the distributed state of the grid. It specifically handles
+/// the lifecycle of resource allocations by removing IDs when they reach terminal
 /// states like **Deleted**, **Rejected**, or **Finished**.
 #[derive(Debug)]
 pub struct VrmStateListener {
@@ -33,7 +32,7 @@ impl VrmStateListener {
     }
 
     pub fn add(&mut self, reservation_id: ReservationId) -> bool {
-        let mut guard = self.open_reservations.write().unwrap();
+        let mut guard = self.open_reservations.write();
         guard.insert(reservation_id)
     }
 }
@@ -67,17 +66,17 @@ impl ReservationNotificationListener for VrmStateListener {
             }
             ReservationState::Deleted => {
                 log::info!("State Change of Reservation ID: {:?} | Name: {:?} | {:?}->{:?}", reservation_id, res_name, old_state, new_state);
-                let mut guard = self.open_reservations.write().unwrap();
+                let mut guard = self.open_reservations.write();
                 guard.remove(&reservation_id);
             }
             ReservationState::Rejected => {
                 log::info!("State Change of Reservation ID: {:?} | Name: {:?} | {:?}->{:?}", reservation_id, res_name, old_state, new_state);
-                let mut guard = self.open_reservations.write().unwrap();
+                let mut guard = self.open_reservations.write();
                 guard.remove(&reservation_id);
             }
             ReservationState::Finished => {
                 log::info!("Reservation {:?} finished successfully.", reservation_id);
-                let mut guard = self.open_reservations.write().unwrap();
+                let mut guard = self.open_reservations.write();
                 guard.remove(&reservation_id);
             }
             ReservationState::External => {

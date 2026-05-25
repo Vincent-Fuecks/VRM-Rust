@@ -10,11 +10,12 @@ use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link:
 use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, SchedulerType};
 use crate::domain::vrm_system_model::utils::id::{AciId, ShadowScheduleId, SlottedScheduleId};
 use crate::error::ConversionError;
+use parking_lot::RwLock;
 use std::any::Any;
 use std::collections::HashMap;
 use std::i64;
 use std::str::FromStr;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 /// Only simulates a cluster with Links (Nodes are not simulated)
 #[derive(Debug)]
@@ -109,7 +110,7 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
             return false;
         }
 
-        let schedule_clone = self.network_schedule.read().unwrap().clone_box();
+        let schedule_clone = self.network_schedule.read().clone_box();
         self.network_shadow_schedule.insert(shadow_schedule_id.clone(), Arc::new(RwLock::new(schedule_clone)));
         return true;
     }
@@ -135,27 +136,19 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
 
     fn get_fragmentation(&mut self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> f64 {
         match shadow_schedule_id {
-            Some(id) => self
-                .network_shadow_schedule
-                .get(&id)
-                .expect("network_shadow_schedule contains ShadowSchedule.")
-                .write()
-                .unwrap()
-                .get_fragmentation(start, end),
-            None => self.network_schedule.write().unwrap().get_fragmentation(start, end),
+            Some(id) => {
+                self.network_shadow_schedule.get(&id).expect("network_shadow_schedule contains ShadowSchedule.").write().get_fragmentation(start, end)
+            }
+            None => self.network_schedule.write().get_fragmentation(start, end),
         }
     }
 
     fn get_system_fragmentation(&mut self, shadow_schedule_id: Option<ShadowScheduleId>) -> f64 {
         match shadow_schedule_id {
-            Some(id) => self
-                .network_shadow_schedule
-                .get(&id)
-                .expect("network_shadow_schedule contains ShadowSchedule.")
-                .write()
-                .unwrap()
-                .get_system_fragmentation(),
-            None => self.network_schedule.write().unwrap().get_system_fragmentation(),
+            Some(id) => {
+                self.network_shadow_schedule.get(&id).expect("network_shadow_schedule contains ShadowSchedule.").write().get_system_fragmentation()
+            }
+            None => self.network_schedule.write().get_system_fragmentation(),
         }
     }
 
@@ -196,13 +189,10 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
                         .get(&id)
                         .expect("network_shadow_schedule contains ShadowSchedule.")
                         .read()
-                        .unwrap()
                         .get_load_metric(start, end),
                 ),
             },
-            None => {
-                RmsLoadMetric { node_load_metric: None, link_load_metric: Some(self.network_schedule.read().unwrap().get_load_metric(start, end)) }
-            }
+            None => RmsLoadMetric { node_load_metric: None, link_load_metric: Some(self.network_schedule.read().get_load_metric(start, end)) },
         }
     }
 
@@ -215,14 +205,12 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
                         .get(&id)
                         .expect("network_shadow_schedule contains ShadowSchedule.")
                         .write()
-                        .unwrap()
                         .get_load_metric_up_to_date(start, end),
                 ),
             },
-            None => RmsLoadMetric {
-                node_load_metric: None,
-                link_load_metric: Some(self.network_schedule.write().unwrap().get_load_metric_up_to_date(start, end)),
-            },
+            None => {
+                RmsLoadMetric { node_load_metric: None, link_load_metric: Some(self.network_schedule.write().get_load_metric_up_to_date(start, end)) }
+            }
         }
     }
 
@@ -235,13 +223,10 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
                         .get(&id)
                         .expect("network_shadow_schedule contains ShadowSchedule.")
                         .write()
-                        .unwrap()
                         .get_simulation_load_metric(),
                 ),
             },
-            None => {
-                RmsLoadMetric { node_load_metric: None, link_load_metric: Some(self.network_schedule.write().unwrap().get_simulation_load_metric()) }
-            }
+            None => RmsLoadMetric { node_load_metric: None, link_load_metric: Some(self.network_schedule.write().get_simulation_load_metric()) },
         }
     }
 }

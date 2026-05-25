@@ -154,8 +154,6 @@ impl VrmComponentManager {
             target_component = self.res_to_vrm_component.get(&reservation_id).cloned();
         }
 
-        println!("{:?}", target_component);
-
         match target_component {
             Some(component_id) => {
                 // No Real Task

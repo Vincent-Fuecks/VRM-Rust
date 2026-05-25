@@ -102,7 +102,7 @@ impl WorkflowGenerator {
             booking_interval_end: 1000000,
             tasks,
             request_proceeding: ReservationProceedingDto::Commit,
-            state: ReservationStateDto::Open,
+            reservation_state: ReservationStateDto::Open,
         }
     }
 

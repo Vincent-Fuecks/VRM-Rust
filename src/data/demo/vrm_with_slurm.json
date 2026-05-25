@@ -31,8 +31,8 @@
                 "restApiConfig" : {
                     "baseUrl": "http://localhost:6820", 
                     "version": "v0.0.41",
-                    "userName": "root", 
-                    "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2OTg1NzAsImlhdCI6MTc3OTYxMjE3MCwic3VuIjoidnJtVXNlciJ9.w8JXl6P2jTTT1mF8dZcHjBh_JDh5ahO4_hEUppEZT9Q",
+                    "userName": "vrmUser", 
+                    "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk3ODMwODIsImlhdCI6MTc3OTY5NjY4Miwic3VuIjoidnJtVXNlciJ9.h4B2B82pCDI0PlgRAVAu-mnNNVaZYtyjYfW5tI-Fp8g",
                     "partition": ""
                 },
                 "topology" : [
