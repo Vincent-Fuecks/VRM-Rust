@@ -1,0 +1,127 @@
+{
+    "adcMasterId" : "ADC-001",
+    "simulator": {
+        "endTime": 36000,
+        "isSimulation": true
+    },
+    "adc": [
+        {
+            "id": "ADC-001",
+            "schedulerTyp": "HEFT", 
+            "requestOrder": "Start-First",
+            "numOfSlots" : 24, 
+            "slotWidth": 3600,
+            "timeout": 120, 
+            "maxOptimizationTime": 256, 
+            "rejectNewReservationsAt" : 1000,
+            "children": ["AcI-001", "AcI-002", "AcI-003"]
+        }
+    ],
+    "aci": [
+        {
+            "id": "AcI-001",
+            "adcId": "Adc-001",
+            "commitTimeout": 256,
+            "rmsSystem":
+            {
+                "typ": "RmsNodeSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 256,
+                "numOfSlots": 5,
+                "gridNodes": [
+                    {
+                        "id": "Node-001",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    },
+                    {
+                        "id": "Node-002",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    },
+                    {
+                        "id": "Node-003",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    },
+                    {
+                        "id": "Node-004",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    }
+                ],
+                "networkLinks": []
+            }
+        },
+        {
+            "id": "AcI-002",
+            "adcId": "Adc-001",
+            "commitTimeout": 256,
+            "rmsSystem":
+            {
+                "typ": "RmsNodeSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 256,
+                "numOfSlots": 5,
+                "gridNodes": [
+                    {
+                        "id": "Node-001",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    },
+                    {
+                        "id": "Node-002",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    },
+                    {
+                        "id": "Node-003",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    },
+                    {
+                        "id": "Node-004",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    }
+                ],
+                "networkLinks": []
+            }
+    },        
+    {
+        "id": "AcI-003",
+        "adcId":"Adc-001",
+        "commitTimeout": 256,
+        "rmsSystem":
+            {
+                "typ": "RmsNodeSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 256,
+                "numOfSlots": 5,
+                "gridNodes": [
+                    {
+                        "id": "Node-001",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    },
+                    {
+                        "id": "Node-002",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    },
+                    {
+                        "id": "Node-003",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    },
+                    {
+                        "id": "Node-004",
+                        "cpus": 256, 
+                        "connectedToRouter": []
+                    }
+                ],
+                "networkLinks": []
+            }
+        }   
+    ]
+}

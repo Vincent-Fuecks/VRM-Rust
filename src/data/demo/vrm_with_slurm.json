@@ -32,7 +32,7 @@
                     "baseUrl": "http://localhost:6820", 
                     "version": "v0.0.41",
                     "userName": "vrmUser", 
-                    "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk3ODMwODIsImlhdCI6MTc3OTY5NjY4Miwic3VuIjoidnJtVXNlciJ9.h4B2B82pCDI0PlgRAVAu-mnNNVaZYtyjYfW5tI-Fp8g",
+                    "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk4MTM3MDYsImlhdCI6MTc3OTcyNzMwNiwic3VuIjoidnJtVXNlciJ9.YSKjEwcHT3KAqPFNpRkYzExRuLFu0uTyMz5tu6Yd1yU",
                     "partition": ""
                 },
                 "topology" : [
