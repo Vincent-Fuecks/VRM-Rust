@@ -44,7 +44,7 @@ struct Args {
     output_file: String,
 
     /// Path to the VRM node simulator config
-    #[arg(short = 'c', long, default_value = "src/data/demo/vrm_with_slurm.json")]
+    #[arg(short = 'c', long, default_value = "src/data/demo/vrm_rms_simulator.json")]
     config_file: String,
 
     /// Disables Logging
@@ -61,7 +61,6 @@ async fn main() {
         log::set_max_level(log::LevelFilter::Off);
     } else {
         logger::init();
-        // log::set_max_level(log::LevelFilter::Info);
         AnalyticsSystem::init(args.output_file);
     }
 

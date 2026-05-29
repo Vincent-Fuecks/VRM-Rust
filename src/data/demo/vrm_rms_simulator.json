@@ -1,0 +1,420 @@
+{
+    "adcMasterId" : "ADC-001",
+    "simulator": {
+        "endTime": 36000,
+        "isSimulation": true
+    },
+    "adc": [
+        {
+            "id": "ADC-001",
+            "schedulerTyp": "HEFT", 
+            "requestOrder": "Start-First",
+            "numOfSlots" : 265, 
+            "slotWidth": 256,
+            "timeout": 256, 
+            "maxOptimizationTime": 256, 
+            "rejectNewReservationsAt" : 1000,
+            "children": ["ADC-002", "ADC-003", "AcI-005"]
+        },
+        {
+            "id": "ADC-002",
+            "schedulerTyp": "HEFT", 
+            "requestOrder": "Start-First",
+            "numOfSlots" : 265, 
+            "slotWidth": 256,
+            "timeout": 256, 
+            "maxOptimizationTime": 256, 
+            "rejectNewReservationsAt" : 1000,
+            "children": ["AcI-001", "AcI-002"]
+        },
+        {
+            "id": "ADC-003",
+            "schedulerTyp": "HEFT", 
+            "requestOrder": "Start-First",
+            "numOfSlots" : 265, 
+            "slotWidth": 256,
+            "timeout": 256, 
+            "maxOptimizationTime": 256, 
+            "rejectNewReservationsAt" : 1000,
+            "children": ["AcI-003", "AcI-004"]
+        }
+    ],
+
+    "aci": [
+        {
+            "id": "AcI-001",
+            "adcId": "Adc-001",
+            "commitTimeout": 256,
+            "rmsSystem": {
+                "typ": "RmsSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 60,
+                "numOfSlots": 60,
+                "entryPoints" : ["s0"],
+                "computeNodes" : [
+                    {
+                        "id": "c0", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c1", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c2", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c3", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c4", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c5", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c6", 
+                        "cpus": 256
+                    }
+                ],
+                "topology" : [
+                    {
+                        "switchName": "s0",
+                        "switches": [],
+                        "nodes": [
+                            "c0",
+                            "c1"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s1",
+                        "switches": [],
+                        "nodes": [
+                            "c3",
+                            "c4",
+                            "c5",
+                            "c6"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s2",
+                        "switches": [
+                            "s0",
+                            "s1"
+                        ],
+                        "nodes": [
+                            "c2"
+                        ],
+                        "linkSpeed" : 1000
+                    }
+                ]
+            }
+        },
+        {
+            "id": "AcI-002",
+            "adcId": "Adc-002",
+            "commitTimeout": 256,
+            "rmsSystem": {
+                "typ": "RmsSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 60,
+                "numOfSlots": 60,
+                "entryPoints" : ["s0"],
+                "computeNodes" : [
+                    {
+                        "id": "c0", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c1", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c2", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c3", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c4", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c5", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c6", 
+                        "cpus": 256
+                    }
+                ],
+                "topology" : [
+                    {
+                        "switchName": "s0",
+                        "switches": [],
+                        "nodes": [
+                            "c0",
+                            "c1"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s1",
+                        "switches": [],
+                        "nodes": [
+                            "c3",
+                            "c4",
+                            "c5",
+                            "c6"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s2",
+                        "switches": [
+                            "s0",
+                            "s1"
+                        ],
+                        "nodes": [
+                            "c2"
+                        ],
+                        "linkSpeed" : 1000
+                    }
+                ]
+            }
+        },    
+    {
+        "id": "AcI-003",
+        "adcId":"Adc-002",
+            "commitTimeout": 256,
+            "rmsSystem": {
+                "typ": "RmsSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 60,
+                "numOfSlots": 60,
+                "entryPoints" : ["s0"],
+                "computeNodes" : [
+                    {
+                        "id": "c0", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c1", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c2", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c3", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c4", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c5", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c6", 
+                        "cpus": 256
+                    }
+                ],
+                "topology" : [
+                    {
+                        "switchName": "s0",
+                        "switches": [],
+                        "nodes": [
+                            "c0",
+                            "c1"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s1",
+                        "switches": [],
+                        "nodes": [
+                            "c3",
+                            "c4",
+                            "c5",
+                            "c6"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s2",
+                        "switches": [
+                            "s0",
+                            "s1"
+                        ],
+                        "nodes": [
+                            "c2"
+                        ],
+                        "linkSpeed" : 1000
+                    }
+                ]
+            }
+        },
+        {
+            "id": "AcI-004",        
+            "adcId":"Adc-003",
+            "commitTimeout": 256,
+            "rmsSystem": {
+                "typ": "RmsSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 60,
+                "numOfSlots": 60,
+                "entryPoints" : ["s0"],
+                "computeNodes" : [
+                    {
+                        "id": "c0", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c1", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c2", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c3", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c4", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c5", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c6", 
+                        "cpus": 256
+                    }
+                ],
+                "topology" : [
+                    {
+                        "switchName": "s0",
+                        "switches": [],
+                        "nodes": [
+                            "c0",
+                            "c1"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s1",
+                        "switches": [],
+                        "nodes": [
+                            "c3",
+                            "c4",
+                            "c5",
+                            "c6"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s2",
+                        "switches": [
+                            "s0",
+                            "s1"
+                        ],
+                        "nodes": [
+                            "c2"
+                        ],
+                        "linkSpeed" : 1000
+                    }
+                ]
+            }
+        },   
+    {
+        "id": "AcI-005",
+        "adcId":"Adc-003",
+            "commitTimeout": 256,
+            "rmsSystem": {
+                "typ": "RmsSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 60,
+                "numOfSlots": 60,
+                "entryPoints" : ["s0"],
+                "computeNodes" : [
+                    {
+                        "id": "c0", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c1", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c2", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c3", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c4", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c5", 
+                        "cpus": 256
+                    },
+                    {
+                        "id": "c6", 
+                        "cpus": 256
+                    }
+                ],
+                "topology" : [
+                    {
+                        "switchName": "s0",
+                        "switches": [],
+                        "nodes": [
+                            "c0",
+                            "c1"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s1",
+                        "switches": [],
+                        "nodes": [
+                            "c3",
+                            "c4",
+                            "c5",
+                            "c6"
+                        ],
+                        "linkSpeed" : 1000
+                    },
+                    {
+                        "switchName": "s2",
+                        "switches": [
+                            "s0",
+                            "s1"
+                        ],
+                        "nodes": [
+                            "c2"
+                        ],
+                        "linkSpeed" : 1000
+                    }
+                ]
+            }
+        }
+    ]
+}

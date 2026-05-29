@@ -13,6 +13,7 @@ use crate::domain::vrm_system_model::reservation::reservation::{Reservation, Res
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationId;
 use crate::domain::vrm_system_model::resource::node_resource::NodeResource;
 use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
+use crate::domain::vrm_system_model::rms::common::{RmsContext, RmsSetupContext};
 use crate::domain::vrm_system_model::rms::rms::Rms;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
@@ -63,65 +64,31 @@ impl SlurmRms {
         let entry_points = dto.entry_points.iter().into_iter().map(|e_point| RouterId::new(e_point)).collect();
 
         let (nodes, links) = SlurmRms::get_nodes_and_links(&dto, &nodes_response);
+        let schedule_name = format!("AcI: {}, RmsType: {}, RmsName: {}", aci_id, "Slurm".to_string(), dto.id);
         let resource_store = ResourceStore::new();
 
-        // Setup Node Schedule
-        let mut schedule_capacity = 0;
-
-        // Add nodes to ResourceStore
-        for node in nodes.iter() {
-            schedule_capacity += node.cpus;
-            resource_store.add_node(NodeResource::new(node.name.clone(), node.cpus));
-        }
-
-        let name = format!("AcI: {}, RmsType: {}, RmsName: {}", aci_id, "Slurm".to_string(), dto.id);
-        let schedule_context = ScheduleContext {
-            id: SlottedScheduleId::new(name.clone()),
-            number_of_slots: dto.num_of_slots,
-            slot_width: dto.slot_width,
-            capacity: schedule_capacity,
-            simulator: simulator.clone(),
-            reservation_store: reservation_store.clone(),
-        };
-
-        let scheduler_type = SchedulerType::from_str(&dto.scheduler_typ)?;
-        let node_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
-
-        // Setup Network Schedule
-        // Adds Links to Resource Store
-        let topology = NetworkTopology::new(
-            &links,
-            &nodes,
-            dto.slot_width,
+        let rms_setup_context = RmsSetupContext::new(
             dto.num_of_slots,
+            dto.slot_width,
+            reservation_store,
             simulator.clone(),
+            nodes,
+            links,
             aci_id.clone(),
-            reservation_store.clone(),
-            resource_store.clone(),
+            dto.scheduler_typ,
+            schedule_name,
+            resource_store,
             entry_points,
         );
 
-        let schedule_context = ScheduleContext {
-            id: SlottedScheduleId::new(name.clone()),
-            number_of_slots: dto.num_of_slots,
-            slot_width: dto.slot_width,
-            capacity: i64::MAX,
-            simulator: simulator.clone(),
-            reservation_store: reservation_store.clone(),
-        };
-
-        let mut scheduler_type = SchedulerType::from_str(&dto.scheduler_typ)?;
-        scheduler_type = scheduler_type.get_network_scheduler_variant(topology, resource_store.clone());
-        let network_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
-
-        let base = RmsBase::new(aci_id.clone(), "Slurm".to_string(), reservation_store, resource_store.clone());
+        let rms_context = rms_setup_context.get_rms_context()?;
 
         let slurm_rms = SlurmRms {
-            base: base,
+            base: rms_context.base,
             aci_id: aci_id,
             simulator: simulator,
-            node_schedule,
-            network_schedule,
+            node_schedule: rms_context.node_schedule,
+            network_schedule: rms_context.network_schedule,
             node_shadow_schedule: HashMap::new(),
             network_shadow_schedule: HashMap::new(),
             slurm_rest_client: rest_api_client,

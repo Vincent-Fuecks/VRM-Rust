@@ -538,6 +538,7 @@ impl HEFTSyncWorkflowScheduler {
                 }
 
                 // Reserve transfer task, these tasks are moldable, because the GridComponent may change duration + bandwidth
+                // TODO
                 let candidate_id = adc.submit_task_at_first_grid_component(dependency_reservation_id, None, grid_component_res_database);
 
                 if self.base.reservation_store.is_reservation_state_at_least(candidate_id, ReservationState::ReserveAnswer) {
@@ -547,5 +548,17 @@ impl HEFTSyncWorkflowScheduler {
             }
         }
         return false;
+    }
+
+    fn get_best_path(
+        &mut self,
+        source_reservation: ReservationId,
+        target_reservation: ReservationId,
+        start: i64,
+        end: i64,
+        is_filetransfer: bool,
+        adc: &mut ADC,
+    ) -> Vec<ReservationId> {
+        todo!()
     }
 }

@@ -22,8 +22,7 @@
             "id": "AcI-001",
             "adcId": "Adc-001",
             "commitTimeout": 256,
-            "rmsSystem":
-            {
+            "rmsSystem": {
                 "id": "HPC-Freie-Universitaet-Berlin",
                 "schedulerTyp": "SlottedSchedule",
                 "slotWidth": 60,

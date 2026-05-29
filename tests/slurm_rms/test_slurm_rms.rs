@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use tokio::time::sleep;
-use vrm_rust_workflow::api::rms_config_dto::rms_dto::{SlurmConfigDto, SlurmRmsDto, SlurmSwitchDto};
+use vrm_rust_workflow::api::rms_config_dto::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto};
 use vrm_rust_workflow::domain::simulator::simulator::GlobalClock;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::link_reservation::LinkReservation;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::node_reservation::NodeReservation;
@@ -242,23 +242,23 @@ async fn create_test_slurm_rms(clock: Arc<GlobalClock>) -> Result<SlurmRms, Box<
     };
 
     let slurm_switch_dto_0 =
-        SlurmSwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
+        SwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
 
-    let slurm_switch_dto_1 = SlurmSwitchDto {
+    let slurm_switch_dto_1 = SwitchDto {
         switch_name: "s1".to_string(),
         switches: vec![],
         nodes: vec!["c3".to_string(), "c4".to_string(), "c5".to_string(), "c6".to_string()],
         link_speed: 1000,
     };
 
-    let slurm_switch_dto_2 = SlurmSwitchDto {
+    let slurm_switch_dto_2 = SwitchDto {
         switch_name: "s2".to_string(),
         switches: vec!["s0".to_string(), "s1".to_string()],
         nodes: vec!["c2".to_string()],
         link_speed: 1000,
     };
 
-    let topology: Vec<SlurmSwitchDto> = vec![slurm_switch_dto_0, slurm_switch_dto_1, slurm_switch_dto_2];
+    let topology: Vec<SwitchDto> = vec![slurm_switch_dto_0, slurm_switch_dto_1, slurm_switch_dto_2];
 
     let slurm_rms_dto: SlurmRmsDto = SlurmRmsDto {
         id: "RMS-ID".to_string(),

@@ -41,9 +41,10 @@ struct StoreInner {
     /// Index lookup InternalKey (NodeResourceId) using input reservation name (ResourceName).
     node_index: HashMap<ResourceName, NodeResourceId>,
 
-    /// Specifies the entry points to the system (e. g. AcI/RMS or ADC)
+    /// Specifies the entry points of the system (e. g. AcI/RMS or ADC)
     entry_points: HashSet<RouterId>,
 
+    /// Specifies the entry points of the system (e. g. ADC)
     exit_points: HashSet<RouterId>,
 }
 

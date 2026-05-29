@@ -14,6 +14,25 @@ pub struct DummyRmsDto {
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct RmsSimulatorDto {
+    pub typ: String,
+    pub scheduler_typ: String,
+    pub slot_width: i64,
+    pub num_of_slots: i64,
+    pub entry_points: Vec<String>,
+    pub compute_nodes: Vec<ComputeNodeDto>,
+    pub topology: Vec<SwitchDto>,
+}
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ComputeNodeDto {
+    pub id: String,
+    pub cpus: i64,
+}
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SlurmRmsDto {
     pub id: String,
     pub scheduler_typ: String,
@@ -21,7 +40,7 @@ pub struct SlurmRmsDto {
     pub num_of_slots: i64,
     pub rest_api_config: SlurmConfigDto,
     pub entry_points: Vec<String>,
-    pub topology: Vec<SlurmSwitchDto>,
+    pub topology: Vec<SwitchDto>,
 }
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
@@ -38,6 +57,7 @@ pub struct SlurmConfigDto {
 pub enum RmsSystemWrapper {
     DummyRms(DummyRmsDto),
     Slurm(SlurmRmsDto),
+    RmsSimulator(RmsSimulatorDto),
 }
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
@@ -59,7 +79,7 @@ pub struct NetworkLinkDto {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SlurmSwitchDto {
+pub struct SwitchDto {
     pub switch_name: String,
     pub switches: Vec<String>,
     pub nodes: Vec<String>,

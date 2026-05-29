@@ -16,7 +16,6 @@ use super::rms_simulator::rms_simulator::RmsSimulator;
 pub enum RmsSimulatorType {
     RmsNodeSimulator,
     RmsNetworkSimulator,
-    RmsSimulator,
 }
 
 impl RmsSystemWrapper {
@@ -36,6 +35,15 @@ impl RmsSystemWrapper {
                 }
             }
 
+            RmsSystemWrapper::RmsSimulator(dto) => {
+                let rms_simulator = RmsSimulator::new(dto, simulator, aci_id, reservation_store);
+
+                match rms_simulator {
+                    Ok(rms_instance) => Ok(Box::new(rms_instance) as Box<dyn AdvanceReservationRms + Send + Sync>),
+                    Err(e) => panic!("RmsSimulatorInitProcessFailed: Error: {:?}", e),
+                }
+            }
+
             RmsSystemWrapper::DummyRms(dummy_rms_dto) => {
                 let rms_type = RmsSimulatorType::from_str(&dummy_rms_dto.typ)?;
 
@@ -48,11 +56,6 @@ impl RmsSystemWrapper {
                     RmsSimulatorType::RmsNetworkSimulator => {
                         let rms_network_simulator = RmsNetworkSimulator::try_from((dummy_rms_dto, simulator, aci_id, reservation_store))?;
                         Ok(Box::new(rms_network_simulator) as Box<dyn AdvanceReservationRms + Send + Sync>)
-                    }
-
-                    RmsSimulatorType::RmsSimulator => {
-                        let rms_simulator = RmsSimulator::try_from((dummy_rms_dto, simulator, aci_id, reservation_store))?;
-                        Ok(Box::new(rms_simulator) as Box<dyn AdvanceReservationRms + Send + Sync>)
                     }
                 }
             }
@@ -67,7 +70,6 @@ impl FromStr for RmsSimulatorType {
         match rms_type_dto {
             "RmsNodeSimulator" => Ok(RmsSimulatorType::RmsNodeSimulator),
             "RmsNetworkSimulator" => Ok(RmsSimulatorType::RmsNetworkSimulator),
-            "RmsSimulator" => Ok(RmsSimulatorType::RmsSimulator),
             _ => Err(ConversionError::UnknownRmsType(rms_type_dto.to_string())),
         }
     }

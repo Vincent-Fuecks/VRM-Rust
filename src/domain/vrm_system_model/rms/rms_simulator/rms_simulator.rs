@@ -3,13 +3,14 @@ use std::{any::Any, collections::HashMap, str::FromStr, sync::Arc};
 use parking_lot::RwLock;
 
 use crate::{
-    api::rms_config_dto::rms_dto::DummyRmsDto,
+    api::rms_config_dto::rms_dto::{DummyRmsDto, RmsSimulatorDto},
     domain::{
         simulator::simulator::GlobalClock,
         vrm_system_model::{
             reservation::reservation_store::{ReservationId, ReservationStore},
             resource::{node_resource::NodeResource, resource_store::ResourceStore},
             rms::{
+                common::{RmsSetupContext, add_node_information, get_nodes_and_links},
                 rms::{Rms, RmsBase},
                 rms_node_network_trait::Helper,
             },
@@ -66,72 +67,43 @@ impl Rms for RmsSimulator {
     }
 }
 
-impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsSimulator {
-    type Error = ConversionError;
-
-    fn try_from(args: (DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)) -> Result<Self, Self::Error> {
-        let (dto, simulator, aci_id, reservation_store) = args.clone();
+impl RmsSimulator {
+    pub fn new(
+        dto: RmsSimulatorDto,
+        simulator: Arc<GlobalClock>,
+        aci_id: AciId,
+        reservation_store: ReservationStore,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let resource_store = ResourceStore::new();
-        let (nodes, links) = RmsBase::get_nodes_and_links(&dto);
+        let (mut nodes, links, _) = get_nodes_and_links(dto.topology.clone());
+        add_node_information(dto.compute_nodes, &mut nodes);
+
         let entry_points = dto.entry_points.iter().into_iter().map(|e_point| RouterId::new(e_point)).collect();
+        let schedule_name = format!("AcI: {}, RmsType: {}", aci_id, dto.typ);
 
-        // Setup RmsNodeSimulator
-        let mut schedule_capacity = 0;
-
-        // Add nodes to ResourceStore
-        for node in nodes.iter() {
-            schedule_capacity += node.cpus;
-            resource_store.add_node(NodeResource::new(node.name.clone(), node.cpus));
-        }
-
-        let name = format!("AcI: {}, RmsType: {}", aci_id, dto.typ);
-        let schedule_context = ScheduleContext {
-            id: SlottedScheduleId::new(name.clone()),
-            number_of_slots: dto.num_of_slots,
-            slot_width: dto.slot_width,
-            capacity: schedule_capacity,
-            simulator: simulator.clone(),
-            reservation_store: reservation_store.clone(),
-        };
-
-        let scheduler_type = SchedulerType::from_str(&dto.scheduler_typ)?;
-        let node_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
-
-        // Setup RmsNetworkSimulator
-        // Adds Links to Resource Store
-        let topology = NetworkTopology::new(
-            &links,
-            &nodes,
-            dto.slot_width,
+        let rms_setup_context = RmsSetupContext::new(
             dto.num_of_slots,
+            dto.slot_width,
+            reservation_store,
             simulator.clone(),
+            nodes,
+            links,
             aci_id.clone(),
-            reservation_store.clone(),
-            resource_store.clone(),
+            dto.scheduler_typ,
+            schedule_name,
+            resource_store,
             entry_points,
         );
 
-        let name = format!("AcI: {}, RmsType: {}", aci_id, dto.typ);
-        let schedule_context = ScheduleContext {
-            id: SlottedScheduleId::new(name.clone()),
-            number_of_slots: dto.num_of_slots,
-            slot_width: dto.slot_width,
-            capacity: i64::MAX,
-            simulator: simulator.clone(),
-            reservation_store: reservation_store.clone(),
-        };
+        let rms_context = rms_setup_context.get_rms_context()?;
 
-        let mut scheduler_type = SchedulerType::from_str(&dto.scheduler_typ)?;
-        scheduler_type = scheduler_type.get_network_scheduler_variant(topology, resource_store.clone());
-        let network_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
-
-        if resource_store.get_num_of_nodes() <= 0 {
-            log::info!("Empty Rms: The newly created Rms of type {} of AcI {} contains no Nodes", dto.typ, aci_id);
-        }
-
-        let base = RmsBase::new(aci_id, dto.typ, reservation_store, resource_store.clone());
-
-        Ok(RmsSimulator { base, node_schedule, network_schedule, node_shadow_schedule: HashMap::new(), network_shadow_schedule: HashMap::new() })
+        Ok(RmsSimulator {
+            base: rms_context.base,
+            node_schedule: rms_context.node_schedule,
+            network_schedule: rms_context.network_schedule,
+            node_shadow_schedule: HashMap::new(),
+            network_shadow_schedule: HashMap::new(),
+        })
     }
 }
 
