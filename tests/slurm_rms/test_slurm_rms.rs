@@ -266,6 +266,7 @@ async fn create_test_slurm_rms(clock: Arc<GlobalClock>) -> Result<SlurmRms, Box<
         slot_width: 60 * 60,
         num_of_slots: 2,
         rest_api_config: rest_api_config,
+        entry_points: vec!["s0".to_string()],
         topology: topology,
     };
 

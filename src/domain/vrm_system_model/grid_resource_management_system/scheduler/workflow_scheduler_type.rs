@@ -1,4 +1,4 @@
-use crate::domain::vrm_system_model::grid_resource_management_system::scheduler::heft_sync_workflow_scheduler::HEFTSyncWorkflowScheduler;
+use crate::domain::vrm_system_model::grid_resource_management_system::scheduler::heft_sync_workflow_scheduler_only_direct_mapping::HEFTSyncWorkflowScheduler;
 use crate::domain::vrm_system_model::grid_resource_management_system::scheduler::workflow_scheduler::WorkflowScheduler;
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use crate::error::ConversionError;

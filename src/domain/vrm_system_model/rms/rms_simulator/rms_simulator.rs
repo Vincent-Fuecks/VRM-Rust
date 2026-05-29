@@ -1,9 +1,4 @@
-use std::{
-    any::Any,
-    collections::HashMap,
-    str::FromStr,
-    sync::{Arc},
-};
+use std::{any::Any, collections::HashMap, str::FromStr, sync::Arc};
 
 use parking_lot::RwLock;
 
@@ -20,7 +15,7 @@ use crate::{
             },
             schedule::{schedule_trait::Schedule, slotted_schedule::strategy::link::topology::NetworkTopology},
             scheduler_type::{ScheduleContext, SchedulerType},
-            utils::id::{AciId, ShadowScheduleId, SlottedScheduleId},
+            utils::id::{AciId, RouterId, ShadowScheduleId, SlottedScheduleId},
         },
     },
     error::ConversionError,
@@ -78,6 +73,7 @@ impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsSi
         let (dto, simulator, aci_id, reservation_store) = args.clone();
         let resource_store = ResourceStore::new();
         let (nodes, links) = RmsBase::get_nodes_and_links(&dto);
+        let entry_points = dto.entry_points.iter().into_iter().map(|e_point| RouterId::new(e_point)).collect();
 
         // Setup RmsNodeSimulator
         let mut schedule_capacity = 0;
@@ -112,6 +108,7 @@ impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsSi
             aci_id.clone(),
             reservation_store.clone(),
             resource_store.clone(),
+            entry_points,
         );
 
         let name = format!("AcI: {}, RmsType: {}", aci_id, dto.typ);

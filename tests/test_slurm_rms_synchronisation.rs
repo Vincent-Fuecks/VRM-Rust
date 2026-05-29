@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::HashSet, sync::Arc};
 
 use vrm_rust_workflow::{
     api::{
@@ -19,7 +19,7 @@ async fn create_slurm_rms_mock() -> Result<SlurmRmsDto, Box<dyn std::error::Erro
         jwt_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwOTE1MDYxNDQsImlhdCI6MTc3NjE0NjE0NCwic3VuIjoic2x1cm0ifQ.1c0D0fH2bP9MS3qmwf944xH9894r_aeaHFgnGaMYw-Q".to_string()
     };
 
-    // 2. Define the individual switches for the topology
+    // Define the individual switches for the topology
     let slurm_switch_dto_0 =
         SlurmSwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
 
@@ -46,6 +46,7 @@ async fn create_slurm_rms_mock() -> Result<SlurmRmsDto, Box<dyn std::error::Erro
         slot_width: 60,
         num_of_slots: 60,
         rest_api_config: rest_api_config,
+        entry_points: vec!["s0".to_string()],
         topology: topology,
     });
 }

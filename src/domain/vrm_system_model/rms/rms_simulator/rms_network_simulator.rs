@@ -8,7 +8,7 @@ use crate::domain::vrm_system_model::rms::rms::{Rms, RmsBase, RmsLoadMetric};
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
 use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, SchedulerType};
-use crate::domain::vrm_system_model::utils::id::{AciId, ShadowScheduleId, SlottedScheduleId};
+use crate::domain::vrm_system_model::utils::id::{AciId, RouterId, ShadowScheduleId, SlottedScheduleId};
 use crate::error::ConversionError;
 use parking_lot::RwLock;
 use std::any::Any;
@@ -67,6 +67,7 @@ impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsNe
         let (dto, simulator, aci_id, reservation_store) = args;
         let (nodes, links) = RmsBase::get_nodes_and_links(&dto);
         let resource_store = ResourceStore::new();
+        let entry_points = dto.entry_points.iter().into_iter().map(|e_point| RouterId::new(e_point)).collect();
 
         // Adds Links to Resource Store
         let topology = NetworkTopology::new(
@@ -78,6 +79,7 @@ impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsNe
             aci_id.clone(),
             reservation_store.clone(),
             resource_store.clone(),
+            entry_points,
         );
 
         let name = format!("AcI: {}, RmsType: {}", aci_id, dto.typ);

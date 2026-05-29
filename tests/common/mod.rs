@@ -111,6 +111,7 @@ pub fn get_aci_dto(connected_to_adc: String) -> AcIDto {
         slot_width: 60,
         grid_nodes,
         network_links,
+        entry_points: vec!["s0".to_string()],
     };
 
     let rms_system = RmsSystemWrapper::DummyRms(dummy_rms_dto);

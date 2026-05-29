@@ -161,7 +161,10 @@ async fn create_slurm_rms_mock() -> Result<SlurmRms, Box<dyn std::error::Error>>
         jwt_token: SLURM_TEST_JWT_TOKEN.to_string(),
     };
 
-    // 2. Define the individual switches for the topology
+    let mut entry_points = HashSet::new();
+    entry_points.insert("s0".to_string());
+
+    // Define the individual switches for the topology
     let slurm_switch_dto_0 =
         SlurmSwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
 
@@ -188,6 +191,7 @@ async fn create_slurm_rms_mock() -> Result<SlurmRms, Box<dyn std::error::Error>>
         slot_width: 60,
         num_of_slots: 60,
         rest_api_config: rest_api_config,
+        entry_points: vec!["s0".to_string()],
         topology: topology,
     };
 

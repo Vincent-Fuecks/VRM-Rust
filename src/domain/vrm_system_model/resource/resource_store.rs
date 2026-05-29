@@ -1,7 +1,7 @@
 use colored::Colorize;
 use slotmap::{SlotMap, new_key_type};
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     sync::{Arc, RwLock},
 };
 
@@ -40,6 +40,11 @@ struct StoreInner {
 
     /// Index lookup InternalKey (NodeResourceId) using input reservation name (ResourceName).
     node_index: HashMap<ResourceName, NodeResourceId>,
+
+    /// Specifies the entry points to the system (e. g. AcI/RMS or ADC)
+    entry_points: HashSet<RouterId>,
+
+    exit_points: HashSet<RouterId>,
 }
 
 impl ResourceStore {
@@ -76,24 +81,24 @@ impl ResourceStore {
 
     /// Synchronizes the local node state with the external RMS.
     ///
-    /// This method ensures the **distributed resource view** remains consistent by updating 
-    /// differences between the `nodes_in_rms` and the current `ResourceStore`. 
+    /// This method ensures the **distributed resource view** remains consistent by updating
+    /// differences between the `nodes_in_rms` and the current `ResourceStore`.
     /// * **New Nodes**: Any node present in the RMS but missing locally is added via `add_node`.
-    /// * **Offline/Missing Nodes**: Any node existing locally that is no longer reported by the 
+    /// * **Offline/Missing Nodes**: Any node existing locally that is no longer reported by the
     ///   RMS is treated as offline and purged via `remove_node`.
     ///
     /// ### Network Topology & Routing
-    /// In modern high-performance computing (HPC) setups like **Fat-Tree topologies**, nodes function 
-    /// as leaves connected to external switches. Consequently, this synchronization does not trigger 
-    /// a topology recalculation. 
-    /// 
-    /// > **Important:** Nodes must be part of the initial topology to be accessible. If an RMS node 
-    /// > was not included during the system's initialization, it will remain unreachable even 
+    /// In modern high-performance computing (HPC) setups like **Fat-Tree topologies**, nodes function
+    /// as leaves connected to external switches. Consequently, this synchronization does not trigger
+    /// a topology recalculation.
+    ///
+    /// > **Important:** Nodes must be part of the initial topology to be accessible. If an RMS node
+    /// > was not included during the system's initialization, it will remain unreachable even
     /// > after synchronization.
     ///
     /// ### Job Handling
-    /// Committed jobs or active reservations on nodes that go offline are not handled within this 
-    /// function. Those lifecycle events are managed independently by the reservation logic 
+    /// Committed jobs or active reservations on nodes that go offline are not handled within this
+    /// function. Those lifecycle events are managed independently by the reservation logic
     /// (e.g., `slurm_base.rs` through `update_reservations`).
     pub fn update_nodes(&self, nodes_in_rms: Vec<NodeResource>) {
         let guard = self.inner.read().unwrap();
@@ -108,7 +113,6 @@ impl ResourceStore {
         for node_id in current_store_nodes.values() {
             let resource_id = guard.nodes.get(*node_id).unwrap().read().unwrap().base.get_name();
             self.remove_node(resource_id);
-
         }
     }
 
@@ -301,6 +305,18 @@ impl ResourceStore {
 
         // 3. Now you can call .get() on the HashMap
         map_guard.get(&(source, target)).cloned()
+    }
+
+    pub fn add_exit_points(&self, exit_points: Option<HashSet<RouterId>>) {
+        let mut guard = self.inner.write().unwrap();
+        if let Some(exit_points) = exit_points {
+            guard.exit_points.extend(exit_points);
+        }
+    }
+
+    pub fn add_entry_points(&self, entry_points: HashSet<RouterId>) {
+        let mut guard = self.inner.write().unwrap();
+        guard.entry_points.extend(entry_points);
     }
 
     //----------------------------

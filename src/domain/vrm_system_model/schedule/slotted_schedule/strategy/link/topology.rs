@@ -115,7 +115,11 @@ impl NetworkTopology {
         aci_id: AciId,
         reservation_store: ReservationStore,
         resource_store: ResourceStore,
+        entry_points: HashSet<RouterId>,
     ) -> Self {
+        // 0. Add RMS entry points
+        resource_store.add_entry_points(entry_points);
+
         // 1.  Init physical links.
         let link_ids = NetworkTopology::setup_network_links(
             links,

@@ -1,3 +1,4 @@
-pub mod heft_sync_workflow_scheduler;
+pub mod heft_sync_workflow_scheduler_only_direct_mapping;
+pub mod prototype_heft_sync_workflow_scheduler;
 pub mod workflow_scheduler;
 pub mod workflow_scheduler_type;

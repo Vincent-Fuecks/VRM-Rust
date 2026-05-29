@@ -18,7 +18,7 @@ use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
 use crate::domain::vrm_system_model::scheduler_type::ScheduleContext;
 use crate::domain::vrm_system_model::utils::config::SCHEDULE_SYNC_TIMEINTERVAL_S;
-use crate::domain::vrm_system_model::utils::id::{ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
+use crate::domain::vrm_system_model::utils::id::{ResourceName, RmsId, RouterId, ShadowScheduleId, SlottedScheduleId};
 use crate::{
     api::rms_config_dto::rms_dto::SlurmRmsDto,
     domain::vrm_system_model::{
@@ -60,6 +60,7 @@ impl SlurmRms {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let rest_api_client = SlurmRestApiClient::new(dto.rest_api_config.clone())?;
         let nodes_response = rest_api_client.get_nodes().await.expect(&format!("Connection to Slurm based RMS of AcI {:?} was not possible", aci_id));
+        let entry_points = dto.entry_points.iter().into_iter().map(|e_point| RouterId::new(e_point)).collect();
 
         let (nodes, links) = SlurmRms::get_nodes_and_links(&dto, &nodes_response);
         let resource_store = ResourceStore::new();
@@ -97,6 +98,7 @@ impl SlurmRms {
             aci_id.clone(),
             reservation_store.clone(),
             resource_store.clone(),
+            entry_points,
         );
 
         let schedule_context = ScheduleContext {

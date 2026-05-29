@@ -7,6 +7,7 @@ pub struct DummyRmsDto {
     pub scheduler_typ: String,
     pub slot_width: i64,
     pub num_of_slots: i64,
+    pub entry_points: Vec<String>,
     pub grid_nodes: Vec<GridNodeDto>,
     pub network_links: Vec<NetworkLinkDto>,
 }
@@ -18,7 +19,8 @@ pub struct SlurmRmsDto {
     pub scheduler_typ: String,
     pub slot_width: i64,
     pub num_of_slots: i64,
-    pub rest_api_config : SlurmConfigDto,
+    pub rest_api_config: SlurmConfigDto,
+    pub entry_points: Vec<String>,
     pub topology: Vec<SlurmSwitchDto>,
 }
 

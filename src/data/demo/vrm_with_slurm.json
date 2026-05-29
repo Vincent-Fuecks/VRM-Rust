@@ -35,6 +35,7 @@
                     "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk3ODMwODIsImlhdCI6MTc3OTY5NjY4Miwic3VuIjoidnJtVXNlciJ9.h4B2B82pCDI0PlgRAVAu-mnNNVaZYtyjYfW5tI-Fp8g",
                     "partition": ""
                 },
+                "entryPoints" : ["s0"],
                 "topology" : [
                     {
                         "switchName": "s0",
