@@ -327,14 +327,15 @@ impl VrmComponentManager {
         }
 
         for _ in 0..TRY_N_PROMOTIONS {
-            if let Some((component_id, shadow_schedule_id)) = probe_reservations.prompt_best(reservation_id, probe_reservation_comparator.clone()) {
-                self.reserve(component_id.clone(), reservation_id, shadow_schedule_id);
+            // TODO return path
+            if let Some(probe_meta_data) = probe_reservations.prompt_best(reservation_id, probe_reservation_comparator.clone()) {
+                self.reserve(probe_meta_data.source_component_id.clone(), reservation_id, probe_meta_data.shadow_schedule_id);
 
                 if self.reservation_store.is_reservation_state_at_least(reservation_id, ReservationState::ReserveAnswer) {
                     log::info!("Reservation {:?} successful!", reservation_id);
 
                     // Update local schedule
-                    self.reserve_without_check(component_id.clone(), reservation_id);
+                    self.reserve_without_check(probe_meta_data.source_component_id.clone(), reservation_id);
 
                     // Register new schedule Sub-Task
                     // Update grid_component_res_database for rollback and for ADC to keep track
@@ -343,11 +344,23 @@ impl VrmComponentManager {
                         log::error!(
                             "ErrorReservationWasReservedInMultipleGridComponents: The reservation {:?} was multiple times to the GirdComponent {} submitted.",
                             self.reservation_store.get_name_for_key(reservation_id),
-                            component_id,
+                            probe_meta_data.source_component_id.clone(),
                         );
                     }
 
-                    grid_component_res_database.insert(reservation_id, component_id);
+                    grid_component_res_database.insert(reservation_id, probe_meta_data.source_component_id.clone());
+
+
+                    if self.reservation_store.is_link(reservation_id) {
+                        // 1. Reserve Link between ADC and AcI/Rms
+                        // probe_meta_data.adc, probe_meta_data.source_component_id
+                        
+                        // 2. Reserve Links in RMS to node form entry point
+                        
+                    }
+
+
+
                     return Some(reservation_id);
                 }
             }

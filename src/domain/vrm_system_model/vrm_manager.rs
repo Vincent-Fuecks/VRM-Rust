@@ -25,13 +25,14 @@ use crate::{
                 reservation_store::{ReservationId, ReservationStore},
                 vrm_state_listener::VrmStateListener,
             },
-            utils::id::{AdcId, ComponentId},
+            schedule::slotted_schedule::strategy::link::topology::{Link, Node},
+            utils::id::{AdcId, ComponentId, ResourceName, RouterId},
         },
     },
     error::ConversionError,
 };
 
-use super::{reservation::reservation::ReservationTyp, utils::id::ClientId};
+use super::{rms::advance_reservation_trait::AdvanceReservationRms, utils::id::ClientId};
 
 pub struct VrmManager {
     pub adc_master: VrmComponentProxy,
@@ -47,6 +48,7 @@ pub struct VrmManager {
     pub processed_reservations: Arc<RwLock<HashSet<ReservationId>>>,
 
     pub reservation_store: ReservationStore,
+    pub vrm_network_schedule: Arc<RwLock<Box<dyn AdvanceReservationRms + Send>>>,
     pub simulator: Arc<GlobalClock>,
 }
 
@@ -56,6 +58,7 @@ impl VrmManager {
         unprocessed_reservations: Vec<(ReservationId, i64)>,
         reservation_store: ReservationStore,
         simulator: Arc<GlobalClock>,
+        vrm_network_schedule: Arc<RwLock<Box<dyn AdvanceReservationRms + Send>>>,
     ) -> Self {
         VrmManager {
             adc_master,
@@ -64,6 +67,7 @@ impl VrmManager {
             processed_reservations: Arc::new(RwLock::new(HashSet::new())),
             reservation_store,
             simulator,
+            vrm_network_schedule,
         }
     }
 
@@ -86,15 +90,15 @@ impl VrmManager {
         let mut proxies: HashMap<ComponentId, VrmComponentProxy> = HashMap::new();
 
         // Setup AcI Proxies (spawn all in own thread)
-        for aci_dto in dto.aci {
-            let aci = AcI::from_dto(aci_dto, simulator.clone(), reservation_store.clone()).await?;
+        for aci_dto in &dto.aci {
+            let aci = AcI::from_dto(aci_dto.clone(), simulator.clone(), reservation_store.clone()).await?;
             let component_box: Box<dyn VrmComponent + Send> = Box::new(aci);
 
             let proxy: VrmComponentProxy = registry.spawn_component(component_box);
             proxies.insert(proxy.get_id(), proxy);
         }
 
-        let mut pending_adcs = dto.adc;
+        let mut pending_adcs = dto.adc.clone();
         let mut progress_made = true;
         let adc_master_id = ComponentId::new(dto.adc_master_id);
         let mut adc_master: Option<VrmComponentProxy> = None;
@@ -159,11 +163,49 @@ impl VrmManager {
 
         match adc_master {
             Some(adc_master) => {
+                // Used to create VRM link schedule
+                let mut nodes = Vec::new();
+                let mut links = Vec::new();
+
+                let node = Node { name: adc_master.get_id().cast(), connected_to_router: vec![], cpus: -1 };
+                nodes.push(node);
+
+                for aci_dto in &dto.aci.clone() {
+                    let node = Node {
+                        name: proxies.get(&ComponentId::new(aci_dto.id.clone())).unwrap().get_id().cast(),
+                        connected_to_router: vec![],
+                        cpus: -1,
+                    };
+
+                    nodes.push(node);
+                }
+
+                for adc_dto in &dto.adc {
+                    let node = Node {
+                        name: proxies.get(&ComponentId::new(adc_dto.id.clone())).unwrap().get_id().cast(),
+                        connected_to_router: vec![],
+                        cpus: -1,
+                    };
+                    nodes.push(node);
+
+                    for child in &adc_dto.children {
+                        let link = Link {
+                            id: ResourceName::new(format!("{:?}-->{:?}", adc_dto.id.clone(), child)),
+                            capacity: 1000,
+                            source: RouterId::new(adc_dto.id.clone()),
+                            target: RouterId::new(child),
+                        };
+
+                        links.push(link)
+                    }
+                }
+
                 let vrm_manager = VrmManager::new(
-                    adc_master,
+                    adc_master.clone(),
                     reservation_store.get_sorted_res_ids_with_arrival_time(unprocessed_reservations),
                     reservation_store,
                     simulator,
+                    todo!(),
                 );
 
                 return Ok(vrm_manager).map_err(|_| ConversionError::AdcConstructionError("Master-AcI".to_string()));
@@ -262,7 +304,7 @@ impl VrmManager {
             let mut probe_reservations = self.adc_master.probe(process_res_id, use_master_schedule.clone());
 
             // Prompt best ProbeReservation -> Try to reserve ProbeReservation
-            if let Some((_, _)) = probe_reservations.prompt_best(process_res_id, ProbeReservationComparator::ESTReservationCompare) {
+            if let Some(_) = probe_reservations.prompt_best(process_res_id, ProbeReservationComparator::ESTReservationCompare) {
                 // Reserve of ProbeReservation was not possible -> Reset Reservation to original
                 if !self.reservation_store.is_reservation_state_at_least(process_res_id, ReservationState::ReserveAnswer) {
                     probe_reservations.demote();

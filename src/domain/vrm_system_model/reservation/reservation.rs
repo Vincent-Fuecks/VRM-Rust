@@ -3,7 +3,7 @@ use std::{any::Any, collections::HashSet, ops::Not};
 
 use crate::domain::vrm_system_model::{
     reservation::{link_reservation::LinkReservation, node_reservation::NodeReservation},
-    utils::id::{ClientId, ComponentId, ReservationName, RouterId},
+    utils::id::{ClientId, ComponentId, ReservationName, ResourceName, RouterId},
     workflow::workflow::Workflow,
 };
 

@@ -372,7 +372,7 @@ impl VrmComponent for AcI {
 
         let mut prob_request_answer = self.rms_system.probe(reservation_id, shadow_schedule_id.clone());
         // Way to attach this AcI to the created probeReservations.
-        prob_request_answer.add_probe_meta_data(self.id.clone().cast(), shadow_schedule_id.clone());
+        prob_request_answer.add_probe_meta_data(self.id.clone().cast(), self.adc_id.clone().cast(), shadow_schedule_id.clone());
         // Tracking for when promotion happens
         self.open_probe_reservations.insert(reservation_id, shadow_schedule_id.clone());
 
@@ -430,7 +430,7 @@ impl VrmComponent for AcI {
 
         let mut probe_best_answer = self.rms_system.probe_best(reservation_id, probe_reservation_comparator, shadow_schedule_id.clone());
         // Way to attach this AcI to the created probeReservations.
-        probe_best_answer.add_probe_meta_data(self.id.clone().cast(), shadow_schedule_id.clone());
+        probe_best_answer.add_probe_meta_data(self.id.clone().cast(), self.adc_id.clone().cast(), shadow_schedule_id.clone());
 
         // Init ProbeReservation tracking -> Informs AcI if VrmComponent likes to reserve a ProbeReservation
         self.open_probe_reservations.insert(reservation_id, shadow_schedule_id);

@@ -23,9 +23,9 @@ async fn test_probe() {
     assert_eq!(1, probe_reservations.get_ids().len());
     assert_eq!(store.get_state(res_id), ReservationState::ProbeAnswer, "Probe process was not successful.");
 
-    if let Some((component_id, shadow_scheduling_id)) = probe_reservations.prompt_best(res_id, ProbeReservationComparator::EFTReservationCompare) {
-        assert!(component_id.compare(&aci.id.clone().cast()), "Unexpected AcI id.");
-        assert!(shadow_scheduling_id.is_none(), "Probe was on shadow schedule performed.");
+    if let Some(probe_meta_data) = probe_reservations.prompt_best(res_id, ProbeReservationComparator::EFTReservationCompare) {
+        assert!(probe_meta_data.source_component_id.compare(&aci.id.clone().cast()), "Unexpected AcI id.");
+        assert!(probe_meta_data.shadow_schedule_id.is_none(), "Probe was on shadow schedule performed.");
         assert_eq!(store.get_state(res_id), ReservationState::ProbeReservation, "Probe process was not successful.");
 
         // Transfer the reservation in a valid reserve state.
@@ -53,9 +53,9 @@ async fn test_best_probe() {
     assert_eq!(1, probe_reservations.get_ids().len());
     assert_eq!(store.get_state(res_id), ReservationState::ProbeAnswer, "Probe best process was not successful.");
 
-    if let Some((component_id, shadow_scheduling_id)) = probe_reservations.prompt_best(res_id, ProbeReservationComparator::EFTReservationCompare) {
-        assert!(component_id.compare(&aci.id.clone().cast()), "Unexpected AcI id.");
-        assert!(shadow_scheduling_id.is_none(), "Probe was on shadow schedule performed.");
+    if let Some(probe_meta_data) = probe_reservations.prompt_best(res_id, ProbeReservationComparator::EFTReservationCompare) {
+        assert!(probe_meta_data.source_component_id.compare(&aci.id.clone().cast()), "Unexpected AcI id.");
+        assert!(probe_meta_data.shadow_schedule_id.is_none(), "Probe was on shadow schedule performed.");
         assert_eq!(store.get_state(res_id), ReservationState::ProbeReservation, "Probe process was not successful.");
 
         // Transfer the reservation in a valid reserve state.
@@ -67,5 +67,4 @@ async fn test_best_probe() {
     } else {
         assert!(false, "Error in the promotion process happened.");
     }
-    
 }

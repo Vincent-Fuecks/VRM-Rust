@@ -6,13 +6,13 @@ use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::rms::advance_reservation_trait::AdvanceReservationRms;
 use crate::domain::vrm_system_model::rms::rms::{Rms, RmsBase, RmsLoadMetric};
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
-use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
+use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::{Link, NetworkTopology, Node};
 use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, SchedulerType};
 use crate::domain::vrm_system_model::utils::id::{AciId, RouterId, ShadowScheduleId, SlottedScheduleId};
 use crate::error::ConversionError;
 use parking_lot::RwLock;
 use std::any::Any;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::i64;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -23,6 +23,53 @@ pub struct RmsNetworkSimulator {
     pub base: RmsBase,
     pub network_schedule: Arc<RwLock<Box<dyn Schedule>>>,
     pub network_shadow_schedule: HashMap<ShadowScheduleId, Arc<RwLock<Box<dyn Schedule>>>>,
+}
+
+impl RmsNetworkSimulator {
+    pub fn new(
+        entry_points: HashSet<RouterId>,
+        links: Vec<Link>,
+        nodes: Vec<Node>,
+        simulator: Arc<GlobalClock>,
+        slot_width: i64,
+        num_of_slots: i64,
+        vrm_component: AciId,
+    ) -> Self {
+        let resource_store = ResourceStore::new();
+        let reservation_store = ReservationStore::new();
+
+        // Adds Links to Resource Store
+        let topology = NetworkTopology::new(
+            &links,
+            &nodes,
+            slot_width,
+            num_of_slots,
+            simulator.clone(),
+            vrm_component,
+            reservation_store.clone(),
+            resource_store.clone(),
+            entry_points,
+        );
+
+        // let name = format!("AcI: {}, RmsType: {}", vrm_component, dto.typ);
+        // let schedule_context = ScheduleContext {
+        //     id: SlottedScheduleId::new(name.clone()),
+        //     number_of_slots: num_of_slots,
+        //     slot_width: slot_width,
+        //     capacity: i64::MAX,
+        //     simulator: simulator.clone(),
+        //     reservation_store: reservation_store.clone(),
+        // };
+
+        // let mut scheduler_type = SchedulerType::from_str(&dto.scheduler_typ)?;
+        // scheduler_type = scheduler_type.get_network_scheduler_variant(topology, resource_store.clone());
+        // let network_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
+
+        // let base = RmsBase::new(aci_id, dto.typ, reservation_store, resource_store.clone());
+
+        // Ok(RmsNetworkSimulator { base, network_schedule, network_shadow_schedule: HashMap::new() })
+        todo!()
+    }
 }
 
 impl Rms for RmsNetworkSimulator {

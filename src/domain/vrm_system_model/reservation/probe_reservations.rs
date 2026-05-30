@@ -36,7 +36,14 @@ pub struct ProbeReservations {
     original_reservation: Reservation,
     reservation_store: ReservationStore,
     reservation_idx: usize,
-    probe_meta_data: HashMap<ProbeReservationId, (ComponentId, Option<ShadowScheduleId>)>,
+    pub probe_meta_data: HashMap<ProbeReservationId, ProbeMetadata>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ProbeMetadata {
+    pub source_component_id: ComponentId,
+    pub shadow_schedule_id: Option<ShadowScheduleId>,
+    pub adc: ComponentId,
 }
 
 impl ProbeReservations {
@@ -52,6 +59,12 @@ impl ProbeReservations {
             };
         } else {
             panic!("ProbeReservationOriginalReservationNotFound");
+        }
+    }
+
+    pub fn add_adc(&mut self, adc_component: ComponentId) {
+        for meta in self.probe_meta_data.iter_mut() {
+            meta.1.adc = adc_component.clone();
         }
     }
 
@@ -91,7 +104,7 @@ impl ProbeReservations {
         }
     }
 
-    /// Resets Promption of Reservation to original Reservation.
+    /// Resets Promotion of Reservation to original Reservation.
     pub fn demote(&mut self) {
         let res_base = self.original_reservation.get_base_reservation();
         self.reservation_store.set_booking_interval_start(self.original_reservation_id, res_base.get_booking_interval_start());
@@ -106,11 +119,7 @@ impl ProbeReservations {
     ///
     /// Return:
     /// If promotion was successful the component_id, is returned, where the Reservation must be reserved.
-    pub fn prompt_best(
-        &mut self,
-        original_res_id: ReservationId,
-        comparator: ProbeReservationComparator,
-    ) -> Option<(ComponentId, Option<ShadowScheduleId>)> {
+    pub fn prompt_best(&mut self, original_res_id: ReservationId, comparator: ProbeReservationComparator) -> Option<ProbeMetadata> {
         let best_probe_res_id = self.get_best_probe_reservation_id(original_res_id, comparator)?;
 
         let best_probe_reservation = self.local_reservation_store.remove(&best_probe_res_id);
@@ -220,9 +229,21 @@ impl ProbeReservations {
 
     /// Adds to all ProbeReservation in this ProbeReservations object the provided component_id.
     /// This component_id is later in the promotion process utilized to submit this probeReservation to reserve this probeReservation by the vrm_component, that created the probeReservation.
-    pub fn add_probe_meta_data(&mut self, component_id: ComponentId, shadow_schedule_id: Option<ShadowScheduleId>) {
+    pub fn add_probe_meta_data(
+        &mut self,
+        aci_component_id: ComponentId,
+        adc_component_id: ComponentId,
+        shadow_schedule_id: Option<ShadowScheduleId>,
+    ) {
         for probe_id in self.local_reservation_store.keys() {
-            self.probe_meta_data.insert(probe_id.clone(), (component_id.clone(), shadow_schedule_id.clone()));
+            self.probe_meta_data.insert(
+                probe_id.clone(),
+                ProbeMetadata {
+                    source_component_id: aci_component_id.clone(),
+                    shadow_schedule_id: shadow_schedule_id.clone(),
+                    adc: adc_component_id.clone(),
+                },
+            );
         }
     }
 
@@ -240,8 +261,8 @@ impl ProbeReservations {
         if let Some(best_id) = self.get_best_probe_reservation_id(original_res_id, comparator) {
             if let Some(res) = self.local_reservation_store.get(&best_id) {
                 let _ = new_probe_reservations.add_reservation(res.clone());
-                if let Some((component_id, shadow_schedule_id)) = self.probe_meta_data.get(&best_id) {
-                    new_probe_reservations.add_probe_meta_data(component_id.clone(), shadow_schedule_id.clone());
+                if let Some(probe_meta_data) = self.probe_meta_data.get(&best_id) {
+                    new_probe_reservations.probe_meta_data.insert(best_id.clone(), probe_meta_data.clone());
                 }
             }
         }

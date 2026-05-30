@@ -3,7 +3,7 @@ use crate::api::vrm_system_model_dto::adc_dto::ADCDto;
 use crate::domain::simulator::simulator::GlobalClockDto;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct VrmDto {
     pub simulator: GlobalClockDto,

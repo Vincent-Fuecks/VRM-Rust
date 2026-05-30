@@ -237,6 +237,7 @@ impl HEFTSyncWorkflowScheduler {
             self.get_reservation_store().update_state(reservation_id_to_schedule, ReservationState::Open);
             first_task_candidate = self.schedule_node_reservation_eft(workflow, reservation_id_to_schedule, grid_component_res_database, adc);
         }
+        
         // Failure
         if first_task_candidate.is_none()
             || !self.base.reservation_store.is_reservation_state_at_least(first_task_candidate.unwrap(), ReservationState::ReserveAnswer)

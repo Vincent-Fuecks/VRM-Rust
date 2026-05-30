@@ -52,7 +52,7 @@ pub struct SlurmConfigDto {
     pub jwt_token: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(untagged)]
 pub enum RmsSystemWrapper {
     DummyRms(DummyRmsDto),

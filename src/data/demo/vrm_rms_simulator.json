@@ -4,6 +4,11 @@
         "endTime": 36000,
         "isSimulation": true
     },
+    "vrmNetworkSchedule" : {
+        "schedulerTyp": "SlottedSchedule",
+        "slotWidth": 60,
+        "numOfSlots": 60
+    },
     "adc": [
         {
             "id": "ADC-001",
