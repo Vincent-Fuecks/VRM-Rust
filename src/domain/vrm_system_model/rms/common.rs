@@ -13,7 +13,7 @@ use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::{Link, NetworkTopology, Node};
 use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, SchedulerType};
-use crate::domain::vrm_system_model::utils::id::{AciId, ResourceName, RouterId, SlottedScheduleId};
+use crate::domain::vrm_system_model::utils::id::{AciId, ComponentId, ResourceName, RouterId, SlottedScheduleId};
 
 use super::rms::RmsBase;
 
@@ -66,7 +66,7 @@ impl RmsSetupContext {
         }
     }
 
-    pub fn get_rms_context(&self) -> Result<RmsContext, Box<dyn std::error::Error>> {
+    pub fn get_node_schedule(&self) -> Result<Arc<RwLock<RawRwLock, Box<dyn Schedule>>>, Box<dyn std::error::Error>> {
         let resource_store = ResourceStore::new();
 
         // Setup Node Schedule
@@ -89,7 +89,10 @@ impl RmsSetupContext {
 
         let scheduler_type = SchedulerType::from_str(&self.scheduler_typ)?;
         let node_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
+        Ok(node_schedule)
+    }
 
+    pub fn get_network_schedule(&self) -> Result<Arc<RwLock<RawRwLock, Box<dyn Schedule>>>, Box<dyn std::error::Error>> {
         // Setup Network Schedule
         // Adds Links to Resource Store
         let topology = NetworkTopology::new(
@@ -114,17 +117,18 @@ impl RmsSetupContext {
         };
 
         let mut scheduler_type = SchedulerType::from_str(&self.scheduler_typ)?;
-        scheduler_type = scheduler_type.get_network_scheduler_variant(topology, resource_store.clone());
+        scheduler_type = scheduler_type.get_network_scheduler_variant(topology, self.resource_store.clone());
         let network_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
 
-        let base = RmsBase::new(self.aci_id.clone(), "Slurm".to_string(), self.reservation_store.clone(), resource_store.clone());
-
-        return Ok(RmsContext { base, node_schedule, network_schedule });
+        Ok(network_schedule)
     }
 }
 
 /// Used for RmsSimulator and SlurmRms
-pub fn get_nodes_and_links(topology: Vec<SwitchDto>) -> (Vec<Node>, Vec<Link>, HashMap<ResourceName, Vec<RouterId>>) {
+pub fn get_nodes_and_links(
+    topology: Vec<SwitchDto>,
+    compute_node_dtos: Option<Vec<ComputeNodeDto>>,
+) -> (Vec<Node>, Vec<Link>, HashMap<ResourceName, Vec<RouterId>>) {
     let mut links = Vec::new();
     let mut nodes = Vec::new();
     let mut node_to_switches: HashMap<ResourceName, Vec<RouterId>> = HashMap::new();
@@ -182,6 +186,23 @@ pub fn get_nodes_and_links(topology: Vec<SwitchDto>) -> (Vec<Node>, Vec<Link>, H
         }
     }
 
+    if let Some() = 
+    let mut compute_nodes_map = HashMap::new();
+    for compute_node_dto in compute_node_dtos.iter() {
+        compute_nodes_map.insert(ResourceName::new(compute_node_dto.id.clone()), ComputeNodeResources { cpus: compute_node_dto.cpus });
+    }
+
+    for node in nodes.iter_mut() {
+        if let Some(compute_node_resources) = compute_nodes_map.get(&node.name) {
+            node.cpus = compute_node_resources.cpus;
+        } else {
+            log::error!(
+                "VRM-JSON-TopologyAndComputeNodesContainsNotTheSameNodes: The topology node with the name {:?} is not in the ComputeNode List.",
+                node.name
+            );
+        }
+    }
+
     return (nodes, links, node_to_switches);
 }
 
@@ -205,4 +226,8 @@ pub fn add_node_information(compute_node_dtos: Vec<ComputeNodeDto>, nodes: &mut 
             );
         }
     }
+}
+
+pub fn get_rms_base(component_id: ComponentId, rms_typ: String, reservation_store: ReservationStore, resource_store: ResourceStore) {
+    RmsBase::new(component_id, rms_typ, reservation_store, resource_store);
 }
