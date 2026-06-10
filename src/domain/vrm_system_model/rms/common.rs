@@ -13,7 +13,7 @@ use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::{Link, NetworkTopology, Node};
 use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, SchedulerType};
-use crate::domain::vrm_system_model::utils::id::{AciId, ComponentId, ResourceName, RouterId, SlottedScheduleId};
+use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RouterId, SlottedScheduleId};
 
 use super::rms::RmsBase;
 
@@ -24,17 +24,11 @@ pub struct RmsSetupContext {
     simulator: Arc<GlobalClock>,
     nodes: Vec<Node>,
     links: Vec<Link>,
-    aci_id: AciId,
+    component_id: ComponentId,
     scheduler_typ: String,
     schedule_name: String,
     resource_store: ResourceStore,
     entry_points: HashSet<RouterId>,
-}
-
-pub struct RmsContext {
-    pub base: RmsBase,
-    pub node_schedule: Arc<RwLock<RawRwLock, Box<dyn Schedule>>>,
-    pub network_schedule: Arc<RwLock<RawRwLock, Box<dyn Schedule>>>,
 }
 
 impl RmsSetupContext {
@@ -45,7 +39,7 @@ impl RmsSetupContext {
         simulator: Arc<GlobalClock>,
         nodes: Vec<Node>,
         links: Vec<Link>,
-        aci_id: AciId,
+        component_id: ComponentId,
         scheduler_typ: String,
         schedule_name: String,
         resource_store: ResourceStore,
@@ -58,7 +52,7 @@ impl RmsSetupContext {
             simulator,
             nodes,
             links,
-            aci_id,
+            component_id,
             scheduler_typ,
             schedule_name,
             resource_store,
@@ -101,7 +95,7 @@ impl RmsSetupContext {
             self.slot_width,
             self.num_of_slots,
             self.simulator.clone(),
-            self.aci_id.clone(),
+            self.component_id.clone(),
             self.reservation_store.clone(),
             self.resource_store.clone(),
             self.entry_points.clone(),
@@ -121,6 +115,10 @@ impl RmsSetupContext {
         let network_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
 
         Ok(network_schedule)
+    }
+
+        pub fn get_base(&self) -> Result<RmsBase, Box<dyn std::error::Error>> {
+        Ok(RmsBase { id: , resource_store: self.resource_store, reservation_store: self.reservation_store })
     }
 }
 
@@ -186,20 +184,21 @@ pub fn get_nodes_and_links(
         }
     }
 
-    if let Some() = 
-    let mut compute_nodes_map = HashMap::new();
-    for compute_node_dto in compute_node_dtos.iter() {
-        compute_nodes_map.insert(ResourceName::new(compute_node_dto.id.clone()), ComputeNodeResources { cpus: compute_node_dto.cpus });
-    }
+    if let Some(compute_node_dtos) = compute_node_dtos {
+        let mut compute_nodes_map = HashMap::new();
+        for compute_node_dto in compute_node_dtos.iter() {
+            compute_nodes_map.insert(ResourceName::new(compute_node_dto.id.clone()), ComputeNodeResources { cpus: compute_node_dto.cpus });
+        }
 
-    for node in nodes.iter_mut() {
-        if let Some(compute_node_resources) = compute_nodes_map.get(&node.name) {
-            node.cpus = compute_node_resources.cpus;
-        } else {
-            log::error!(
-                "VRM-JSON-TopologyAndComputeNodesContainsNotTheSameNodes: The topology node with the name {:?} is not in the ComputeNode List.",
-                node.name
-            );
+        for node in nodes.iter_mut() {
+            if let Some(compute_node_resources) = compute_nodes_map.get(&node.name) {
+                node.cpus = compute_node_resources.cpus;
+            } else {
+                log::error!(
+                    "VRM-JSON-TopologyAndComputeNodesContainsNotTheSameNodes: The topology node with the name {:?} is not in the ComputeNode List.",
+                    node.name
+                );
+            }
         }
     }
 
@@ -226,8 +225,4 @@ pub fn add_node_information(compute_node_dtos: Vec<ComputeNodeDto>, nodes: &mut 
             );
         }
     }
-}
-
-pub fn get_rms_base(component_id: ComponentId, rms_typ: String, reservation_store: ReservationStore, resource_store: ResourceStore) {
-    RmsBase::new(component_id, rms_typ, reservation_store, resource_store);
 }

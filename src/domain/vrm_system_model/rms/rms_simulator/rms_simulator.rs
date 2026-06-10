@@ -75,8 +75,7 @@ impl RmsSimulator {
         reservation_store: ReservationStore,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let resource_store = ResourceStore::new();
-        let (mut nodes, links, _) = get_nodes_and_links(dto.topology.clone());
-        add_node_information(dto.compute_nodes, &mut nodes);
+        let (mut nodes, links, _) = get_nodes_and_links(dto.topology.clone(), Some(dto.compute_nodes));
 
         let entry_points = dto.entry_points.iter().into_iter().map(|e_point| RouterId::new(e_point)).collect();
         let schedule_name = format!("AcI: {}, RmsType: {}", aci_id, dto.typ);
@@ -94,9 +93,11 @@ impl RmsSimulator {
             resource_store,
             entry_points,
         );
+        let base = rms_setup_context.get_base()?;
+        let node_schedule = rms_setup_context.get_node_schedule()?; 
+        let network_schedule = rms_setup_context.get_network_schedule()?; 
 
-        let rms_context = rms_setup_context.get_rms_context()?;
-
+        
         Ok(RmsSimulator {
             base: rms_context.base,
             node_schedule: rms_context.node_schedule,

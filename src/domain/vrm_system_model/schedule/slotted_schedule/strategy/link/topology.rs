@@ -4,7 +4,7 @@ use crate::domain::vrm_system_model::resource::link_resource::LinkResource;
 use crate::domain::vrm_system_model::resource::resource_store::{LinkResourceId, ResourceStore};
 use crate::domain::vrm_system_model::schedule::slotted_schedule::SlottedNodeSchedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
-use crate::domain::vrm_system_model::utils::id::{AciId, ResourceName, RouterId, SlottedScheduleId};
+use crate::domain::vrm_system_model::utils::id::{AciId, ComponentId, ResourceName, RouterId, SlottedScheduleId};
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
@@ -112,7 +112,7 @@ impl NetworkTopology {
         slot_width: i64,
         num_of_slots: i64,
         simulator: Arc<GlobalClock>,
-        aci_id: AciId,
+        component_id: ComponentId,
         reservation_store: ReservationStore,
         resource_store: ResourceStore,
         entry_points: HashSet<RouterId>,

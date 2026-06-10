@@ -53,6 +53,9 @@ struct StoreInner {
     /// Lookup table of all Reservation of a component is currently handling (Acd or AcI).
     handler_index: HashMap<ComponentId, HashSet<ReservationId>>,
 
+    /// Tracks child reservations for a given parent reservation (e.g. sub-links of a logical link)
+    parent_child_index: HashMap<ReservationId, Vec<ReservationId>>,
+
     /// Listener for changes
     listeners: Vec<Arc<RwLock<dyn ReservationNotificationListener>>>,
 }
@@ -65,6 +68,7 @@ impl ReservationStore {
                 name_index: HashMap::new(),
                 client_index: HashMap::new(),
                 handler_index: HashMap::new(),
+                parent_child_index: HashMap::new(),
                 listeners: Vec::new(),
             })),
         }
@@ -99,6 +103,23 @@ impl ReservationStore {
         return key;
     }
 
+    /// Creates a new sub-reservation derived from a parent reservation.
+    pub fn create_sub_reservation(&self, parent_id: ReservationId, sub_name: String) -> ReservationId {
+        let parent_snapshot = self.get_reservation_snapshot(parent_id).expect("Parent not found");
+        let mut sub_res = parent_snapshot;
+        sub_res.get_base_mut_reservation().name = ReservationName::new(sub_name);
+        
+        // A new reservation needs a new id and to be inserted
+        // TODO Change Reservation data 
+        self.add(sub_res)
+    }
+
+    /// Registers children corresponding to a parent reservation
+    pub fn register_child_reservations(&self, parent_id: ReservationId, children: Vec<ReservationId>) {
+        let mut guard = self.inner.write();
+        guard.parent_child_index.insert(parent_id, children);
+    }
+
     /// Removes a reservation and its associated name index from the store.
     /// Note: This operation removes the reservation from the name index and the slot map,
     /// effectively ending its lifecycle in the store.
@@ -109,6 +130,8 @@ impl ReservationStore {
             let mut guard = self.inner.write();
             guard.name_index.remove(&name);
             guard.slots.remove(reservation_id);
+            // Optionally remove from parent_child_index if needed
+            guard.parent_child_index.remove(&reservation_id);
         } else {
             log::error!("ReservationStoreRemoveError: Failed to remove reservation, because res_name was None.")
         }
@@ -774,6 +797,7 @@ impl ReservationStore {
             name_index: guard.name_index.clone(),
             client_index: guard.client_index.clone(),
             handler_index: guard.handler_index.clone(),
+            parent_child_index: guard.parent_child_index.clone(),
             listeners: guard.listeners.clone(),
         };
 
