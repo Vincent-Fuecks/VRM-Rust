@@ -7,7 +7,10 @@ use crate::domain::vrm_system_model::reservation::reservation::{Reservation, Res
 use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::rms::advance_reservation_trait::AdvanceReservationRms;
 use crate::domain::vrm_system_model::rms::rms::RmsLoadMetric;
-use crate::domain::vrm_system_model::utils::id::{AciId, AdcId, ClientId, ComponentId, ShadowScheduleId};
+use crate::domain::vrm_system_model::schedule::slotted_schedule::SlottedNodeSchedule;
+use crate::domain::vrm_system_model::schedule::slotted_schedule::slotted_schedule_context::SlottedScheduleContext;
+use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
+use crate::domain::vrm_system_model::utils::id::{AciId, AdcId, ClientId, ComponentId, ShadowScheduleId, SlottedScheduleId};
 use crate::domain::vrm_system_model::utils::state_logging::{AnalyticLogger, BaseLog, DetailLog, ProbeLog, VrmCommand};
 use crate::error::ConversionError;
 
@@ -104,6 +107,7 @@ pub struct AcI {
     adc_id: AdcId,
     commit_timeout: i64,
     rms_system: Box<dyn AdvanceReservationRms + Send>,
+
     shadow_schedule_reservations: ShadowScheduleReservations,
     committed_reservations: HashMap<ReservationId, ReservationContainer>,
     not_committed_reservations: HashMap<ReservationId, ReservationContainer>,
@@ -111,6 +115,13 @@ pub struct AcI {
 
     simulator: Arc<GlobalClock>,
     pub reservation_store: ReservationStore,
+
+    /// The network input schedule schedule of the AcI (keeps track of the data flow of the AcI)
+    network_input_schedule: SlottedScheduleContext<NodeStrategy>,
+
+    /// The network output schedule of the AcI
+    network_output_schedule: SlottedScheduleContext<NodeStrategy>,
+    
 }
 
 impl AcI {
@@ -118,6 +129,28 @@ impl AcI {
         let aci_id = AciId::new(dto.id.clone());
         let adc_id: AdcId = AdcId::new(dto.adc_id);
         let rms_system = RmsSystemWrapper::get_instance(dto.rms_system, simulator.clone(), aci_id.clone(), reservation_store.clone()).await?;
+
+        let network_input_schedule = SlottedNodeSchedule::new(
+            SlottedScheduleId::new(format!("Network Input Schedule of {:?}", dto.id.clone())),
+            24,
+            60,
+            dto.in_bandwidth,
+            true,
+            NodeStrategy::default(),
+            reservation_store.clone(),
+            simulator.clone(),
+        );
+
+        let network_output_schedule = SlottedNodeSchedule::new(
+            SlottedScheduleId::new(format!("Network Output Schedule of {:?}", dto.id.clone())),
+            24,
+            60,
+            dto.out_bandwidth,
+            true,
+            NodeStrategy::default(),
+            reservation_store.clone(),
+            simulator.clone(),
+        );
 
         Ok(AcI {
             id: aci_id,
@@ -130,6 +163,8 @@ impl AcI {
             open_probe_reservations: HashMap::new(),
             simulator: simulator,
             reservation_store: reservation_store.clone(),
+            network_input_schedule,
+            network_output_schedule,
         })
     }
 }

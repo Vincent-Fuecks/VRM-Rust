@@ -86,39 +86,43 @@
                         "cpus": 256
                     }
                 ],
-                "topology" : [
-                    {
-                        "switchName": "s0",
-                        "switches": [],
-                        "nodes": [
-                            "c0",
-                            "c1"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s1",
-                        "switches": [],
-                        "nodes": [
-                            "c3",
-                            "c4",
-                            "c5",
-                            "c6"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s2",
-                        "switches": [
-                            "s0",
-                            "s1"
-                        ],
-                        "nodes": [
-                            "c2"
-                        ],
-                        "linkSpeed" : 1000
-                    }
-                ]
+                "topology" : {
+                    "ingress_bandwidth_gbps": 1000,
+                    "egress_bandwidth_gbps": 1000,
+                    "switches": [
+                        {
+                            "switchName": "s0",
+                            "switches": [],
+                            "nodes": [
+                                "c0",
+                                "c1"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s1",
+                            "switches": [],
+                            "nodes": [
+                                "c3",
+                                "c4",
+                                "c5",
+                                "c6"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s2",
+                            "switches": [
+                                "s0",
+                                "s1"
+                            ],
+                            "nodes": [
+                                "c2"
+                            ],
+                            "linkSpeed" : 1000
+                        }
+                    ] 
+                }
             }
         },
         {
@@ -161,39 +165,43 @@
                         "cpus": 256
                     }
                 ],
-                "topology" : [
-                    {
-                        "switchName": "s0",
-                        "switches": [],
-                        "nodes": [
-                            "c0",
-                            "c1"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s1",
-                        "switches": [],
-                        "nodes": [
-                            "c3",
-                            "c4",
-                            "c5",
-                            "c6"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s2",
-                        "switches": [
-                            "s0",
-                            "s1"
-                        ],
-                        "nodes": [
-                            "c2"
-                        ],
-                        "linkSpeed" : 1000
-                    }
-                ]
+                "topology" : {
+                    "ingress_bandwidth_gbps": 1000,
+                    "egress_bandwidth_gbps": 1000,
+                    "switches": [
+                        {
+                            "switchName": "s0",
+                            "switches": [],
+                            "nodes": [
+                                "c0",
+                                "c1"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s1",
+                            "switches": [],
+                            "nodes": [
+                                "c3",
+                                "c4",
+                                "c5",
+                                "c6"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s2",
+                            "switches": [
+                                "s0",
+                                "s1"
+                            ],
+                            "nodes": [
+                                "c2"
+                            ],
+                            "linkSpeed" : 1000
+                        }
+                    ] 
+                }
             }
         },    
     {
@@ -236,39 +244,43 @@
                         "cpus": 256
                     }
                 ],
-                "topology" : [
-                    {
-                        "switchName": "s0",
-                        "switches": [],
-                        "nodes": [
-                            "c0",
-                            "c1"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s1",
-                        "switches": [],
-                        "nodes": [
-                            "c3",
-                            "c4",
-                            "c5",
-                            "c6"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s2",
-                        "switches": [
-                            "s0",
-                            "s1"
-                        ],
-                        "nodes": [
-                            "c2"
-                        ],
-                        "linkSpeed" : 1000
-                    }
-                ]
+                "topology" : {
+                    "ingress_bandwidth_gbps": 1000,
+                    "egress_bandwidth_gbps": 1000,
+                    "switches": [
+                        {
+                            "switchName": "s0",
+                            "switches": [],
+                            "nodes": [
+                                "c0",
+                                "c1"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s1",
+                            "switches": [],
+                            "nodes": [
+                                "c3",
+                                "c4",
+                                "c5",
+                                "c6"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s2",
+                            "switches": [
+                                "s0",
+                                "s1"
+                            ],
+                            "nodes": [
+                                "c2"
+                            ],
+                            "linkSpeed" : 1000
+                        }
+                    ] 
+                }
             }
         },
         {
@@ -311,39 +323,43 @@
                         "cpus": 256
                     }
                 ],
-                "topology" : [
-                    {
-                        "switchName": "s0",
-                        "switches": [],
-                        "nodes": [
-                            "c0",
-                            "c1"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s1",
-                        "switches": [],
-                        "nodes": [
-                            "c3",
-                            "c4",
-                            "c5",
-                            "c6"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s2",
-                        "switches": [
-                            "s0",
-                            "s1"
-                        ],
-                        "nodes": [
-                            "c2"
-                        ],
-                        "linkSpeed" : 1000
-                    }
-                ]
+                "topology" : {
+                    "ingress_bandwidth_gbps": 1000,
+                    "egress_bandwidth_gbps": 1000,
+                    "switches": [
+                        {
+                            "switchName": "s0",
+                            "switches": [],
+                            "nodes": [
+                                "c0",
+                                "c1"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s1",
+                            "switches": [],
+                            "nodes": [
+                                "c3",
+                                "c4",
+                                "c5",
+                                "c6"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s2",
+                            "switches": [
+                                "s0",
+                                "s1"
+                            ],
+                            "nodes": [
+                                "c2"
+                            ],
+                            "linkSpeed" : 1000
+                        }
+                    ] 
+                }
             }
         },   
     {
@@ -386,39 +402,43 @@
                         "cpus": 256
                     }
                 ],
-                "topology" : [
-                    {
-                        "switchName": "s0",
-                        "switches": [],
-                        "nodes": [
-                            "c0",
-                            "c1"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s1",
-                        "switches": [],
-                        "nodes": [
-                            "c3",
-                            "c4",
-                            "c5",
-                            "c6"
-                        ],
-                        "linkSpeed" : 1000
-                    },
-                    {
-                        "switchName": "s2",
-                        "switches": [
-                            "s0",
-                            "s1"
-                        ],
-                        "nodes": [
-                            "c2"
-                        ],
-                        "linkSpeed" : 1000
-                    }
-                ]
+                "topology" : {
+                    "ingressBandwidthGbps": 1000,
+                    "egressBandwidthGbps": 1000,
+                    "switches": [
+                        {
+                            "switchName": "s0",
+                            "switches": [],
+                            "nodes": [
+                                "c0",
+                                "c1"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s1",
+                            "switches": [],
+                            "nodes": [
+                                "c3",
+                                "c4",
+                                "c5",
+                                "c6"
+                            ],
+                            "linkSpeed" : 1000
+                        },
+                        {
+                            "switchName": "s2",
+                            "switches": [
+                                "s0",
+                                "s1"
+                            ],
+                            "nodes": [
+                                "c2"
+                            ],
+                            "linkSpeed" : 1000
+                        }
+                    ] 
+                }
             }
         }
     ]

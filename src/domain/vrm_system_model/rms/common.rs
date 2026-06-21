@@ -5,7 +5,7 @@ use std::sync::Arc;
 use parking_lot::RawRwLock;
 use parking_lot::lock_api::RwLock;
 
-use crate::api::rms_config_dto::rms_dto::{ComputeNodeDto, SwitchDto};
+use crate::api::rms_config_dto::rms_dto::{ComputeNodeDto, SwitchDto, TopologyDto};
 use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::resource::node_resource::NodeResource;
@@ -117,21 +117,39 @@ impl RmsSetupContext {
         Ok(network_schedule)
     }
 
-        pub fn get_base(&self) -> Result<RmsBase, Box<dyn std::error::Error>> {
-        Ok(RmsBase { id: , resource_store: self.resource_store, reservation_store: self.reservation_store })
-    }
+        // pub fn get_base(&self) -> Result<RmsBase, Box<dyn std::error::Error>> {
+        // Ok(RmsBase { id: resource_store: self.resource_store, reservation_store: self.reservation_store })
+    //}
 }
 
 /// Used for RmsSimulator and SlurmRms
 pub fn get_nodes_and_links(
-    topology: Vec<SwitchDto>,
+    topology: TopologyDto,
     compute_node_dtos: Option<Vec<ComputeNodeDto>>,
 ) -> (Vec<Node>, Vec<Link>, HashMap<ResourceName, Vec<RouterId>>) {
     let mut links = Vec::new();
     let mut nodes = Vec::new();
     let mut node_to_switches: HashMap<ResourceName, Vec<RouterId>> = HashMap::new();
 
-    for start_switch in &topology {
+    let entry_link_ingress =  Link {
+                id: ResourceName::new("EntryLinkIngress"),
+                source: RouterId::new("AcI-Gateway"),
+                target: RouterId::new("RMS-Gateway"),
+                capacity: topology.ingress_bandwidth_gbps,
+            };
+
+    let entry_link_egress = Link {
+                id: ResourceName::new("EntryLinkEgress"),
+                source: RouterId::new("RMS-Gateway"),
+                target: RouterId::new("AcI-Gateway"),
+                capacity: topology.egress_bandwidth_gbps,
+            };
+    
+    links.push(entry_link_ingress);
+    links.push(entry_link_egress);
+
+
+    for start_switch in &topology.switches {
         let switch0 = RouterId::new(start_switch.switch_name.clone());
         for end_switch in &start_switch.switches {
             let switch1 = RouterId::new(end_switch.clone());

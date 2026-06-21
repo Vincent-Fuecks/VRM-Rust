@@ -21,7 +21,15 @@ pub struct RmsSimulatorDto {
     pub num_of_slots: i64,
     pub entry_points: Vec<String>,
     pub compute_nodes: Vec<ComputeNodeDto>,
-    pub topology: Vec<SwitchDto>,
+    pub topology: TopologyDto,
+}
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TopologyDto {
+    pub ingress_bandwidth_gbps: i64, 
+    pub egress_bandwidth_gbps: i64,
+    pub switches: Vec<SwitchDto>
 }
 
 #[derive(Debug, Deserialize, Clone, Serialize)]

@@ -8,5 +8,7 @@ pub struct AcIDto {
     pub id: String,
     pub adc_id: String,
     pub commit_timeout: i64,
+    pub in_bandwidth: i64,
+    pub out_bandwidth: i64,
     pub rms_system: RmsSystemWrapper,
 }

@@ -21,6 +21,8 @@
         {
             "id": "AcI-001",
             "adcId": "Adc-001",
+            "inBandwidth": 1000, 
+            "outBandwidth": 1000,
             "commitTimeout": 256,
             "rmsSystem":
             {
@@ -87,6 +89,8 @@
             "id": "AcI-002",
             "adcId": "Adc-001",
             "commitTimeout": 256,
+            "inBandwidth": 1000, 
+            "outBandwidth": 1000,
             "rmsSystem":
             {
                 "typ": "RmsNodeSimulator",
@@ -152,6 +156,8 @@
         "id": "AcI-003",
         "adcId":"Adc-001",
         "commitTimeout": 256,
+        "inBandwidth": 1000, 
+        "outBandwidth": 1000,
         "rmsSystem":
             {
                 "typ": "RmsNodeSimulator",
@@ -217,6 +223,8 @@
         "id": "AcI-004",
         "adcId":"Adc-001",
         "commitTimeout": 256,
+        "inBandwidth": 1000, 
+        "outBandwidth": 1000,
         "rmsSystem":
             {
                 "typ": "RmsNodeSimulator",
@@ -282,6 +290,8 @@
         "id": "AcI-005",
         "adcId":"Adc-001",
         "commitTimeout": 256,
+        "inBandwidth": 1000, 
+        "outBandwidth": 1000,
         "rmsSystem":
             {
                 "typ": "RmsNodeSimulator",

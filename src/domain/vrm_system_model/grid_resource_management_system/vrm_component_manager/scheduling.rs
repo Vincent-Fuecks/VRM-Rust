@@ -349,68 +349,68 @@ impl VrmComponentManager {
                     if self.reservation_store.is_link(reservation_id) {
                         log::info!("Decomposing logical link reservation {:?} into physical path segments", reservation_id);
 
-                        // 1. Retrieve the structural source and target router endpoints for the link
-                        let mut source_routers = self.get_component_router_list(probe_meta_data.adc.clone());
-                        let mut target_routers = self.get_component_router_list(probe_meta_data.source_component_id.clone());
+                        // // 1. Retrieve the structural source and target router endpoints for the link
+                        // let mut source_routers = self.get_component_router_list(probe_meta_data.adc.clone());
+                        // let mut target_routers = self.get_component_router_list(probe_meta_data.source_component_id.clone());
 
-                        if let (Some(src_router), Some(tgt_router)) = (source_routers.first(), target_routers.first()) {
-                            // 2. Resolve the underlying multi-hop path using the network topology
-                            if let Some(path_segments) = self.network_topology.get_route_segments(src_router, tgt_router) {
-                                let mut sub_link_failed = false;
-                                let mut allocated_sub_links = Vec::new();
+                        // if let (Some(src_router), Some(tgt_router)) = (source_routers.first(), target_routers.first()) {
+                        //     // 2. Resolve the underlying multi-hop path using the network topology
+                        //     if let Some(path_segments) = self.network_topology.get_route_segments(src_router, tgt_router) {
+                        //         let mut sub_link_failed = false;
+                        //         let mut allocated_sub_links = Vec::new();
 
-                                // 3. Iterate over every physical segment and reserve it
-                                for (index, segment) in path_segments.iter().enumerate() {
-                                    // Generate a unique sub-reservation identifier linked to the parent task
-                                    let sub_res_id = self.reservation_store.create_sub_reservation(
-                                        reservation_id,
-                                        format!("{}-hop-{}", self.reservation_store.get_name_for_key(reservation_id).unwrap().to_string(), index),
-                                    );
+                        //         // 3. Iterate over every physical segment and reserve it
+                        //         for (index, segment) in path_segments.iter().enumerate() {
+                        //             // Generate a unique sub-reservation identifier linked to the parent task
+                        //             let sub_res_id = self.reservation_store.create_sub_reservation(
+                        //                 reservation_id,
+                        //                 format!("{}-hop-{}", self.reservation_store.get_name_for_key(reservation_id).unwrap().to_string(), index),
+                        //             );
 
-                                    // Configure the sub-reservation matching parameters of the parent segment
-                                    self.reservation_store.set_booking_interval_start(sub_res_id, res_snapshot.get_booking_interval_start());
-                                    self.reservation_store.set_booking_interval_end(sub_res_id, res_snapshot.get_booking_interval_end());
+                        //             // Configure the sub-reservation matching parameters of the parent segment
+                        //             self.reservation_store.set_booking_interval_start(sub_res_id, res_snapshot.get_booking_interval_start());
+                        //             self.reservation_store.set_booking_interval_end(sub_res_id, res_snapshot.get_booking_interval_end());
 
-                                    if let Some(res_arc) = self.reservation_store.get(sub_res_id) {
-                                        let mut guard = res_arc.write();
-                                        if let Some(link) = guard.as_link_mut() {
-                                            link.start_point = Some(segment.start.clone());
-                                            link.end_point = Some(segment.end.clone());
-                                        }
-                                    }
+                        //             if let Some(res_arc) = self.reservation_store.get(sub_res_id) {
+                        //                 let mut guard = res_arc.write();
+                        //                 if let Some(link) = guard.as_link_mut() {
+                        //                     link.start_point = Some(segment.start.clone());
+                        //                     link.end_point = Some(segment.end.clone());
+                        //                 }
+                        //             }
 
-                                    // Reserve the hop at the specific network component handling this segment
-                                    let component_id = segment.managing_component.clone();
-                                    let reserved_id = self.reserve(component_id.clone(), sub_res_id, probe_meta_data.shadow_schedule_id.clone());
+                        //             // Reserve the hop at the specific network component handling this segment
+                        //             let component_id = segment.managing_component.clone();
+                        //             let reserved_id = self.reserve(component_id.clone(), sub_res_id, probe_meta_data.shadow_schedule_id.clone());
 
-                                    if self.reservation_store.is_reservation_state_at_least(reserved_id, ReservationState::ReserveAnswer) {
-                                        self.reserve_without_check(component_id.clone(), reserved_id);
-                                        grid_component_res_database.insert(reserved_id, component_id);
-                                        allocated_sub_links.push(reserved_id);
-                                    } else {
-                                        log::error!("Failed to reserve path segment hop {} for logical link {:?}", index, reservation_id);
-                                        sub_link_failed = true;
-                                        break;
-                                    }
-                                }
+                        //             if self.reservation_store.is_reservation_state_at_least(reserved_id, ReservationState::ReserveAnswer) {
+                        //                 self.reserve_without_check(component_id.clone(), reserved_id);
+                        //                 grid_component_res_database.insert(reserved_id, component_id);
+                        //                 allocated_sub_links.push(reserved_id);
+                        //             } else {
+                        //                 log::error!("Failed to reserve path segment hop {} for logical link {:?}", index, reservation_id);
+                        //                 sub_link_failed = true;
+                        //                 break;
+                        //             }
+                        //         }
 
-                                // 4. Handle rollbacks atomically across all segments if a single hop fails
-                                if sub_link_failed {
-                                    for failed_sub_id in allocated_sub_links {
-                                        self.delete_task_at_component(failed_sub_id, probe_meta_data.shadow_schedule_id.clone());
-                                    }
-                                    self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
-                                    return None;
-                                }
+                        //         // 4. Handle rollbacks atomically across all segments if a single hop fails
+                        //         if sub_link_failed {
+                        //             for failed_sub_id in allocated_sub_links {
+                        //                 self.delete_task_at_component(failed_sub_id, probe_meta_data.shadow_schedule_id.clone());
+                        //             }
+                        //             self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
+                        //             return None;
+                        //         }
 
-                                // Register spawned child elements to the global execution context
-                                self.reservation_store.register_child_reservations(reservation_id, allocated_sub_links);
-                            } else {
-                                log::error!("No routable physical network path found for logical link {:?}", reservation_id);
-                                self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
-                                return None;
-                            }
-                        }
+                        //         // Register spawned child elements to the global execution context
+                        //         self.reservation_store.register_child_reservations(reservation_id, allocated_sub_links);
+                        //     } else {
+                        //         log::error!("No routable physical network path found for logical link {:?}", reservation_id);
+                        //         self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
+                        //         return None;
+                        //     }
+                        // }
                     }
 
                     return Some(reservation_id);
