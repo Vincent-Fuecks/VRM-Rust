@@ -1,7 +1,8 @@
 /target
-/harness
-/specs
+.harness/
+.specs/
 *.log
+.cursorrules
 
 
 # Added by cargo
