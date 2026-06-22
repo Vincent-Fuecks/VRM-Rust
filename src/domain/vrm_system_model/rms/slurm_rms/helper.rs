@@ -16,7 +16,7 @@ impl SlurmRms {
         let mut nodes = Vec::new();
         let mut node_to_switches: HashMap<ResourceName, Vec<RouterId>> = HashMap::new();
 
-        for start_switch in &dto.topology {
+        for start_switch in &dto.topology.switches {
             let switch0 = RouterId::new(start_switch.switch_name.clone());
             for end_switch in &start_switch.switches {
                 let switch1 = RouterId::new(end_switch.clone());

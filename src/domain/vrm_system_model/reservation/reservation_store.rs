@@ -1,4 +1,5 @@
 use slotmap::{SlotMap, new_key_type};
+use std::collections::hash_map::Entry::Occupied;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 
@@ -53,6 +54,9 @@ struct StoreInner {
     /// Lookup table of all Reservation of a component is currently handling (Acd or AcI).
     handler_index: HashMap<ComponentId, HashSet<ReservationId>>,
 
+    // TODO
+    original_to_virtual: HashMap<ReservationId, Vec<ReservationId>>,
+
     /// Listener for changes
     listeners: Vec<Arc<RwLock<dyn ReservationNotificationListener>>>,
 }
@@ -66,6 +70,7 @@ impl ReservationStore {
                 client_index: HashMap::new(),
                 handler_index: HashMap::new(),
                 listeners: Vec::new(),
+                original_to_virtual: HashMap::new(),
             })),
         }
     }
@@ -99,6 +104,74 @@ impl ReservationStore {
         return key;
     }
 
+    /// Creates a virtual reservation with a modified start point based on an original Link reservation.
+    pub fn add_virtual_reservation_diff_start(&self, original_res_id: ReservationId, start: RouterId) -> Option<ReservationId> {
+        let mut cloned_reservation = {
+            let guard = self.inner.read();
+            guard.slots.get(original_res_id).map(|arc_lock| {
+                let res_guard = arc_lock.read();
+                res_guard.clone()
+            })
+        }?;
+
+        // Modify original reservation
+        match &mut cloned_reservation {
+            Reservation::Link(link_res) => {
+                let original_res_name = self.get_name_for_key(original_res_id);
+
+                link_res.base.name = ReservationName::new(format!("Original-Res: {:?} | Start: {:?}", original_res_name, start));
+
+                link_res.set_start_point(Some(start));
+            }
+            _ => {
+                log::error!("The provided original reservation (id: {:?}) is not a LinkReservation.", original_res_id);
+                return None;
+            }
+        }
+
+        let virtual_reservation_id = self.add(cloned_reservation);
+
+        // Updated tracking map
+        let mut write_guard = self.inner.write();
+        write_guard.original_to_virtual.entry(original_res_id).or_default().push(virtual_reservation_id);
+
+        Some(virtual_reservation_id)
+    }
+
+    /// Creates a virtual reservation with a modified end point based on an original Link reservation.
+    pub fn add_virtual_reservation_diff_end(&self, original_res_id: ReservationId, end: RouterId) -> Option<ReservationId> {
+        let mut cloned_reservation = {
+            let guard = self.inner.read();
+            guard.slots.get(original_res_id).map(|arc_lock| {
+                let res_guard = arc_lock.read();
+                res_guard.clone()
+            })
+        }?;
+
+        // Modify original reservation
+        match &mut cloned_reservation {
+            Reservation::Link(link_res) => {
+                let original_res_name = self.get_name_for_key(original_res_id);
+
+                link_res.base.name = ReservationName::new(format!("Original-Res: {:?} | End: {:?}", original_res_name, end));
+
+                link_res.set_end_point(Some(end));
+            }
+            _ => {
+                log::error!("The provided original reservation (id: {:?}) is not a LinkReservation.", original_res_id);
+                return None;
+            }
+        }
+
+        let virtual_reservation_id = self.add(cloned_reservation);
+
+        // Updated tracking map
+        let mut write_guard = self.inner.write();
+        write_guard.original_to_virtual.entry(original_res_id).or_default().push(virtual_reservation_id);
+
+        Some(virtual_reservation_id)
+    }
+
     /// Removes a reservation and its associated name index from the store.
     /// Note: This operation removes the reservation from the name index and the slot map,
     /// effectively ending its lifecycle in the store.
@@ -111,6 +184,22 @@ impl ReservationStore {
             guard.slots.remove(reservation_id);
         } else {
             log::error!("ReservationStoreRemoveError: Failed to remove reservation, because res_name was None.")
+        }
+    }
+
+    pub fn remove_virtual_reservation(&self, original_res_id: ReservationId, virtual_res_id: ReservationId) {
+        let mut guard = self.inner.write();
+
+        if let Occupied(mut entry) = guard.original_to_virtual.entry(original_res_id) {
+            let vec = entry.get_mut();
+
+            // Remove virtual reservation
+            vec.retain(|&id| id != virtual_res_id);
+
+            // Del if not other virtual reservations present
+            if vec.is_empty() {
+                entry.remove();
+            }
         }
     }
 
@@ -775,6 +864,7 @@ impl ReservationStore {
             client_index: guard.client_index.clone(),
             handler_index: guard.handler_index.clone(),
             listeners: guard.listeners.clone(),
+            original_to_virtual: guard.original_to_virtual.clone(),
         };
 
         ReservationStore { inner: Arc::new(RwLock::new(new_inner)) }

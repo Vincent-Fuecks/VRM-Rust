@@ -1,7 +1,7 @@
 use colored::Colorize;
 use slotmap::{SlotMap, new_key_type};
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     sync::{Arc, RwLock},
 };
 
@@ -40,6 +40,7 @@ struct StoreInner {
 
     /// Index lookup InternalKey (NodeResourceId) using input reservation name (ResourceName).
     node_index: HashMap<ResourceName, NodeResourceId>,
+    router_list: Arc<RwLock<HashSet<RouterId>>>,
 }
 
 impl ResourceStore {
@@ -55,6 +56,11 @@ impl ResourceStore {
         let node_resource_id = guard.nodes.insert(Arc::new(RwLock::new(node.clone())));
         guard.node_index.insert(node.base.get_name(), node_resource_id);
         return node_resource_id;
+    }
+
+    pub fn contains_node(&self, key: &ResourceName) -> bool {
+        let guard = self.inner.read().unwrap();
+        return guard.node_index.contains_key(key);
     }
 
     pub fn remove_node(&self, resource_name: ResourceName) {
@@ -76,24 +82,24 @@ impl ResourceStore {
 
     /// Synchronizes the local node state with the external RMS.
     ///
-    /// This method ensures the **distributed resource view** remains consistent by updating 
-    /// differences between the `nodes_in_rms` and the current `ResourceStore`. 
+    /// This method ensures the **distributed resource view** remains consistent by updating
+    /// differences between the `nodes_in_rms` and the current `ResourceStore`.
     /// * **New Nodes**: Any node present in the RMS but missing locally is added via `add_node`.
-    /// * **Offline/Missing Nodes**: Any node existing locally that is no longer reported by the 
+    /// * **Offline/Missing Nodes**: Any node existing locally that is no longer reported by the
     ///   RMS is treated as offline and purged via `remove_node`.
     ///
     /// ### Network Topology & Routing
-    /// In modern high-performance computing (HPC) setups like **Fat-Tree topologies**, nodes function 
-    /// as leaves connected to external switches. Consequently, this synchronization does not trigger 
-    /// a topology recalculation. 
-    /// 
-    /// > **Important:** Nodes must be part of the initial topology to be accessible. If an RMS node 
-    /// > was not included during the system's initialization, it will remain unreachable even 
+    /// In modern high-performance computing (HPC) setups like **Fat-Tree topologies**, nodes function
+    /// as leaves connected to external switches. Consequently, this synchronization does not trigger
+    /// a topology recalculation.
+    ///
+    /// > **Important:** Nodes must be part of the initial topology to be accessible. If an RMS node
+    /// > was not included during the system's initialization, it will remain unreachable even
     /// > after synchronization.
     ///
     /// ### Job Handling
-    /// Committed jobs or active reservations on nodes that go offline are not handled within this 
-    /// function. Those lifecycle events are managed independently by the reservation logic 
+    /// Committed jobs or active reservations on nodes that go offline are not handled within this
+    /// function. Those lifecycle events are managed independently by the reservation logic
     /// (e.g., `slurm_base.rs` through `update_reservations`).
     pub fn update_nodes(&self, nodes_in_rms: Vec<NodeResource>) {
         let guard = self.inner.read().unwrap();
@@ -108,7 +114,6 @@ impl ResourceStore {
         for node_id in current_store_nodes.values() {
             let resource_id = guard.nodes.get(*node_id).unwrap().read().unwrap().base.get_name();
             self.remove_node(resource_id);
-
         }
     }
 
@@ -296,11 +301,29 @@ impl ResourceStore {
 
     pub fn get_k_shortest_paths(&self, source: RouterId, target: RouterId) -> Option<Vec<Path>> {
         let inner_guard = self.inner.read().unwrap();
-
         let map_guard = inner_guard.k_shortest_paths.read().unwrap();
-
-        // 3. Now you can call .get() on the HashMap
         map_guard.get(&(source, target)).cloned()
+    }
+
+    pub fn contains_valid_path(&self, source: RouterId, target: RouterId) -> bool {
+        let inner_guard = self.inner.read().unwrap();
+        let map_guard = inner_guard.k_shortest_paths.read().unwrap();
+        map_guard.get(&(source, target)).is_some()
+    }
+
+    pub fn dump_k_shortest_paths(&self) {
+        let inner_guard = self.inner.read().unwrap();
+        let map_guard = inner_guard.k_shortest_paths.read().unwrap();
+        for (router_pair, paths) in map_guard.iter() {
+            log::debug!("Router Pair: {:?}", router_pair.clone());
+            for (i, path) in paths.iter().enumerate() {
+                log::debug!("Path: {}", i);
+                for link_id in &path.network_links {
+                    log::debug!("{:?}", self.get_link(*link_id).unwrap().read().unwrap().base.name);
+                }
+                println!("\n");
+            }
+        }
     }
 
     //----------------------------
@@ -357,6 +380,23 @@ impl ResourceStore {
         }
     }
 
+    //----------------------------
+    // --- Router-List Methods ---
+    //----------------------------
+    pub fn add_routers(&self, routers: Vec<RouterId>) {
+        let guard = self.inner.write().unwrap();
+        let mut router_list_guard = guard.router_list.write().unwrap();
+        router_list_guard.extend(routers);
+    }
+
+    pub fn contains_router_id(&self, router_id: &RouterId) -> bool {
+        let guard = self.inner.read().unwrap();
+        return guard.router_list.read().unwrap().contains(router_id);
+    }
+
+    //----------------------
+    // --- Other Methods ---
+    //----------------------
     /// Returns true if a resource can handle the reservation
     pub fn can_handle_aci_request(&self, reservation_store: ReservationStore, reservation_id: ReservationId) -> bool {
         log::debug!(

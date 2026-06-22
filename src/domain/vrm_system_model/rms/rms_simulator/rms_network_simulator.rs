@@ -8,7 +8,7 @@ use crate::domain::vrm_system_model::rms::rms::{Rms, RmsBase, RmsLoadMetric};
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
 use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, SchedulerType};
-use crate::domain::vrm_system_model::utils::id::{AciId, ShadowScheduleId, SlottedScheduleId};
+use crate::domain::vrm_system_model::utils::id::{AciId, ComponentId, ShadowScheduleId, SlottedScheduleId};
 use crate::error::ConversionError;
 use parking_lot::RwLock;
 use std::any::Any;
@@ -60,11 +60,11 @@ impl Rms for RmsNetworkSimulator {
     }
 }
 
-impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsNetworkSimulator {
+impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, ComponentId, ReservationStore)> for RmsNetworkSimulator {
     type Error = ConversionError;
 
-    fn try_from(args: (DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)) -> Result<Self, Self::Error> {
-        let (dto, simulator, aci_id, reservation_store) = args;
+    fn try_from(args: (DummyRmsDto, Arc<GlobalClock>, ComponentId, ReservationStore)) -> Result<Self, Self::Error> {
+        let (dto, simulator, component_id, reservation_store) = args;
         let (nodes, links) = RmsBase::get_nodes_and_links(&dto);
         let resource_store = ResourceStore::new();
 
@@ -75,12 +75,12 @@ impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsNe
             dto.slot_width,
             dto.num_of_slots,
             simulator.clone(),
-            aci_id.clone(),
+            component_id.clone(),
             reservation_store.clone(),
             resource_store.clone(),
         );
 
-        let name = format!("AcI: {}, RmsType: {}", aci_id, dto.typ);
+        let name = format!("AcI: {}, RmsType: {}", component_id, dto.typ);
         let schedule_context = ScheduleContext {
             id: SlottedScheduleId::new(name.clone()),
             number_of_slots: dto.num_of_slots,
@@ -94,7 +94,7 @@ impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsNe
         scheduler_type = scheduler_type.get_network_scheduler_variant(topology, resource_store.clone());
         let network_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
 
-        let base = RmsBase::new(aci_id, dto.typ, reservation_store, resource_store.clone());
+        let base = RmsBase::new(component_id, dto.typ, reservation_store, resource_store.clone());
 
         Ok(RmsNetworkSimulator { base, network_schedule, network_shadow_schedule: HashMap::new() })
     }

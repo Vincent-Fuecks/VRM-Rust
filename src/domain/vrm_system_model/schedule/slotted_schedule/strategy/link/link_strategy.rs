@@ -11,7 +11,7 @@ use crate::domain::vrm_system_model::{
             strategy_trait::SlottedScheduleStrategy,
         },
     },
-    utils::load_buffer::LoadMetric,
+    utils::{config::RMS_GATEWAY_NAME, id::RouterId, load_buffer::LoadMetric},
 };
 
 /// Creates the schedule for Networks like RmsNetworkSimulator, SLURM etc.
@@ -30,6 +30,22 @@ impl LinkStrategy {
         let max_bandwidth_all_paths = topology.max_bandwidth_all_paths;
         Self { topology, reserved_paths: HashMap::new(), resource_store, max_bandwidth_all_paths }
     }
+
+    // pub fn adjust_start_end(ctx: &SlottedScheduleContext<Self>, reservation_id: ReservationId) {
+    //     let source = ctx.reservation_store.get_start_point(reservation_id);
+    //     let target = ctx.reservation_store.get_end_point(reservation_id);
+
+    //     match (source, target) {
+    //         (Some(source), Some(target)) => {
+    //             // Both source and target are part of the local rms 
+    //             if ctx.strategy.resource_store.contains_valid_path(source, target) {
+    //                 return;
+    //             } else if ctx.strategy.resource_store.contains_valid_path(RouterId::new(RMS_GATEWAY_NAME), target) {
+                    
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 impl SlottedScheduleStrategy for LinkStrategy {

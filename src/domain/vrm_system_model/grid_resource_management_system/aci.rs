@@ -117,7 +117,7 @@ impl AcI {
     pub async fn from_dto(dto: AcIDto, simulator: Arc<GlobalClock>, reservation_store: ReservationStore) -> Result<Self, ConversionError> {
         let aci_id = AciId::new(dto.id.clone());
         let adc_id: AdcId = AdcId::new(dto.adc_id);
-        let rms_system = RmsSystemWrapper::get_instance(dto.rms_system, simulator.clone(), aci_id.clone(), reservation_store.clone()).await?;
+        let rms_system = RmsSystemWrapper::get_instance(dto.rms_system, simulator.clone(), aci_id.clone().cast(), reservation_store.clone()).await?;
 
         Ok(AcI {
             id: aci_id,

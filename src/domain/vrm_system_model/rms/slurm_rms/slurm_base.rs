@@ -18,7 +18,7 @@ use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
 use crate::domain::vrm_system_model::scheduler_type::ScheduleContext;
 use crate::domain::vrm_system_model::utils::config::SCHEDULE_SYNC_TIMEINTERVAL_S;
-use crate::domain::vrm_system_model::utils::id::{ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
+use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
 use crate::{
     api::rms_config_dto::rms_dto::SlurmRmsDto,
     domain::vrm_system_model::{
@@ -33,7 +33,7 @@ use super::api_client::slurm_rest_api_trait::SlurmRestApi;
 #[derive(Debug)]
 pub struct SlurmRms {
     pub base: RmsBase,
-    pub aci_id: AciId,
+    pub component_id: ComponentId,
     pub simulator: Arc<GlobalClock>,
     pub slurm_rest_client: SlurmRestApiClient,
 
@@ -55,11 +55,11 @@ impl SlurmRms {
     pub async fn new(
         dto: SlurmRmsDto,
         simulator: Arc<GlobalClock>,
-        aci_id: AciId,
+        component_id: ComponentId,
         reservation_store: ReservationStore,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let rest_api_client = SlurmRestApiClient::new(dto.rest_api_config.clone())?;
-        let nodes_response = rest_api_client.get_nodes().await.expect(&format!("Connection to Slurm based RMS of AcI {:?} was not possible", aci_id));
+        let nodes_response = rest_api_client.get_nodes().await.expect(&format!("Connection to Slurm based RMS of AcI {:?} was not possible", component_id));
 
         let (nodes, links) = SlurmRms::get_nodes_and_links(&dto, &nodes_response);
         let resource_store = ResourceStore::new();
@@ -73,7 +73,7 @@ impl SlurmRms {
             resource_store.add_node(NodeResource::new(node.name.clone(), node.cpus));
         }
 
-        let name = format!("AcI: {}, RmsType: {}, RmsName: {}", aci_id, "Slurm".to_string(), dto.id);
+        let name = format!("AcI: {}, RmsType: {}, RmsName: {}", component_id, "Slurm".to_string(), dto.id);
         let schedule_context = ScheduleContext {
             id: SlottedScheduleId::new(name.clone()),
             number_of_slots: dto.num_of_slots,
@@ -94,7 +94,7 @@ impl SlurmRms {
             dto.slot_width,
             dto.num_of_slots,
             simulator.clone(),
-            aci_id.clone(),
+            component_id.clone(),
             reservation_store.clone(),
             resource_store.clone(),
         );
@@ -112,11 +112,11 @@ impl SlurmRms {
         scheduler_type = scheduler_type.get_network_scheduler_variant(topology, resource_store.clone());
         let network_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
 
-        let base = RmsBase::new(aci_id.clone(), "Slurm".to_string(), reservation_store, resource_store.clone());
+        let base = RmsBase::new(component_id.clone(), "Slurm".to_string(), reservation_store, resource_store.clone());
 
         let slurm_rms = SlurmRms {
             base: base,
-            aci_id: aci_id,
+            component_id: component_id,
             simulator: simulator,
             node_schedule,
             network_schedule,
@@ -141,7 +141,7 @@ impl SlurmRms {
         let resource_store = self.base.resource_store.clone();
         let reservation_store = self.base.reservation_store.clone();
         let rms_id = self.base.id.clone();
-        let aci_id = self.aci_id.clone();
+        let component_id = self.component_id.clone();
 
         tokio::spawn(async move {
             let mut interval = interval(Duration::from_secs(SCHEDULE_SYNC_TIMEINTERVAL_S));
@@ -151,7 +151,7 @@ impl SlurmRms {
                 interval.tick().await;
 
                 if let Err(e) =
-                    Self::perform_sync(&slurm_rest_client, &resource_store, &reservation_store, &node_schedule, &task_mapping, &rms_id, &aci_id).await
+                    Self::perform_sync(&slurm_rest_client, &resource_store, &reservation_store, &node_schedule, &task_mapping, &rms_id, &component_id).await
                 {
                     log::error!("Slurm Schedule Sync Error: {:?}", e);
                 }
@@ -166,7 +166,7 @@ impl SlurmRms {
         node_schedule: &Arc<RwLock<Box<dyn Schedule>>>,
         task_mapping: &Arc<RwLock<BiHashMap<ReservationId, u32>>>,
         rms_id: &RmsId,
-        aci_id: &AciId,
+        component_id: &ComponentId,
     ) -> anyhow::Result<()> {
         let slurm_nodes = client.get_nodes().await?;
         let slurm_tasks = client.get_tasks().await?;
@@ -186,7 +186,7 @@ impl SlurmRms {
             guard.update_capacity(new_node_capacity as usize);
         }
 
-        Self::update_reservations(reservation_store, task_mapping, node_schedule, slurm_tasks, rms_id, aci_id);
+        Self::update_reservations(reservation_store, task_mapping, node_schedule, slurm_tasks, rms_id, component_id);
 
         Ok(())
     }
@@ -197,7 +197,7 @@ impl SlurmRms {
         node_schedule: &Arc<RwLock<Box<dyn Schedule>>>,
         slurm_tasks: SlurmTaskResponse,
         rms_id: &RmsId,
-        aci_id: &AciId,
+        component_id: &ComponentId,
     ) {
         let active_slurm_ids: HashSet<u32> = slurm_tasks.jobs.iter().map(|job| job.job_id).collect();
         let mut external_reservations = Vec::new();
@@ -250,7 +250,7 @@ impl SlurmRms {
                     }
                 } else {
                     // Aggregate External Reservations
-                    let node_reservation = Reservation::Node(NodeReservation::from_slurm(slurm_task, aci_id.clone().cast()));
+                    let node_reservation = Reservation::Node(NodeReservation::from_slurm(slurm_task, component_id.clone().cast()));
                     external_reservations.push((slurm_task.job_id, node_reservation));
                 }
             }

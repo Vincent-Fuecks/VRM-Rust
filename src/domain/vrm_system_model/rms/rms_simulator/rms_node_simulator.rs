@@ -9,7 +9,7 @@ use crate::domain::vrm_system_model::rms::rms::{Rms, RmsBase, RmsLoadMetric};
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::Node;
 use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, SchedulerType};
-use crate::domain::vrm_system_model::utils::id::{AciId, ResourceName, RouterId, ShadowScheduleId, SlottedScheduleId};
+use crate::domain::vrm_system_model::utils::id::{AciId, ComponentId, ResourceName, RouterId, ShadowScheduleId, SlottedScheduleId};
 use crate::error::ConversionError;
 use parking_lot::RwLock;
 use std::any::Any;
@@ -31,11 +31,11 @@ impl RmsNodeSimulator {
     }
 }
 
-impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsNodeSimulator {
+impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, ComponentId, ReservationStore)> for RmsNodeSimulator {
     type Error = ConversionError;
 
-    fn try_from(args: (DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)) -> Result<Self, Self::Error> {
-        let (dto, simulator, aci_id, reservation_store) = args.clone();
+    fn try_from(args: (DummyRmsDto, Arc<GlobalClock>, ComponentId, ReservationStore)) -> Result<Self, Self::Error> {
+        let (dto, simulator, component_id, reservation_store) = args.clone();
         let resource_store = ResourceStore::new();
 
         let mut nodes = Vec::new();
@@ -57,7 +57,7 @@ impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsNo
             resource_store.add_node(NodeResource::new(node.name.clone(), node.cpus));
         }
 
-        let name = format!("AcI: {}, RmsType: {}", aci_id, dto.typ);
+        let name = format!("AcI: {}, RmsType: {}", component_id, dto.typ);
         let schedule_context = ScheduleContext {
             id: SlottedScheduleId::new(name.clone()),
             number_of_slots: dto.num_of_slots,
@@ -71,10 +71,10 @@ impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, AciId, ReservationStore)> for RmsNo
         let node_schedule = Arc::new(RwLock::new(scheduler_type.get_instance(schedule_context)));
 
         if resource_store.get_num_of_nodes() <= 0 {
-            log::info!("Empty Rms: The newly created Rms of type {} of AcI {} contains no Nodes", dto.typ, aci_id);
+            log::info!("Empty Rms: The newly created Rms of type {} of AcI {} contains no Nodes", dto.typ, component_id);
         }
 
-        let base = RmsBase::new(aci_id, dto.typ, reservation_store, resource_store.clone());
+        let base = RmsBase::new(component_id, dto.typ, reservation_store, resource_store.clone());
 
         Ok(RmsNodeSimulator { base, node_schedule, node_shadow_schedule: HashMap::new() })
     }

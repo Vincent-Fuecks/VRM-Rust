@@ -44,7 +44,7 @@ struct Args {
     output_file: String,
 
     /// Path to the VRM node simulator config
-    #[arg(short = 'c', long, default_value = "src/data/demo/vrm_with_slurm.json")]
+    #[arg(short = 'c', long, default_value = "src/data/vrm_rms_simulator.json")]
     config_file: String,
 
     /// Disables Logging

@@ -4,7 +4,7 @@ use crate::domain::vrm_system_model::resource::link_resource::LinkResource;
 use crate::domain::vrm_system_model::resource::resource_store::{LinkResourceId, ResourceStore};
 use crate::domain::vrm_system_model::schedule::slotted_schedule::SlottedNodeSchedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
-use crate::domain::vrm_system_model::utils::id::{AciId, ResourceName, RouterId, SlottedScheduleId};
+use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RouterId, SlottedScheduleId};
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
@@ -112,7 +112,7 @@ impl NetworkTopology {
         slot_width: i64,
         num_of_slots: i64,
         simulator: Arc<GlobalClock>,
-        aci_id: AciId,
+        aci_id: ComponentId,
         reservation_store: ReservationStore,
         resource_store: ResourceStore,
     ) -> Self {
@@ -129,6 +129,8 @@ impl NetworkTopology {
 
         // 2.  Init router instances based on grid nodes and network link endpoints.
         let routers: HashMap<RouterId, Router> = NetworkTopology::setup_routers(nodes, links);
+        let router_ids: Vec<RouterId> = routers.keys().cloned().collect();
+        resource_store.add_routers(router_ids);
 
         // 3. Build the adjacency matrix
         let adjacency: HashMap<RouterId, HashSet<LinkResourceId>> =
@@ -355,7 +357,7 @@ impl NetworkTopology {
         links: &Vec<Link>,
         num_of_slots: i64,
         slot_width: i64,
-        aci_id: AciId,
+        component_id: ComponentId,
         simulator: Arc<GlobalClock>,
         reservation_store: ReservationStore,
         resource_store: ResourceStore,
@@ -391,7 +393,7 @@ impl NetworkTopology {
         if links_ids.is_empty() {
             log::info!(
                 "Empty Network Cluster: The newly created Rms Network of AcI {} contains no Network. RmsNodeSimulator should be utilized instead.",
-                aci_id
+                component_id
             );
         }
         return links_ids;

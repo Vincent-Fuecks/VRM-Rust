@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use tokio::time::sleep;
-use vrm_rust_workflow::api::rms_config_dto::rms_dto::{SlurmConfigDto, SlurmRmsDto, SlurmSwitchDto};
+use vrm_rust_workflow::api::rms_config_dto::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto};
 use vrm_rust_workflow::domain::simulator::simulator::GlobalClock;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::link_reservation::LinkReservation;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::node_reservation::NodeReservation;
@@ -14,7 +14,7 @@ use vrm_rust_workflow::domain::vrm_system_model::rms::slurm_rms::slurm_base::Slu
 use vrm_rust_workflow::domain::vrm_system_model::utils::config::{
     SLURM_TEST_BASE_URL, SLURM_TEST_JWT_TOKEN, SLURM_TEST_USER_NAME, SLURM_TEST_VERSION,
 };
-use vrm_rust_workflow::domain::vrm_system_model::utils::id::{AciId, ClientId, ReservationName};
+use vrm_rust_workflow::domain::vrm_system_model::utils::id::{AciId, ClientId, ComponentId, ReservationName};
 
 /// Tests the normal commit process to the local RMS
 /// Reservation of state ReserveAnswer -> Committed and task is running on the local RMS.
@@ -230,7 +230,7 @@ async fn test_slurm_rms_delete_task_from_rms_and_schedule() {
 }
 
 async fn create_test_slurm_rms(clock: Arc<GlobalClock>) -> Result<SlurmRms, Box<dyn std::error::Error>> {
-    let aci_id = AciId::new("test-aci".to_string());
+    let component_id = ComponentId::new("test-aci".to_string());
 
     let reservation_store = ReservationStore::new();
 
@@ -242,23 +242,28 @@ async fn create_test_slurm_rms(clock: Arc<GlobalClock>) -> Result<SlurmRms, Box<
     };
 
     let slurm_switch_dto_0 =
-        SlurmSwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
+        SwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
 
-    let slurm_switch_dto_1 = SlurmSwitchDto {
+    let slurm_switch_dto_1 = SwitchDto {
         switch_name: "s1".to_string(),
         switches: vec![],
         nodes: vec!["c3".to_string(), "c4".to_string(), "c5".to_string(), "c6".to_string()],
         link_speed: 1000,
     };
 
-    let slurm_switch_dto_2 = SlurmSwitchDto {
+    let slurm_switch_dto_2 = SwitchDto {
         switch_name: "s2".to_string(),
         switches: vec!["s0".to_string(), "s1".to_string()],
         nodes: vec!["c2".to_string()],
         link_speed: 1000,
     };
 
-    let topology: Vec<SlurmSwitchDto> = vec![slurm_switch_dto_0, slurm_switch_dto_1, slurm_switch_dto_2];
+    let topology: TopologyDto = TopologyDto {
+        egress_bandwidth_gbps: 1000,
+        ingress_bandwidth_gbps: 1000,
+        gateway_switch_id: "s0".to_string(),
+        switches: vec![slurm_switch_dto_0, slurm_switch_dto_1, slurm_switch_dto_2],
+    };
 
     let slurm_rms_dto: SlurmRmsDto = SlurmRmsDto {
         id: "RMS-ID".to_string(),
@@ -269,7 +274,7 @@ async fn create_test_slurm_rms(clock: Arc<GlobalClock>) -> Result<SlurmRms, Box<
         topology: topology,
     };
 
-    return SlurmRms::new(slurm_rms_dto, clock, aci_id, reservation_store).await;
+    return SlurmRms::new(slurm_rms_dto, clock, component_id, reservation_store).await;
 }
 
 fn create_node_reservation(res_name: ReservationName, reservation_state: ReservationState, clock: Arc<GlobalClock>) -> Reservation {

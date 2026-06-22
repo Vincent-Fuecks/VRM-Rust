@@ -7,7 +7,7 @@ use crate::domain::vrm_system_model::reservation::reservation_store::{Reservatio
 use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::{Link, Node};
-use crate::domain::vrm_system_model::utils::id::{AciId, ResourceName, RmsId, RouterId, ShadowScheduleId};
+use crate::domain::vrm_system_model::utils::id::{AciId, ComponentId, ResourceName, RmsId, RouterId, ShadowScheduleId};
 use crate::domain::vrm_system_model::utils::load_buffer::LoadMetric;
 
 use parking_lot::RwLock;
@@ -83,11 +83,11 @@ pub struct RmsLoadMetric {
 }
 
 impl RmsBase {
-    pub fn new(aci_id: AciId, rms_type: String, reservation_store: ReservationStore, resource_store: ResourceStore) -> Self {
-        let name = format!("AcI: {}, RmsType: {}", aci_id, &rms_type);
+    pub fn new(component_id: ComponentId, rms_type: String, reservation_store: ReservationStore, resource_store: ResourceStore) -> Self {
+        let name = format!("AcI: {}, RmsType: {}", component_id, &rms_type);
 
         if resource_store.get_num_of_nodes() <= 0 {
-            log::info!("Empty Rms: The newly created Rms of type {} of AcI {} contains no Nodes", rms_type, aci_id);
+            log::info!("Empty Rms: The newly created Rms of type {} of AcI {} contains no Nodes", rms_type, component_id);
         }
 
         RmsBase { id: RmsId::new(name), resource_store, reservation_store }
