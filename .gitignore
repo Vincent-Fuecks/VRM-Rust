@@ -1,6 +1,8 @@
 /target
 .harness/
 .specs/
+.script/
+.prompt/
 *.log
 .cursorrules
 

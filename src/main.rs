@@ -93,12 +93,22 @@ pub fn start_deadlock_detector() {
         loop {
             thread::sleep(Duration::from_secs(2));
             let deadlocks = deadlock::check_deadlock();
-            if !deadlocks.is_empty() {
-                for (i, threads) in deadlocks.iter().enumerate() {
-                    eprintln!("Deadlock #{} detected with {} threads:", i, threads.len());
-                    for t in threads {
-                        eprintln!("Thread ID: {:?}", t.thread_id());
-                    }
+
+            if deadlocks.is_empty() {
+                continue;
+            }
+
+            eprintln!("\n========== {} DEADLOCK(S) DETECTED ==========", deadlocks.len());
+
+            for (i, threads) in deadlocks.iter().enumerate() {
+                eprintln!("\nDeadlock #{}", i);
+
+                for t in threads {
+                    eprintln!("Thread ID: {:?}", t.thread_id());
+                    eprintln!("Thread ID: {:?}", t.);
+
+                    eprintln!("Backtrace:");
+                    eprintln!("{:#?}", t.backtrace());
                 }
             }
         }
