@@ -1,8 +1,11 @@
 use crate::domain::vrm_system_model::grid_resource_management_system::adc::ADC;
-use crate::domain::vrm_system_model::grid_resource_management_system::scheduler::workflow_scheduler::{WorkflowScheduler, WorkflowSchedulerBase};
+use crate::domain::vrm_system_model::grid_resource_management_system::scheduler::workflow_scheduler::{
+    WorkflowScheduler, WorkflowSchedulerBase, WorkflowSchedulingResult,
+};
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_order::VrmComponentOrder;
 use crate::domain::vrm_system_model::reservation::probe_reservations::ProbeReservationComparator;
 use crate::domain::vrm_system_model::reservation::reservations::Reservations;
+use crate::domain::vrm_system_model::workflow::workflow_execution_context::WorkflowExecutionContext;
 use std::any::Any;
 use std::collections::HashMap;
 
@@ -30,6 +33,12 @@ use crate::domain::vrm_system_model::workflow::workflow_node::WorkflowNode;
 /// In a Grid/VRM environment, this ensures that interdependent sub-tasks across geographically
 /// distributed nodes are scheduled with overlapping execution windows to facilitate real-time
 /// synchronization or parallel execution.
+///
+/// ### Decoupled from Hardware Topology
+///
+/// This scheduler now uses [`WorkflowExecutionContext`] for all hardware interactions,
+/// making it testable without a full VRM setup. Use [`schedule()`](WorkflowScheduler::schedule)
+/// for new code.
 #[derive(Debug)]
 pub struct HEFTSyncWorkflowScheduler {
     pub base: WorkflowSchedulerBase,
@@ -50,6 +59,108 @@ impl WorkflowScheduler for HEFTSyncWorkflowScheduler {
 
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    /// The new, decoupled scheduling method using [`WorkflowExecutionContext`].
+    ///
+    /// This implements the HEFTSync algorithm purely in terms of domain logic and
+    /// the abstract resource operations provided by the execution context.
+    fn schedule(&mut self, workflow: &mut Workflow, context: &mut WorkflowExecutionContext) -> WorkflowSchedulingResult {
+        let average_link_speed = context.get_average_link_speed();
+        let ranked_node_reservations = workflow.calculate_upward_rank(average_link_speed, &self.base.reservation_store);
+        let workflow_booking_interval_end = context.get_workflow_booking_interval_end();
+
+        for mut workflow_node in ranked_node_reservations {
+            let mut start = workflow.get_booking_interval_start();
+
+            let co_allocation_key = match &workflow_node.co_allocation_key {
+                Some(key) => key.clone(),
+                None => {
+                    log::error!("WorkflowNode has no CoAllocation key assigned.");
+                    context.cancel_all();
+                    workflow.set_state(ReservationState::Rejected);
+                    return WorkflowSchedulingResult::failure();
+                }
+            };
+
+            let co_allocation_node = match workflow.co_allocations.get(&co_allocation_key) {
+                Some(node) => node,
+                None => {
+                    log::error!("CoAllocation '{}' not found in workflow.", co_allocation_key);
+                    context.cancel_all();
+                    workflow.set_state(ReservationState::Rejected);
+                    return WorkflowSchedulingResult::failure();
+                }
+            };
+
+            // Calculate Earliest Start Time based on data dependencies
+            for data_dependency in co_allocation_node.incoming_data_dependencies.clone() {
+                let data_dep_source_res_id = match &data_dependency.source_node {
+                    Some(id) => id,
+                    None => continue,
+                };
+
+                let source_node = match workflow.nodes.get(data_dep_source_res_id) {
+                    Some(node) => node,
+                    None => continue,
+                };
+
+                let data_dep_source_assigned_end = self.base.reservation_store.get_assigned_end(source_node.reservation_id);
+
+                let mut file_transfer_time = 0;
+
+                if data_dependency.size > 0 {
+                    file_transfer_time = data_dependency.size / average_link_speed;
+                }
+
+                // If there is something to transfer it should be at least be one
+                if data_dependency.size > 0 && file_transfer_time == 0 {
+                    log::debug!(
+                        "MissMatchDataDependencySizeTransferTime: The Data dependency {} has a size of {}, however the file transfer time is 0. Process dependency with transfer_time of 1.",
+                        self.base.reservation_store.get_name_for_key(data_dependency.reservation_id).unwrap(),
+                        data_dependency.size
+                    );
+                    file_transfer_time = 1;
+                }
+
+                let start_after_this_dep = data_dep_source_assigned_end + file_transfer_time;
+
+                if start_after_this_dep > start {
+                    start = start_after_this_dep;
+                }
+            }
+
+            // Access duration from Store
+            let task_duration = self.base.reservation_store.get_task_duration(workflow_node.reservation_id);
+
+            // Do not process workflow, where the deadline will be missed
+            if start + task_duration > workflow_booking_interval_end {
+                log::debug!("Deadline exceeded for node {:?} or workflow {}. Rolling back.", workflow_node.reservation_id, workflow.base.get_name());
+                context.cancel_all();
+                workflow.set_state(ReservationState::Rejected);
+                return WorkflowSchedulingResult::failure();
+            }
+
+            self.base.reservation_store.set_booking_interval_start(workflow_node.reservation_id, start);
+            self.base.reservation_store.set_booking_interval_end(workflow_node.reservation_id, workflow_booking_interval_end);
+
+            // Schedule Co-Allocation nodes (all nodes in the same sync group)
+            if !context.schedule_co_allocation(workflow, &mut workflow_node) {
+                log::debug!("Failed to schedule CoAllocation for node {:?}. Rolling back.", workflow_node.reservation_id);
+                context.cancel_all();
+                workflow.set_state(ReservationState::Rejected);
+                return WorkflowSchedulingResult::failure();
+            }
+
+            // Schedule data dependencies (network transfers from predecessors)
+            if !self.schedule_data_dependencies_via_context(workflow, &workflow_node, context) {
+                context.cancel_all();
+                workflow.set_state(ReservationState::Rejected);
+                return WorkflowSchedulingResult::failure();
+            }
+        }
+
+        WorkflowSchedulingResult::success()
     }
 
     fn reserve(&mut self, workflow_res_id: ReservationId, adc: &mut ADC) -> bool {
@@ -151,6 +262,83 @@ impl WorkflowScheduler for HEFTSyncWorkflowScheduler {
 }
 
 impl HEFTSyncWorkflowScheduler {
+    /// Schedules data dependencies using the new decoupled [`WorkflowExecutionContext`].
+    fn schedule_data_dependencies_via_context(
+        &mut self,
+        workflow: &mut Workflow,
+        workflow_node: &WorkflowNode,
+        context: &mut WorkflowExecutionContext,
+    ) -> bool {
+        let co_allocation_key = match &workflow_node.co_allocation_key {
+            Some(key) => key,
+            None => return true, // No co-allocation, nothing to schedule
+        };
+
+        let incoming_data_dep =
+            workflow.co_allocations.get(co_allocation_key).map(|co_allocation| co_allocation.incoming_data_dependencies.clone()).unwrap_or_default();
+
+        for data_dep in incoming_data_dep {
+            let source_node_id = match &data_dep.source_node {
+                Some(id) => id.clone(),
+                None => continue,
+            };
+            let target_node_id = match &data_dep.target_node {
+                Some(id) => id.clone(),
+                None => continue,
+            };
+
+            let source_res_id = match workflow.nodes.get(&source_node_id) {
+                Some(node) => node.reservation_id,
+                None => continue,
+            };
+            let target_res_id = match workflow.nodes.get(&target_node_id) {
+                Some(node) => node.reservation_id,
+                None => continue,
+            };
+
+            let source_component_id = match context.get_allocations().get(&source_res_id) {
+                Some(id) => id.clone(),
+                None => {
+                    log::error!(
+                        "Source reservation {:?} has no component allocation for data dependency {:?}.",
+                        self.base.reservation_store.get_name_for_key(source_res_id),
+                        self.base.reservation_store.get_name_for_key(data_dep.reservation_id),
+                    );
+                    return false;
+                }
+            };
+
+            let target_component_id = match context.get_allocations().get(&target_res_id) {
+                Some(id) => id.clone(),
+                None => {
+                    log::error!(
+                        "Target reservation {:?} has no component allocation for data dependency {:?}.",
+                        self.base.reservation_store.get_name_for_key(target_res_id),
+                        self.base.reservation_store.get_name_for_key(data_dep.reservation_id),
+                    );
+                    return false;
+                }
+            };
+
+            let start_time = self.base.reservation_store.get_assigned_end(source_res_id);
+            let end_time = self.base.reservation_store.get_assigned_start(target_res_id);
+
+            if !context.schedule_dependency(
+                data_dep.reservation_id,
+                workflow,
+                start_time,
+                end_time,
+                true, // data dependencies are file transfers
+                source_component_id,
+                target_component_id,
+            ) {
+                return false;
+            }
+        }
+
+        true
+    }
+
     /**
      * Schedule and try to reserve all data dependencies (e.g. file transfers) to
      * all {@link NodeReservation}s co-allocated with the given reservation. All

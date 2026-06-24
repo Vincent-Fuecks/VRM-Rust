@@ -2,11 +2,12 @@ use crate::domain::vrm_system_model::{
     grid_resource_management_system::{adc::ADC, vrm_component_trait::VrmComponent},
     reservation::{
         probe_reservations::{ProbeReservationComparator, ProbeReservations},
-        reservation::{Reservation, ReservationState},
+        reservation::{Reservation, ReservationState, ReservationTrait},
         reservation_store::ReservationId,
     },
     rms::rms::RmsLoadMetric,
     utils::id::{ComponentId, ShadowScheduleId},
+    workflow::workflow_execution_context::WorkflowExecutionContext,
 };
 
 impl VrmComponent for ADC {
@@ -268,10 +269,31 @@ impl VrmComponent for ADC {
         if self.reservation_store.is_workflow(reservation_id) {
             // "Option Dance" with WorkflowScheduler
             if let Some(mut workflow_scheduler) = self.workflow_scheduler.take() {
-                // Performs all reservation tracking like self.manager.not_committed_reservations
-                workflow_scheduler.reserve(reservation_id, self);
-                if !self.reservation_store.is_reservation_state_at_least(reservation_id, ReservationState::ReserveAnswer) {
-                    workflow_scheduler.delete(reservation_id);
+                // Use the new decoupled scheduling approach via WorkflowExecutionContext.
+                // This eliminates direct dependency on ADC/VrmComponentManager in scheduling logic.
+                if let Some(workflow_handle) = self.reservation_store.get(reservation_id) {
+                    let mut reservation = workflow_handle.write();
+                    if let Reservation::Workflow(ref mut workflow) = *reservation {
+                        let booking_interval_end = workflow.get_booking_interval_end();
+                        // Capture the workflow name before creating context to avoid borrow conflicts.
+                        let workflow_name = self.reservation_store.get_name_for_key(reservation_id);
+                        let mut context = WorkflowExecutionContext::new_from_adc(self, booking_interval_end);
+
+                        let result = workflow_scheduler.schedule(workflow, &mut context);
+
+                        if result.success {
+                            // Register all subtask mappings with the manager
+                            context.apply_allocations(reservation_id);
+                            workflow.set_state(ReservationState::ReserveAnswer);
+                        } else {
+                            log::debug!("Workflow {:?} scheduling failed. Rolling back.", workflow_name);
+                            context.cancel_all();
+                            workflow.set_state(ReservationState::Rejected);
+                        }
+                    } else {
+                        log::error!("Expected Workflow reservation but got different type.");
+                        self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
+                    }
                 }
 
                 self.workflow_scheduler = Some(workflow_scheduler);

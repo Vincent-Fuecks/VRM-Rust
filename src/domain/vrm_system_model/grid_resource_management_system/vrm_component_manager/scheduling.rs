@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::io::Write;
 
 use lazy_static::lazy_static;
 
@@ -308,23 +309,7 @@ impl VrmComponentManager {
         grid_component_res_database: &mut HashMap<ReservationId, ComponentId>,
         probe_reservation_comparator: ProbeReservationComparator,
     ) -> Option<ReservationId> {
-        let mut probe_reservations = ProbeReservations::new(reservation_id, self.reservation_store.clone());
-
-        let res_snapshot = match self.reservation_store.get_reservation_snapshot(reservation_id) {
-            Some(snapshot) => snapshot,
-            None => {
-                log::error!("Cannot submit task: snapshot for {:?} not found.", reservation_id);
-                return None;
-            }
-        };
-
-        for component_id in self.get_random_ordered_vrm_components() {
-            if self.can_component_handel(component_id.clone(), res_snapshot.clone()) {
-                let probe_res = self.get_vrm_component_mut(component_id.clone()).probe(reservation_id, shadow_schedule_id.clone());
-
-                probe_reservations.add_probe_reservations(probe_res);
-            }
-        }
+        panic!("DEBUG_CRASH: ENTERED reserve_reservation_at_best_vrm_component!");
 
         for _ in 0..TRY_N_PROMOTIONS {
             if let Some((component_id, shadow_schedule_id)) = probe_reservations.prompt_best(reservation_id, probe_reservation_comparator.clone()) {

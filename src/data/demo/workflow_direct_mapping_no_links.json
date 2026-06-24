@@ -1,0 +1,43 @@
+{
+  "clients" : [
+    {
+      "id": "7209cffb-259f-404b-ac91-4795b4ad39e7",
+      "workflows": [ 
+        {
+          "id": "Workflow-DirectMapping-001",
+          "arrivalTime": 0,
+          "bookingIntervalStart": 10,
+          "bookingIntervalEnd": 5000,
+          "reservationState": "Open",
+          "requestProceeding": "Commit",
+
+          "tasks": [
+            {
+              "id": "c0",
+              "reservationState": "Open",
+              "requestProceeding": "Commit",
+
+              "nodeReservation": {
+                  "taskPath": "#!/bin/bash\nsleep 10\nexit 0",
+                  "outputPath": "/data/sim.out",
+                  "errorPath": "/data/sim.err",
+                  "currentWorkingDirectory": "/data",
+                  "environment": ["PATH=/usr/local/bin:/usr/bin:/bin"],
+                  "duration": 50,
+                  "isMoldable": false, 
+                  "cpus": 4,
+                  "dependencies": {
+                      "data": [],
+                      "sync": []
+                  },
+                  "dataOut": [],
+                  "dataIn": []
+              },
+              "linkReservation": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

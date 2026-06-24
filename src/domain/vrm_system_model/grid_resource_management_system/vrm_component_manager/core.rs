@@ -39,8 +39,12 @@ impl VrmComponentManager {
     }
 
     pub fn get_vrm_component_mut(&mut self, component_id: ComponentId) -> &mut Box<dyn VrmComponent + Send + 'static> {
+        eprintln!("DEBUG_STDERR: get_vrm_component_mut: Looking up component {:?}", component_id);
         match self.vrm_components.get_mut(&component_id) {
-            Some(container) => &mut container.vrm_component,
+            Some(container) => {
+                eprintln!("DEBUG_STDERR: get_vrm_component_mut: Found component {:?}", component_id);
+                &mut container.vrm_component
+            }
             None => panic!(
                 "ErrorFailedToGetVrmComponentContainer: In the VrmComponentManager of ADC {}, was the ComponentId {} not found.",
                 self.adc_id,

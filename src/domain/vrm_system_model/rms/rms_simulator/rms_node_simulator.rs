@@ -171,7 +171,7 @@ impl AdvanceReservationRms for RmsNodeSimulator {
             res.get_type(),
             res.get_name()
         );
-        return true;
+        return false;
     }
 
     fn can_handle_aci_request(&self, reservation_store: ReservationStore, reservation_id: ReservationId) -> bool {
@@ -185,7 +185,7 @@ impl AdvanceReservationRms for RmsNodeSimulator {
             reservation_store.get_type(reservation_id),
             reservation_store.get_name_for_key(reservation_id)
         );
-        return true;
+        return false;
     }
 
     fn get_load_metric(&self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> RmsLoadMetric {
