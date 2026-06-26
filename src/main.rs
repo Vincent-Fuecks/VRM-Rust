@@ -105,8 +105,6 @@ pub fn start_deadlock_detector() {
 
                 for t in threads {
                     eprintln!("Thread ID: {:?}", t.thread_id());
-                    eprintln!("Thread ID: {:?}", t.);
-
                     eprintln!("Backtrace:");
                     eprintln!("{:#?}", t.backtrace());
                 }
