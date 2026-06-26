@@ -40,11 +40,10 @@ impl SlottedScheduleStrategy for NodeStrategy {
 
     fn get_fragmentation(ctx: &mut SlottedScheduleContext<Self>, frag_start_time: i64, frag_end_time: i64) -> f64 {
         ctx.update();
-        let mut frag_end_time = frag_end_time;
+        // Normalize sentinel value: i64::MIN indicates an unset boundary (treat as "no end restriction").
+        let frag_end_time = if frag_end_time == i64::MIN { i64::MAX } else { frag_end_time };
 
-        if frag_end_time == i64::MIN {
-            frag_end_time = i64::MAX
-        } else if frag_end_time <= frag_start_time {
+        if frag_end_time <= frag_start_time && frag_end_time != i64::MAX {
             log::error!(
                 "Request to get fragmentation of Schedule: {}, the fragmentation start time {} was before the fragmentation end time {}.",
                 ctx.id,
@@ -76,11 +75,8 @@ impl SlottedScheduleStrategy for NodeStrategy {
     }
 
     fn get_load_metric(ctx: &SlottedScheduleContext<Self>, start_time: i64, end_time: i64) -> LoadMetric {
-        let mut end_time = end_time;
-
-        if end_time == i64::MIN {
-            end_time = i64::MAX;
-        }
+        // Normalize sentinel value: i64::MIN indicates an unset boundary (treat as "no end restriction").
+        let end_time = if end_time == i64::MIN { i64::MAX } else { end_time };
 
         if end_time < start_time {
             log::error!("Start time must be before end time: SlottedSchedule id: {} is end_time: {} < start_time: {}", ctx.id, end_time, start_time)
@@ -97,7 +93,7 @@ impl SlottedScheduleStrategy for NodeStrategy {
         for slot_index in start_slot_nr..=end_slot_nr {
             reserved_capacity_sum += ctx.get_slot_load(slot_index);
         }
-        
+
         let mut number_of_slots = 0;
 
         if ctx.slots.len() > 0 {
@@ -131,9 +127,19 @@ impl SlottedScheduleStrategy for NodeStrategy {
     }
 
     /// Inserts a new reservation requirement into the specified slot.
-    fn insert_reservation_into_slot(ctx: &mut SlottedScheduleContext<Self>, requirment: i64, slot_index: i64, reservation_id: ReservationId) {
-        let slot = ctx.get_mut_slot(slot_index).expect("Slot was not found.");
-        slot.insert_reservation(requirment, reservation_id);
+    fn insert_reservation_into_slot(ctx: &mut SlottedScheduleContext<Self>, requirement: i64, slot_index: i64, reservation_id: ReservationId) {
+        match ctx.get_mut_slot(slot_index) {
+            Some(slot) => {
+                slot.insert_reservation(requirement, reservation_id);
+            }
+            None => {
+                log::error!(
+                    "NodeStrategy::insert_reservation_into_slot: Slot not found at index {} for reservation {:?}. This indicates a programming error.",
+                    slot_index,
+                    reservation_id
+                );
+            }
+        }
     }
 
     fn on_delete_reservation(_ctx: &mut SlottedScheduleContext<Self>, _reservation_id: ReservationId) -> bool {

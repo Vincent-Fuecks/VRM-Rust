@@ -13,7 +13,7 @@ pub trait SlottedScheduleStrategy: Send + Sync + Debug + Clone + Sized + 'static
         reservation_id: ReservationId,
     ) -> i64;
 
-    fn insert_reservation_into_slot(ctx: &mut SlottedScheduleContext<Self>, requirment: i64, slot_index: i64, reservation_id: ReservationId);
+    fn insert_reservation_into_slot(ctx: &mut SlottedScheduleContext<Self>, requirement: i64, slot_index: i64, reservation_id: ReservationId);
 
     fn on_delete_reservation(ctx: &mut SlottedScheduleContext<Self>, reservation_id: ReservationId) -> bool;
 
@@ -28,4 +28,10 @@ pub trait SlottedScheduleStrategy: Send + Sync + Debug + Clone + Sized + 'static
     fn get_system_fragmentation(ctx: &mut SlottedScheduleContext<Self>) -> f64;
 
     fn get_capacity(ctx: &SlottedScheduleContext<Self>) -> i64;
+
+    /// Returns the fragmentation power exponent used in quadratic mean fragmentation calculation.
+    /// Higher values give more weight to large free blocks. Default is 2.0.
+    fn get_fragmentation_power() -> f64 {
+        2.0
+    }
 }

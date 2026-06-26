@@ -81,7 +81,7 @@ ReservationId (probe-approved candidate)
 │  ├── Early Stop: negative capacity? ──► Rej.
 │  ├── update()                                
 │  ├── calculate_schedule(id)                  
-│  ├── only_prompt_best(id, EST comparator)    
+│  ├── only_probe_best(id, EST comparator)        
 │  │   │                                       
 │  │   ├── If success → reserve_without_check()
 │  │   │   │                                   

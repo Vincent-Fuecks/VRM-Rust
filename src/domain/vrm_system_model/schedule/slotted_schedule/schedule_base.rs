@@ -139,7 +139,7 @@ impl<S: SlottedScheduleStrategy> Schedule for SlottedScheduleContext<S> {
             return None;
         }
 
-        if probe_reservations.only_prompt_best(reservation_id, ProbeReservationComparator::ESTReservationCompare) {
+        if probe_reservations.only_promote_best(reservation_id, ProbeReservationComparator::ESTReservationCompare) {
             self.is_frag_cache_up_to_date = false;
             self.reserve_without_check(reservation_id);
             Some(reservation_id)

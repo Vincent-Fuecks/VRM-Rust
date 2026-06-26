@@ -11,7 +11,7 @@ use crate::domain::vrm_system_model::{
             strategy_trait::SlottedScheduleStrategy,
         },
     },
-    utils::{config::RMS_GATEWAY_NAME, id::RouterId, load_buffer::LoadMetric},
+    utils::load_buffer::LoadMetric,
 };
 
 /// Creates the schedule for Networks like RmsNetworkSimulator, SLURM etc.
@@ -30,22 +30,6 @@ impl LinkStrategy {
         let max_bandwidth_all_paths = topology.max_bandwidth_all_paths;
         Self { topology, reserved_paths: HashMap::new(), resource_store, max_bandwidth_all_paths }
     }
-
-    // pub fn adjust_start_end(ctx: &SlottedScheduleContext<Self>, reservation_id: ReservationId) {
-    //     let source = ctx.reservation_store.get_start_point(reservation_id);
-    //     let target = ctx.reservation_store.get_end_point(reservation_id);
-
-    //     match (source, target) {
-    //         (Some(source), Some(target)) => {
-    //             // Both source and target are part of the local rms 
-    //             if ctx.strategy.resource_store.contains_valid_path(source, target) {
-    //                 return;
-    //             } else if ctx.strategy.resource_store.contains_valid_path(RouterId::new(RMS_GATEWAY_NAME), target) {
-                    
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 impl SlottedScheduleStrategy for LinkStrategy {
@@ -77,8 +61,19 @@ impl SlottedScheduleStrategy for LinkStrategy {
         let start = ctx.reservation_store.get_start_point(reservation_id);
         let end = ctx.reservation_store.get_end_point(reservation_id);
 
-        let available_paths = if let (Some(source), Some(target)) = (start, end) {
-            ctx.strategy.topology.path_cache.get(&(source, target)).unwrap()
+        let available_paths = if let (Some(ref source), Some(ref target)) = (start, end) {
+            match ctx.strategy.topology.path_cache.get(&(source.clone(), target.clone())) {
+                Some(paths) => paths,
+                None => {
+                    log::error!(
+                        "LinkStrategy::adjust_requirement_to_slot_capacity: No cached paths found between {:?} and {:?} for reservation {:?}.",
+                        source,
+                        target,
+                        reservation_id
+                    );
+                    return 0;
+                }
+            }
         } else {
             // No Path between source and target found
             return 0;
@@ -126,8 +121,19 @@ impl SlottedScheduleStrategy for LinkStrategy {
         let start = ctx.reservation_store.get_start_point(reservation_id);
         let end = ctx.reservation_store.get_end_point(reservation_id);
 
-        let k_shortest_paths = if let (Some(source), Some(target)) = (start.clone(), end.clone()) {
-            ctx.strategy.topology.path_cache.get(&(source, target)).unwrap()
+        let k_shortest_paths = if let (Some(ref source), Some(ref target)) = (start.clone(), end.clone()) {
+            match ctx.strategy.topology.path_cache.get(&(source.clone(), target.clone())) {
+                Some(paths) => paths,
+                None => {
+                    log::error!(
+                        "NetworkPolicyInsertReservationInSlot: No cached paths found between {:?} and {:?} for reservation {:?}.",
+                        source,
+                        target,
+                        reservation_id
+                    );
+                    return;
+                }
+            }
         } else {
             // No Path between source and target found
             log::debug!(
@@ -243,23 +249,31 @@ impl SlottedScheduleStrategy for LinkStrategy {
         return true;
     }
 
+    /// Note: LinkStrategy does not currently implement fragmentation analysis for network schedules.
     /// Unimplemented:
     fn get_fragmentation(_ctx: &mut SlottedScheduleContext<Self>, _frag_start_time: i64, _frag_end_time: i64) -> f64 {
-        return -1.0;
+        log::warn!("LinkStrategy::get_fragmentation is not yet implemented for network schedules. Returning -1.0.");
+        -1.0
     }
 
+    /// Note: LinkStrategy does not currently implement system-wide fragmentation for network schedules.
     /// Unimplemented:
     fn get_system_fragmentation(_ctx: &mut SlottedScheduleContext<Self>) -> f64 {
-        return -1.0;
+        log::warn!("LinkStrategy::get_system_fragmentation is not yet implemented for network schedules. Returning -1.0.");
+        -1.0
     }
 
+    /// Note: LinkStrategy does not currently implement load metrics for network schedules.
     /// Unimplemented:
     fn get_load_metric(_ctx: &SlottedScheduleContext<Self>, _start_time: i64, _end_time: i64) -> LoadMetric {
+        log::warn!("LinkStrategy::get_load_metric is not yet implemented for network schedules. Returning zeroed LoadMetric.");
         LoadMetric::new(-1, -1, -1.0, -1.0, 0.0)
     }
 
+    /// Note: LinkStrategy does not currently implement simulation load metrics for network schedules.
     /// Unimplemented:
     fn get_simulation_load_metric(_ctx: &mut SlottedScheduleContext<Self>) -> LoadMetric {
+        log::warn!("LinkStrategy::get_simulation_load_metric is not yet implemented for network schedules. Returning zeroed LoadMetric.");
         LoadMetric::new(-1, -1, -1.0, -1.0, 0.0)
     }
 }

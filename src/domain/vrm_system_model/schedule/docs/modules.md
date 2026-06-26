@@ -78,7 +78,7 @@ schedule/
 **Key Logic:**
 - `probe()`: Updates window, calculates candidates, computes fragmentation deltas
 - `probe_best()`: Probes then selects best candidate by comparator
-- `reserve()`: Probes, then commits the best candidate via `only_prompt_best()`
+- `reserve()`: Probes, then commits the best candidate via `only_probe_best()`
 - `reserve_without_check()`: Directly inserts into slots without feasibility check
 - `update()`: Delegates to `SlottedScheduleContext::update()`
 

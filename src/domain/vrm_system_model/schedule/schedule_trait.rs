@@ -86,8 +86,8 @@ pub trait Schedule: Debug + Send + Sync {
 
     /// Attempts to execute a **final reservation** using a provided candidate.
     ///
-    /// If the attempt succeeds, the capacity is assigned, and `None` is returned. If capacity is
-    /// unavailable, the reservation is marked as `Rejected` and returned inside `Some`.
+    /// If the attempt succeeds, the capacity is assigned, and `Some(reservation_id)` is returned. If capacity is
+    /// unavailable, the reservation is marked as `Rejected` and `None` is returned.
     ///
     /// # Arguments
     ///
@@ -95,7 +95,7 @@ pub trait Schedule: Debug + Send + Sync {
     ///
     /// # Returns
     ///
-    /// `None` on success (reservation is accepted and committed), or `Some(ReservationId)` if the ReservationId is rejected.
+    /// `Some(reservation_id)` on success (reservation is accepted and committed), or `None` if the reservation is rejected.
     fn reserve(&mut self, id: ReservationId) -> Option<ReservationId>;
 
     /// **Commits a reservation** to the schedule **without performing a feasibility check**.
@@ -128,7 +128,7 @@ pub trait Schedule: Debug + Send + Sync {
     /// **Updates the Schedule Capacity** due to node status changes is the capacity of the schedule adjusted.
     /// In the case of reduced capacity, are reservations deleted form slots where the capacity is exceed.
     fn update_capacity(&mut self, capacity: usize);
-    
+
     fn clone_box(&self) -> Box<dyn Schedule>;
 }
 

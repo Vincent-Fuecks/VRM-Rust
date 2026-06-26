@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::i64;
 use std::sync::Arc;
 
 use crate::domain::simulator::simulator::GlobalClock;
@@ -11,8 +10,6 @@ use crate::domain::vrm_system_model::schedule::slotted_schedule::slot::Slot;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::strategy_trait::SlottedScheduleStrategy;
 use crate::domain::vrm_system_model::utils::id::SlottedScheduleId;
 use crate::domain::vrm_system_model::utils::load_buffer::{GlobalLoadContext, LoadBuffer};
-
-const FRAGMENTATION_POWER: f64 = 2.0;
 
 /// The core context for managing a time-slotted resource schedule within a distributed **VRM (Virtual Resource Management)** system.
 ///
@@ -171,7 +168,9 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
     ///
     /// **Note:** A negative input time will always yield an index of $0$.
     pub fn get_slot_index(&self, time: i64) -> i64 {
-        let index: i64 = (time as f64 / self.slot_width as f64).floor() as i64;
+        // Use integer division to avoid precision loss from i64 -> f64 conversion.
+        // For negative times, div_euclid gives the floor division result.
+        let index: i64 = time.div_euclid(self.slot_width);
 
         if index < 0 {
             log::debug!("The requested slot index is negative ({}), because the requested time was negative: {}", index, time,);
@@ -280,7 +279,13 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
 
     /// Deletes the provided ReservationId form the specified slot.
     pub fn delete_reservation_in_slot(&mut self, reservation_id: ReservationId, reservation_reserved_capacity: i64, slot_index: i64) -> bool {
-        let slot = self.get_mut_slot(slot_index).expect("Slot was not found.");
+        let slot = match self.get_mut_slot(slot_index) {
+            Some(slot) => slot,
+            None => {
+                log::error!("Slot was not found in SlottedSchedule id: {} for slot index: {}.", self.id, slot_index);
+                return false;
+            }
+        };
         return slot.delete_reservation(reservation_id, reservation_reserved_capacity);
     }
 
@@ -316,9 +321,13 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
 
         let slotted_schedule_id = self.id.clone();
         for slot_index in reservation_start_slot_index..=reservation_end_slot_index {
-            let slot = self
-                .get_mut_slot(slot_index)
-                .expect(&format!("In the SlottedSchedule id: {} was the slot with index: {} not found.", slotted_schedule_id, slot_index));
+            let slot = match self.get_mut_slot(slot_index) {
+                Some(slot) => slot,
+                None => {
+                    log::error!("In the SlottedSchedule id: {} was the slot with index: {} not found.", slotted_schedule_id, slot_index);
+                    return;
+                }
+            };
 
             slot.delete_reservation(id.clone(), del_res_reserved_capacity);
         }
@@ -368,10 +377,11 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
         let mut request_end_boundary: i64 = self.reservation_store.get_booking_interval_end(id.clone());
         let initial_duration: i64 = self.reservation_store.get_task_duration(id.clone());
 
+        // Normalize sentinel values from ReservationStore.
+        // i64::MIN indicates an unset boundary, treated as "no restriction".
         if request_start_boundary == i64::MIN {
             request_start_boundary = 0;
         }
-
         if request_end_boundary == i64::MIN {
             request_end_boundary = i64::MAX;
         }
@@ -403,15 +413,23 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
 
         for slot_start_index in earliest_start_index..=latest_start_index {
             if let Some(res_candidate) = self.try_fit_reservation(id, slot_start_index, request_end_boundary) {
-                search_results.add_reservation(res_candidate);
+                let _ = search_results.add_reservation(res_candidate);
             }
         }
         return search_results;
     }
 
     fn try_fit_reservation(&mut self, candidate_id: ReservationId, slot_start_index: i64, request_end_boundary: i64) -> Option<Reservation> {
-        let mut candidate =
-            self.reservation_store.get_reservation_snapshot(candidate_id.clone()).expect("ReservationStore snapshot should handle potential errors.");
+        let mut candidate = match self.reservation_store.get_reservation_snapshot(candidate_id.clone()) {
+            Some(candidate) => candidate,
+            None => {
+                log::error!(
+                    "SlottedScheduleContextTryFitReservationFailed: ReservationStore snapshot returned None for reservation {:?}.",
+                    candidate_id
+                );
+                return None;
+            }
+        };
 
         let mut current_required_capacity = self.reservation_store.get_reserved_capacity(candidate_id.clone());
         let mut current_duration: i64 = self.reservation_store.get_task_duration(candidate_id.clone());
@@ -491,6 +509,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
             }
 
             // Start reservation pruning
+            // Clone required because we mutate (delete from) the set while iterating.
             for res_in_slot in slot.reservation_ids.clone().iter() {
                 if !slot.delete_reservation(res_in_slot.clone(), self.reservation_store.get_reserved_capacity(res_in_slot.clone())) {
                     log::error!(

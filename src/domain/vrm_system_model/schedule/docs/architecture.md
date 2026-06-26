@@ -112,6 +112,7 @@ Extension point for resource-specific behavior:
 | `get_load_metric()` | Strategy-specific load metrics |
 | `get_simulation_load_metric()` | Strategy-specific simulation metrics |
 | `get_capacity()` | Strategy-specific capacity value |
+| `get_fragmentation_power()` | Returns exponent for fragmentation calculation (default 2.0) |
 
 ---
 
@@ -129,7 +130,9 @@ Extension point for resource-specific behavior:
 - Manages **network bandwidth** across a grid topology.
 - Uses **K-shortest paths** between source-target routers.
 - Capacity checking involves iterating through all links on each candidate path.
-- Fragmentation and load metrics are **not yet implemented** (stubs return sentinel values).
+- Fragmentation and load metrics are **not yet implemented** (stubs return 0.0/zeroed LoadMetric with warning log).
+- Path cache access now uses proper error handling (match instead of unwrap).
+- Removed dead code (commented-out `adjust_start_end` method).
 
 ---
 
@@ -174,7 +177,7 @@ State: Rejected              State: Committed
 ## 7. Error Handling Policy
 
 - **Recoverable errors**: `Result<T, E>` not used in Schedule directly. Instead, errors are logged and fallback values (0, empty set) are returned.
-- **Panics**: `unwrap()` / `expect()` used in several locations where invalid state indicates a programming error (e.g., slot index out of bounds).
+- **Panics**: Previously `unwrap()` / `expect()` were used in several locations. These have been replaced with proper error handling (match statements with log + return/fallback).
 - **Negative capacity**: If `get_reserved_capacity()` returns a negative value, the reservation is rejected immediately with an error log.
 
 ---

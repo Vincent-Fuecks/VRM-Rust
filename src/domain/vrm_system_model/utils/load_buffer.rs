@@ -29,18 +29,36 @@ impl GlobalLoadContext {
     }
 
     pub fn update_first_load(&self, index: i64) {
+        // Ordering::Relaxed is sufficient here because:
+        // 1. We only perform monotonic updates (fetch_min) - the value only decreases.
+        // 2. There is no critical section that depends on the exact ordering of stores to first_global_load
+        //    relative to other memory operations.
+        // 3. The load values are only used for statistical/metrics purposes, not for correctness
+        //    of scheduling decisions.
         self.first_global_load.fetch_min(index, Ordering::Relaxed);
     }
 
     pub fn update_last_load(&self, index: i64) {
+        // Ordering::Relaxed is sufficient here because:
+        // 1. We only perform monotonic updates (fetch_max) - the value only increases.
+        // 2. No other atomic operation depends on the ordering of this store.
+        // 3. The GlobalLoadContext tracks coarse statistical bounds for metrics,
+        //    not for synchronizing concurrent resource access.
         self.last_global_load.fetch_max(index, Ordering::Relaxed);
     }
 
     pub fn get_first_load(&self) -> i64 {
+        // Ordering::Relaxed is safe because:
+        // - The load is monotonic (starts at i64::MAX, only decreases via fetch_min).
+        // - A slightly stale read (missing a concurrent update) will only produce
+        //   a conservative bound for the metrics window, not an incorrect scheduling decision.
         self.first_global_load.load(Ordering::Relaxed)
     }
 
     pub fn get_last_load(&self) -> i64 {
+        // Ordering::Relaxed is safe because:
+        // - The load is monotonic (starts at -1, only increases via fetch_max).
+        // - A slightly stale read will only produce a conservative bound for the metrics window.
         self.last_global_load.load(Ordering::Relaxed)
     }
 }

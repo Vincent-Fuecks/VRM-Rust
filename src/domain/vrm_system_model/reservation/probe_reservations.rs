@@ -138,7 +138,7 @@ impl ProbeReservations {
     ///
     /// Return:
     /// If promotion was successful the component_id, is returned, where the Reservation must be reserved.
-    pub fn only_prompt_best(&mut self, original_res_id: ReservationId, comparator: ProbeReservationComparator) -> bool {
+    pub fn only_promote_best(&mut self, original_res_id: ReservationId, comparator: ProbeReservationComparator) -> bool {
         if let Some(best_probe_res_id) = self.get_best_probe_reservation_id(original_res_id, comparator) {
             if let Some(res) = self.local_reservation_store.remove(&best_probe_res_id) {
                 self.reservation_store.set_booking_interval_start(original_res_id, res.get_booking_interval_start());

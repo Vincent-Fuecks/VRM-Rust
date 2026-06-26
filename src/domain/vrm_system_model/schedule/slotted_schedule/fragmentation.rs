@@ -6,8 +6,6 @@ use crate::domain::vrm_system_model::{
     },
 };
 
-const FRAGMENTATION_POWER: f64 = 2.0;
-
 impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {
     /// Computes the **Fragmentation Index** of the schedule over a specific time range using
     /// the **Quadratic Mean** method.
@@ -56,7 +54,8 @@ impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {
 
             for capacity in free_capacity + 1..=S::get_capacity(self) {
                 if current_free_block_len[capacity as usize] > 0 {
-                    quad_sum_per_free_block[capacity as usize] += f64::powf(current_free_block_len[capacity as usize] as f64, FRAGMENTATION_POWER);
+                    quad_sum_per_free_block[capacity as usize] +=
+                        f64::powf(current_free_block_len[capacity as usize] as f64, S::get_fragmentation_power());
 
                     sum_per_free_block[capacity as usize] += current_free_block_len[capacity as usize] as f64;
                     current_free_block_len[capacity as usize] = 0;
@@ -73,7 +72,8 @@ impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {
     ) {
         for capacity in 1..=S::get_capacity(self) {
             if current_free_block_len[capacity as usize] > 0 {
-                quad_sum_per_free_block[capacity as usize] += f64::powf(current_free_block_len[capacity as usize] as f64, FRAGMENTATION_POWER);
+                quad_sum_per_free_block[capacity as usize] +=
+                    f64::powf(current_free_block_len[capacity as usize] as f64, S::get_fragmentation_power());
                 sum_per_free_block[capacity as usize] += current_free_block_len[capacity as usize] as f64;
                 current_free_block_len[capacity as usize] = 0;
             }
@@ -85,7 +85,7 @@ impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {
 
         for capacity in 1..=S::get_capacity(self) {
             if sum_per_free_block[capacity as usize] > 0.0 {
-                let frag: f64 = quad_sum_per_free_block[capacity as usize] / sum_per_free_block[capacity as usize].powf(FRAGMENTATION_POWER);
+                let frag: f64 = quad_sum_per_free_block[capacity as usize] / sum_per_free_block[capacity as usize].powf(S::get_fragmentation_power());
 
                 block_fragmentation.push(frag);
             }
