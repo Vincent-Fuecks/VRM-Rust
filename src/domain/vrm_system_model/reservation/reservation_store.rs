@@ -1,6 +1,6 @@
 use slotmap::{SlotMap, new_key_type};
-use std::collections::hash_map::Entry::Occupied;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt::Debug;
 
 use parking_lot::RwLock;
@@ -190,7 +190,7 @@ impl ReservationStore {
     pub fn remove_virtual_reservation(&self, original_res_id: ReservationId, virtual_res_id: ReservationId) {
         let mut guard = self.inner.write();
 
-        if let Occupied(mut entry) = guard.original_to_virtual.entry(original_res_id) {
+        if let std::collections::hash_map::Entry::Occupied(mut entry) = guard.original_to_virtual.entry(original_res_id) {
             let vec = entry.get_mut();
 
             // Remove virtual reservation
@@ -216,11 +216,12 @@ impl ReservationStore {
 
     /// Deletes the specialized "Probe" reservation in the store (only allowed by the SlottedScheduleContext logic).
     pub fn delete_probe_reservation(&mut self, reservation_id: ReservationId) {
-        if self.get_state(reservation_id) != ReservationState::ProbeReservation {
+        let res_state = self.get_state(reservation_id);
+        if res_state != ReservationState::ProbeReservation {
             log::error!(
                 "ReservationStoreDelError: It was not possible to delete Reservation {:?} from the ReservationStore, because the Reservation was in State {:?} and not in state ReservationState::ProbeReservation can be deleted.",
                 self.get_name_for_key(reservation_id),
-                self.get_state(reservation_id)
+                res_state
             );
             return;
         }
@@ -319,10 +320,9 @@ impl ReservationStore {
     ///  
     /// # Returns
     /// Returns Some(ReservationId) if ReservationName was present in SlotMap else return None.  
-    pub fn get_key_for_name(&self, name: ReservationName) -> ReservationId {
+    pub fn get_key_for_name(&self, name: &ReservationName) -> Option<ReservationId> {
         let guard = self.inner.read();
-        let key = guard.name_index.get(&name).unwrap();
-        return key.clone();
+        guard.name_index.get(name).cloned()
     }
 
     /// Retrieve all keys belonging to a specific Client
@@ -414,13 +414,16 @@ impl ReservationStore {
         }
     }
 
-    /// Returns the state of the provided reservation_id. Panics if no state was found.
+    /// Returns the state of the provided reservation_id.
+    /// Default option if not state was found is Rejected.
     pub fn get_state(&self, reservation_id: ReservationId) -> ReservationState {
         if let Some(handle) = self.get(reservation_id) {
             let res = handle.read();
             return res.get_state();
         } else {
-            panic!("Reservation (id: {:?}) does not contain a assigned end time.", reservation_id);
+            log::error!("Get state for reservation (id: {:?}) was not possible.", reservation_id);
+            self.dump_store_contents(reservation_id);
+            return ReservationState::Rejected;
         }
     }
 
@@ -434,13 +437,16 @@ impl ReservationStore {
         }
     }
 
-    /// Returns the ReservationProceeding state of the provided reservation_id. Panics if no state was found.
+    /// Returns the ReservationProceeding state of the provided reservation_id.
+    /// Default option if no ReservationProceeding was found is Delete.
     pub fn get_reservation_proceeding(&self, reservation_id: ReservationId) -> ReservationProceeding {
         if let Some(handle) = self.get(reservation_id) {
             let res = handle.read();
             return res.get_reservation_proceeding();
         } else {
-            panic!("Reservation (id: {:?}) does not contain the ReservationProceeding value.", reservation_id);
+            log::error!("Get reservation_proceeding for reservation (id: {:?}) was not possible.", reservation_id);
+            self.dump_store_contents(reservation_id);
+            return ReservationProceeding::Delete;
         }
     }
 
@@ -793,17 +799,21 @@ impl ReservationStore {
     }
 
     /// Atomically updates the state of a reservation and notifies all listeners.
+    ///
+    /// The mutation and listener notification happen under the same lock acquisition
+    /// to prevent deadlocks when listeners re-enter the store.
     pub fn update_state(&self, id: ReservationId, new_state: ReservationState) {
-        let old_state = self.get_state(id);
-
-        let should_notify = {
+        let (old_state, name, should_notify) = {
             let guard = self.inner.read();
             if let Some(res_lock) = guard.slots.get(id) {
                 let mut res = res_lock.write();
+                let old = res.get_state();
+                let res_name = res.get_name();
                 res.set_state(new_state);
-                true
+                (old, Some(res_name), true)
             } else {
-                false
+                log::error!("update_state failed: reservation (id: {:?}) not found.", id);
+                (new_state, None, false)
             }
         };
 
@@ -813,8 +823,10 @@ impl ReservationStore {
                 guard.listeners.clone()
             };
 
-            for listener in listeners {
-                listener.write().on_reservation_change(id, self.get_name_for_key(id).unwrap(), old_state, new_state);
+            if let Some(res_name) = name {
+                for listener in listeners {
+                    listener.write().on_reservation_change(id, res_name.clone(), old_state, new_state);
+                }
             }
         }
     }
@@ -824,10 +836,13 @@ impl ReservationStore {
     where
         F: FnOnce(&mut Workflow) -> R,
     {
-        let handle = self.get(reservation_id).unwrap();
-        let mut guard = handle.write();
-
-        guard.as_workflow_mut().map(f)
+        if let Some(handle) = self.get(reservation_id) {
+            let mut guard = handle.write();
+            guard.as_workflow_mut().map(f)
+        } else {
+            log::error!("with_workflow_mut: reservation (id: {:?}) not found.", reservation_id);
+            None
+        }
     }
 
     /// Sorts the provided Reservation Ids by there arrival time (ascending)

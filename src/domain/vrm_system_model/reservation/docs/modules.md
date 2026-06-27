@@ -101,11 +101,11 @@ reservation_sync_gate.rs
 | Crate | Used By | Purpose |
 |-------|---------|---------|
 | `slotmap` | `reservation_store.rs` | O(1) key-based storage with generation counters |
-| `parking_lot` | `reservation_store.rs` | Deadlock-detecting RwLock |
+| `parking_lot` | `reservation_store.rs`, `reservation_sync_gate.rs` | Deadlock-detecting RwLock, Mutex, Condvar |
 | `serde` | `reservation.rs`, `link_reservation.rs`, `node_reservation.rs` | JSON serialization for network/distributed state transfer |
 | `rand` | `reservations.rs` | Random reservation selection |
 | `log` | All files | Structured logging |
-| `std::sync` (stdlib) | `reservation_sync_gate.rs` | Mutex + Condvar (not parking_lot) |
+| ~~`std::sync` (stdlib)~~ | ~~`reservation_sync_gate.rs`~~ | ⚠️ **Resolved**: Migrated to `parking_lot` |
 
 ## Hierarchy Diagram
 

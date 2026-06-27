@@ -142,7 +142,7 @@ impl Reservation {
             self.get_base_mut_reservation().name = ReservationName::new(new_name);
             return;
         }
-        panic!("Not allowed for this ReservationState.")
+        log::error!("set_name not allowed for ReservationState {:?}. Only ProbeAnswer is allowed.", self.get_state());
     }
 
     pub fn set_frag_delta(&mut self, frag_delta: f64) {

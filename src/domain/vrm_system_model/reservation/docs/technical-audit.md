@@ -77,8 +77,25 @@ The reservation component follows a **Repository + Observer** pattern with trait
 | **CD-1: Panic-based error handling** | Multiple files | `ReservationStore::get_client_id()`, `get_state()`, `get_assigned_start()`, etc. all panic on missing IDs. `Reservations::insert()` panics on duplicate. This makes the system fragile in production. |
 | **CD-2: Deadlock risk in `update_state()`** | `reservation_store.rs` | Listeners are called after store lock is released, but if a listener re-enters the store (calls `get()` or `get_state()`), it will deadlock because the notification was triggered by a write operation on the same store from a different caller. |
 | **CD-3: `set_name()` panics on invalid state** | `reservation.rs` | `Reservation::set_name()` panics with a message about `ProbeAnswer` state, but the method is on the general `Reservation` enum. This is a design smell — runtime state enforcement should use types. |
-| **CD-4: `get_key_for_name()` unwraps** | `reservation_store.rs` | `get_key_for_name()` calls `.unwrap()` on a `HashMap::get()`, which will panic if the name is not found. |
-| **CD-5: Mixing `std::sync` and `parking_lot`** | `reservation_sync_gate.rs` | Uses `std::sync::{Mutex, Condvar}` instead of `parking_lot`. Violates project concurrency standards. |
+#### ⚠️ **Resolved Issues** (latest audit fix)
+
+| ID | Issue | Status |
+|----|-------|--------|
+| **CD-1** | `get_state()` and other store accessors panic instead of returning Result | ✅ **Resolved**: Replaced panics with logged errors + safe defaults |
+| **CD-3** | `set_name()` panics | ✅ **Resolved**: Returns with logged error instead |
+| **CD-4** | `get_key_for_name()` unwraps | ✅ **Resolved**: Returns `Option<ReservationId>` |
+| **CD-5** | Mixing `std::sync` and `parking_lot` in `ReservationSyncGate` | ✅ **Resolved**: Migrated to `parking_lot::Mutex + Condvar` |
+| **CD-7** | `with_workflow_mut()` unwraps | ✅ **Resolved**: Returns `None` with log on missing reservation |
+| **CD-8** | `get_id_with_first_start_slot()` lacks `earliest_start_time` update | ✅ **Resolved**: Now updates `earliest_start_time` in loop |
+| **R-2** | Deadlock risk in `update_state()` | ✅ **Resolved**: State read moved inside the lock block; mutation + state read now atomic |
+| **R-3** | Lock inconsistency (std::sync vs parking_lot) | ✅ **Resolved**: All locks now use `parking_lot` |
+| **R-1** | Production panics | ✅ **Partially Resolved**: Store accessors no longer panic; `ProbeReservations::new()` retains panic with added log |
+
+#### Remaining Issues
+
+- **R-4**: No tests — Still needs comprehensive test coverage
+- **CD-2**: `Reservations::insert()` now returns `bool` with log instead of panic
+- `ProbeReservations::new()` still panics (caller-dependent behavior)
 
 ### Moderate Issues
 

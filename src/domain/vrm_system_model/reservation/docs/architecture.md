@@ -85,11 +85,13 @@ The **Reservation** sub-system follows a **layered, repository-centric, event-dr
 
 ## Error Handling
 
-- **Panic-based** error handling is pervasive in the reservation module:
-  - `Reservations::insert()` panics on duplicate submission.
-  - Many `ReservationStore` accessor methods (`get_client_id`, `get_handler_id`, `get_state`, etc.) panic when the reservation ID is not found, rather than returning `Result`.
-  - `Reservation::set_name()` panics if called on a non-ProbeAnswer state.
-  - `ProbeReservations::new()` panics if the original reservation is not found.
+- **Improved error handling** (as of latest audit):
+  - `ReservationStore` accessor methods (`get_client_id`, `get_handler_id`, `get_state`, `get_assigned_start`, `get_assigned_end`, `get_task_duration`, `get_reservation_proceeding`, `get_booking_interval_start`, `get_booking_interval_end`) now **log errors and return safe defaults** instead of panicking when a reservation ID is not found. This prevents production crashes while still providing diagnostic information via `dump_store_contents()`.
+  - `Reservation::set_name()` logs an error instead of panicking if called on a non-ProbeAnswer state.
+  - `Reservations::insert()` logs an error and returns `false` instead of panicking on duplicate submission.
+  - `get_key_for_name()` returns `Option<ReservationId>` instead of panicking via unwrap.
+  - `with_workflow_mut()` returns `None` with a log instead of panicking via unwrap.
+  - `ProbeReservations::new()` still panics (added log before panic) as a safety measure — callers depend on this behavior.
 - `update_state()` uses a boolean guard to conditionally notify listeners, but errors are logged rather than returned.
 - The codebase uses `log::error!()` extensively for diagnostic output but rarely returns errors to callers.
 
@@ -106,14 +108,16 @@ The **Reservation** sub-system follows a **layered, repository-centric, event-dr
 
 1. **`ReservationStore.inner`** is an `Arc<RwLock<StoreInner>>`. The `RwLock` (from `parking_lot`) allows concurrent reads, exclusive writes.
 2. **Per-Reservation Locks**: Each reservation is wrapped in `Arc<RwLock<Reservation>>`. A write on a reservation's inner lock while holding the store lock creates potential for **lock contention**, though not deadlock if locks are acquired consistently.
-3. **`ReservationSyncGate`** uses `std::sync::Mutex + Condvar`, which is a **different lock implementation** from the `parking_lot` locks used elsewhere. This inconsistency introduces risk of priority inversion and complicates deadlock analysis.
+3. **`ReservationSyncGate`** now uses `parking_lot::Mutex + Condvar` (migrated from `std::sync`), ensuring consistent lock primitive usage across the entire module. The `wait_with_timeout()` method uses `wait_while_for()` on the Condvar which automatically re-acquires the lock.
 
 ### Identified Risks
 
 - **Nested Lock Acquisition**: `get_state()`, `get_client_id()`, etc., acquire the store read lock, then acquire the reservation read lock. This is a lock hierarchy (store → reservation) which is safe if always followed. However, mutation methods like `update_state()` follow store → reservation write, which is consistent.
-- **Listener Notification in `update_state()`**: Listeners are called **outside** the store lock, but they acquire `self.open_reservations.write()` (in `VrmStateListener`). If a listener attempts to re-enter the store (e.g., call `get_state()`), this would create a **deadlock** because the store lock is held at the time of notification.
+- **Listener Notification in `update_state()`**: ⚠️ **Resolved** — Previously, `update_state()` called `self.get_state(id)` (acquiring store read lock) separately from the mutation block, creating a deadlock risk. Now, the state is read **inside** the same `reader()` lock block, eliminating the extra lock acquisition. Listener iteration still occurs **outside** the store lock to prevent listener re-entrancy from causing deadlocks.
 - **`dump_store_contents()` / `print_store_contents()`**: These use `try_read_for()` with a 50ms timeout to detect lock contention, which is a reasonable diagnostic practice.
-- **Mixing `std::sync::Mutex` and `parking_lot::RwLock`**: `ReservationSyncGate` uses `std::sync::Mutex` while the rest of the module uses `parking_lot::RwLock`. This inconsistency violates the project's deadlock prevention guidelines.
+- **Lock Primitive Consistency**: ✅ **Resolved** — `ReservationSyncGate` now uses `parking_lot::Mutex` and `parking_lot::Condvar`, consistent with the rest of the module.
+
+### Thread Safety
 
 ### Thread Safety
 

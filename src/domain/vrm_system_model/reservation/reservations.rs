@@ -28,15 +28,16 @@ impl Reservations {
 
     /// Inserts a `ReservationId` into the local management set.
     /// This operation ensures the reservation is tracked for scheduling logic.
-    /// If the ID is already present, the system will panic to prevent inconsistent
-    /// scheduling states.
-    pub fn insert(&mut self, id: ReservationId) {
+    /// Returns `true` if the ID was newly inserted, `false` if it was already present.
+    pub fn insert(&mut self, id: ReservationId) -> bool {
         if !self.reservations.insert(id) {
-            panic!(
+            log::error!(
                 "ErrorSchedulerReservationWasSubmittedMultipleTimes: The Reservation {:?} was already present in the schedule.",
                 self.reservation_store.get_name_for_key(id)
-            )
+            );
+            return false;
         }
+        true
     }
 
     /// Deletes a reservation from the local set and updates the global state to `Deleted`.
@@ -77,13 +78,14 @@ impl Reservations {
     /// Identifies the reservation with the earliest assigned start time.
     /// This is an O(n) operation used to determine the next pending task in the queue.
     pub fn get_id_with_first_start_slot(&self) -> Option<ReservationId> {
-        let ids: Vec<ReservationId> = self.reservations.iter().into_iter().cloned().collect();
-        let earliest_start_time: i64 = i64::MAX;
+        let mut earliest_start_time: i64 = i64::MAX;
         let mut reservation_of_earliest_start_time = None;
 
-        for id in ids {
-            if self.reservation_store.get_assigned_start(id.clone()) < earliest_start_time {
-                reservation_of_earliest_start_time = Some(id);
+        for id in self.reservations.iter() {
+            let start_time = self.reservation_store.get_assigned_start(*id);
+            if start_time < earliest_start_time {
+                earliest_start_time = start_time;
+                reservation_of_earliest_start_time = Some(*id);
             }
         }
         return reservation_of_earliest_start_time;

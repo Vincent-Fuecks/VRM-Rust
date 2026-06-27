@@ -166,7 +166,23 @@ impl<S: SlottedScheduleStrategy> Schedule for SlottedScheduleContext<S> {
             S::insert_reservation_into_slot(self, self.reservation_store.get_reserved_capacity(reservation_id), slot_index, reservation_id);
         }
 
-        self.active_reservations.insert(reservation_id);
+        if !self.active_reservations.insert(reservation_id) {
+            for slot_index in start_slot..=end_slot {
+                if !self.delete_reservation_in_slot(reservation_id, self.reservation_store.get_reserved_capacity(reservation_id), slot_index) {
+                    log::error!(
+                        "SlottedScheduleContextReserveWithoutCheckCleanUpAfterFailedInsertionFailed: The prior insertion of the reservation {:?} ({:?}) with reserved capacity {:?} failed. 
+                        The later invoked clean up process failed to deleted the booked slots of the reservation. 
+                        The start slot: {:?}, end slot: {:?} and the slot index: {:?}.", 
+                        self.reservation_store.get_name_for_key(reservation_id), 
+                        reservation_id, 
+                        self.reservation_store.get_reserved_capacity(reservation_id), 
+                        start_slot, 
+                        end_slot, 
+                        slot_index
+                    )
+                }
+            }
+        }
         self.reservation_store.update_state(reservation_id, ReservationState::ReserveAnswer);
     }
 
