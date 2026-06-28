@@ -119,7 +119,7 @@ git clone https://github.com/Vincent-Fuecks/VRM-Rust.git
 #### Option A: RmsNodeSimulator (Quick Start)
 To test VRM-Rust against a Slurm-based system, you must first set up the virtual cluster.
 ```bash
-cargo run -- --input-file src/data/workflow_with_direct_mapping.json --config-file src/data/vrm_node_simulator.json
+cargo run -- --input-file data/workflow_with_direct_mapping.json --config-file data/vrm_node_simulator.json
 ```
 
 #### Option B: SlurmRms 
@@ -202,7 +202,7 @@ curl -s -v \
 ```
 
 ##### Step 5 Configure VRM-Rust
-Finally, update the project configuration to point to your new cluster. Open `VRM-Rust/src/data/demo/vrm_with_slurm.json` and update the following fields:
+Finally, update the project configuration to point to your new cluster. Open `VRM-Rust/data/demo/vrm_with_slurm.json` and update the following fields:
 ```json
 {
   "userName": "vrmUser",
@@ -211,31 +211,37 @@ Finally, update the project configuration to point to your new cluster. Open `VR
 ```
 ##### Step 6 Run the VRM-Rust with Demo data 
 ```bash
-cargo run -- --input-file src/data/workflow_with_direct_mapping.json --config-file src/data/vrm_with_slurm.json
+cargo run -- --input-file data/workflow_with_direct_mapping.json --config-file data/vrm_with_slurm.json
 ```
 
 ## Project Structure (Overview)
 ```plaintext
+├── data/                                # Configuration and input files
+│   ├── demo/                            # Demo data to run the VRM-Rust system
+│   └── test/                            # Test configuration and workflow data
 ├── src/
-│   ├── api/                             # Contains the Transferable Objects  
-│   ├── data/                            # Contains examples input for the VRM-Rust system 
-│   │   ├── benchmark/                   # Benchmark data for the VRM-Rust vs. Java legacy system benchmark 
-│   │   ├── demo/                        # Demo data to run the VRM-Rust system 
-│   │   ├── generated_workflows/         # Directory, where generated workflows are stored
-│   │   └── test/                        # Utilized VRM-Rust configuration and workflow for tests 
-│   ├──domain  
-│   │   ├── simulator/                   # Manges the system time of the VRM-Rust system (GlobalClock) 
-│   │   ├── client/                      # Contains the parses the client DTO object
-│   │   ├── reservation/                 # Contains the reservation types and reservation management logic
-│   │   ├── resource/                    # Contains the resource types and the resource management logic 
-│   │   ├── rms/                         # Contains the VRM simulator and the Slurm adapter (Adapter logic for AcI and HPC) 
-│   │   ├── schedule/                    # Contains the link and node schedules 
-│   │   ├── utils/                       # Contains the id system, static variables, logging and dummy workflow generator
-│   │   ├── vrm_component/               # Contains the ADC and AcI
-│   │   └── workflow/                    # Manges the workflow construction process
-|   └──  loader/                         # Parser to load JSON files
-├── tests/              # Integration tests with sample avatars
-└── Cargo.toml          # Build configuration
+│   ├── error.rs                         # Centralized error types
+│   ├── lib.rs                           # Library root
+│   ├── main.rs                          # Binary entry point
+│   ├── loader/                          # JSON file parser and configuration loader
+│   ├── schema/                          # DTO (Data Transfer Object) definitions
+│   ├── gui/                             # TODO 
+│   └── vrm/                             # Core VRM domain logic
+│       ├── vrm.rs                       # VRM root struct and lifecycle
+│       ├── vrm_manager.rs               # Top-level reservation orchestration
+│       ├── client/                      # Client abstraction and parsing
+│       ├── common/                      # Shared utilities (Configuration, ID System, Logging and more)
+│       ├── global_clock/                # System time management (GlobalClock)
+│       ├── reservation/                 # Reservation types and management
+│       ├── resource/                    # Resource types and management
+│       ├── rms/                         # RMS adapters (AcI ↔ HPC)
+│       ├── schedule/                    # Time-slotted scheduling (for Advance Reservation)
+│       ├── vrm_component/               # Hierarchical VRM components (ADC/AcI)
+│       └── workflow/                    # Workflow construction and management
+├── tests/                               # Integration tests
+├── diagrams/                            # Architecture and state diagrams
+├── logs/                                # Runtime log output
+└── Cargo.toml                           # Build configuration
 ```
 
 ## VRM-Rust Prototype Documentation: Ideas, Unimplemented Features, and Optimizations
