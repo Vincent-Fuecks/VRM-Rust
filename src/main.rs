@@ -36,7 +36,7 @@ pub fn get_vrm_dto(file_path: &str) -> Result<VrmDto> {
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Path to the workflow input file (.json)
-    #[arg(short = 'f', long, default_value = "src/data/demo/workflow_direct_mapping_no_links.json")]
+    #[arg(short = 'f', long, default_value = "src/data/demo/workflow_with_direct_mapping.json")]
     input_file: String,
 
     /// Path to the output results/statistics file (.csv)
@@ -44,7 +44,7 @@ struct Args {
     output_file: String,
 
     /// Path to the VRM node simulator config
-    #[arg(short = 'c', long, default_value = "src/data/demo/vrm_config_direct_mapping.json")]
+    #[arg(short = 'c', long, default_value = "src/data/vrm_rms_simulator.json")]
     config_file: String,
 
     /// Disables Logging
@@ -91,7 +91,7 @@ async fn main() {
 pub fn start_deadlock_detector() {
     thread::spawn(move || {
         loop {
-            thread::sleep(Duration::from_secs(2));
+            thread::sleep(Duration::from_secs(10));
             let deadlocks = deadlock::check_deadlock();
 
             if deadlocks.is_empty() {
