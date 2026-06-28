@@ -1,5 +1,5 @@
-use crate::domain::vrm_system_model::reservation::reservation::ReservationState;
-use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
+use crate::vrm::reservation::reservation::ReservationState;
+use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::{Link, Node};

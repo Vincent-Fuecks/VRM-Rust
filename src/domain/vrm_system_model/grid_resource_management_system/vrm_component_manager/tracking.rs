@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::domain::vrm_system_model::reservation::reservation::ReservationState;
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationId;
+use crate::vrm::reservation::reservation::ReservationState;
+use crate::vrm::reservation::reservation_store::ReservationId;
 use crate::domain::vrm_system_model::utils::id::{ComponentId, ShadowScheduleId};
 
 use super::VrmComponentManager;

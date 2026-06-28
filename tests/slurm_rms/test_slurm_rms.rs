@@ -3,10 +3,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::time::sleep;
-use vrm_rust_workflow::domain::vrm_system_model::reservation::link_reservation::LinkReservation;
-use vrm_rust_workflow::domain::vrm_system_model::reservation::node_reservation::NodeReservation;
-use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationBase, ReservationProceeding, ReservationState};
-use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
+use vrm_rust_workflow::vrm::reservation::link_reservation::LinkReservation;
+use vrm_rust_workflow::vrm::reservation::node_reservation::NodeReservation;
+use vrm_rust_workflow::vrm::reservation::reservation::{Reservation, ReservationBase, ReservationProceeding, ReservationState};
+use vrm_rust_workflow::vrm::reservation::reservation_store::ReservationStore;
 use vrm_rust_workflow::domain::vrm_system_model::rms::rms::Rms;
 use vrm_rust_workflow::domain::vrm_system_model::rms::slurm_rms::slurm_base::SlurmRms;
 use vrm_rust_workflow::domain::vrm_system_model::utils::config::{

@@ -1,9 +1,9 @@
-use crate::domain::vrm_system_model::{
-    reservation::reservation_store::ReservationId,
-    schedule::{
+use crate::{
+    domain::vrm_system_model::schedule::{
         schedule_trait::Schedule,
         slotted_schedule::{slotted_schedule_context::SlottedScheduleContext, strategy::strategy_trait::SlottedScheduleStrategy},
     },
+    vrm::reservation::reservation_store::ReservationId,
 };
 
 impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {

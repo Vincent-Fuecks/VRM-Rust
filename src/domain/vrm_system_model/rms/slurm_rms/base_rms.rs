@@ -6,8 +6,8 @@ use std::time::Duration;
 
 use tokio::time::timeout;
 
-use crate::domain::vrm_system_model::reservation::reservation::{ReservationState, ReservationTrait};
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationId;
+use crate::vrm::reservation::reservation::{ReservationState, ReservationTrait};
+use crate::vrm::reservation::reservation_store::ReservationId;
 use crate::domain::vrm_system_model::rms::rms::{Rms, RmsBase};
 use crate::domain::vrm_system_model::rms::rms_node_network_trait::Helper;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;

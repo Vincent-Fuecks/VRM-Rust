@@ -1,7 +1,4 @@
-use std::collections::HashMap;
-
 use crate::domain::vrm_system_model::{
-    reservation::{reservation::ReservationState, reservation_store::ReservationId},
     resource::resource_store::ResourceStore,
     schedule::slotted_schedule::{
         slotted_schedule_context::SlottedScheduleContext,
@@ -13,6 +10,8 @@ use crate::domain::vrm_system_model::{
     },
     utils::load_buffer::LoadMetric,
 };
+use crate::vrm::reservation::{reservation::ReservationState, reservation_store::ReservationId};
+use std::collections::HashMap;
 
 /// Creates the schedule for Networks like RmsNetworkSimulator, SLURM etc.
 /// Shares with the SlottedSchedule the SlottedScheduleContext and multiple other function

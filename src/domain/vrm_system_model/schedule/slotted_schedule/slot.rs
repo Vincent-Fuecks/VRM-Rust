@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationId;
+use crate::vrm::reservation::reservation_store::ReservationId;
 
 /// Represents a discrete time interval within a `SlottedSchedule` used for
 /// distributed resource management.

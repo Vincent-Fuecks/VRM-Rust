@@ -1,12 +1,5 @@
 use vrm_rust_workflow::{
-    domain::vrm_system_model::{
-        reservation::{
-            node_reservation::NodeReservation,
-            reservation::{Reservation, ReservationProceeding, ReservationState},
-            reservation_store::ReservationStore,
-        },
-        utils::id::{ClientId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId},
-    },
+    domain::vrm_system_model::utils::id::{ClientId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId},
     error::Error,
     generate_system_model,
     schema::{
@@ -14,6 +7,11 @@ use vrm_rust_workflow::{
             DataInDto, DataOutDto, DependencyDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto,
         },
         workflow_dto::{TaskDto, WorkflowDto},
+    },
+    vrm::reservation::{
+        node_reservation::NodeReservation,
+        reservation::{Reservation, ReservationProceeding, ReservationState},
+        reservation_store::ReservationStore,
     },
     vrm::workflow::workflow::Workflow,
 };

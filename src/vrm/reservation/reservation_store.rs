@@ -6,14 +6,16 @@ use std::fmt::Debug;
 use parking_lot::RwLock;
 use std::sync::Arc;
 
-use crate::domain::vrm_system_model::reservation::link_reservation::LinkReservation;
-use crate::domain::vrm_system_model::reservation::reservation::{
-    Reservation, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp,
-};
 use crate::domain::vrm_system_model::utils::id::{ClientId, ComponentId, ReservationName, RouterId};
 use crate::vrm::workflow::workflow::Workflow;
 use crate::vrm::workflow::workflow_node::WorkflowNode;
 
+use super::link_reservation::LinkReservation;
+use super::reservation::Reservation;
+use super::reservation::ReservationProceeding;
+use super::reservation::ReservationState;
+use super::reservation::ReservationTrait;
+use super::reservation::ReservationTyp;
 use super::reservation_notification_listener::ReservationNotificationListener;
 
 new_key_type! {

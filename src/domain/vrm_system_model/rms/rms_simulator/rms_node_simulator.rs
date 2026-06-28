@@ -1,5 +1,5 @@
-use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationTrait};
-use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
+use crate::vrm::reservation::reservation::{Reservation, ReservationTrait};
+use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::resource::node_resource::NodeResource;
 use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::rms::advance_reservation_trait::AdvanceReservationRms;

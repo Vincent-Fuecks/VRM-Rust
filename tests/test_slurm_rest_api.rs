@@ -3,7 +3,6 @@ use std::{collections::HashSet, sync::Arc};
 use anyhow::Result;
 use vrm_rust_workflow::{
     domain::vrm_system_model::{
-        reservation::reservation_store::ReservationStore,
         rms::slurm_rms::{
             api_client::{
                 payload::task_properties::{JobProperties, TaskSubmission},
@@ -18,6 +17,7 @@ use vrm_rust_workflow::{
     },
     schema::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},
     vrm::global_clock::global_clock::GlobalClock,
+    vrm::reservation::reservation_store::ReservationStore,
 };
 
 /// Tests the Slurm Rest API ping.

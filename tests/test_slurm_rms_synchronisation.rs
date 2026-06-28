@@ -2,11 +2,12 @@ use std::sync::Arc;
 use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 
 use vrm_rust_workflow::{
-    domain::vrm_system_model::{grid_resource_management_system::aci::AcI, reservation::reservation_store::ReservationStore},
+    domain::vrm_system_model::grid_resource_management_system::aci::AcI,
     schema::{
         aci_dto::AcIDto,
         rms_dto::{RmsSystemWrapper, SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},
     },
+    vrm::reservation::reservation_store::ReservationStore,
 };
 
 async fn create_slurm_rms_mock() -> Result<SlurmRmsDto, Box<dyn std::error::Error>> {

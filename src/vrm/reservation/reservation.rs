@@ -2,14 +2,11 @@ use serde::{Deserialize, Serialize};
 use std::{any::Any, collections::HashSet, ops::Not};
 
 use crate::{
-    domain::vrm_system_model::{
-        reservation::{link_reservation::LinkReservation, node_reservation::NodeReservation},
-        utils::id::{ClientId, ComponentId, ReservationName, RouterId},
-    },
+    domain::vrm_system_model::utils::id::{ClientId, ComponentId, ReservationName, RouterId},
     vrm::workflow::workflow::Workflow,
 };
 
-use super::reservation_store::ReservationId;
+use super::{link_reservation::LinkReservation, node_reservation::NodeReservation, reservation_store::ReservationId};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Reservation {

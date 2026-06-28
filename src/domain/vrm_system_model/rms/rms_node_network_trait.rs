@@ -1,12 +1,4 @@
-use parking_lot::RwLock;
-use std::collections::HashMap;
-use std::sync::Arc;
-
 use crate::domain::vrm_system_model::{
-    reservation::{
-        reservation::{Reservation, ReservationTrait},
-        reservation_store::{ReservationId, ReservationStore},
-    },
     rms::{
         advance_reservation_trait::AdvanceReservationRms,
         rms::{Rms, RmsLoadMetric},
@@ -16,6 +8,13 @@ use crate::domain::vrm_system_model::{
     schedule::schedule_trait::Schedule,
     utils::id::ShadowScheduleId,
 };
+use crate::vrm::reservation::{
+    reservation::{Reservation, ReservationTrait},
+    reservation_store::{ReservationId, ReservationStore},
+};
+use parking_lot::RwLock;
+use std::collections::HashMap;
+use std::sync::Arc;
 
 pub trait Helper {
     fn get_network_shadow_schedule(&self) -> &HashMap<ShadowScheduleId, Arc<RwLock<Box<dyn Schedule>>>>;

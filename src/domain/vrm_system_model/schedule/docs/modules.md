@@ -41,8 +41,8 @@ schedule/
 ## `schedule::schedule_trait`
 
 **Depends on:**
-- `crate::domain::vrm_system_model::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations}`
-- `crate::domain::vrm_system_model::reservation::reservation_store::ReservationId`
+- `crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations}`
+- `crate::vrm::reservation::reservation_store::ReservationId`
 - `crate::domain::vrm_system_model::utils::load_buffer::LoadMetric`
 
 **Defines:**

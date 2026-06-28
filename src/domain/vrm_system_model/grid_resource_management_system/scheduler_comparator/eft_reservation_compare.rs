@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
+use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 
 pub struct EFTReservationCompare {
     reservation_store: ReservationStore,

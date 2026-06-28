@@ -1,12 +1,12 @@
 use crate::domain::vrm_system_model::{
     grid_resource_management_system::{adc::ADC, vrm_component_trait::VrmComponent},
-    reservation::{
-        probe_reservations::{ProbeReservationComparator, ProbeReservations},
-        reservation::{Reservation, ReservationState},
-        reservation_store::ReservationId,
-    },
     rms::rms::RmsLoadMetric,
     utils::id::{ComponentId, ShadowScheduleId},
+};
+use crate::vrm::reservation::{
+    probe_reservations::{ProbeReservationComparator, ProbeReservations},
+    reservation::{Reservation, ReservationState},
+    reservation_store::ReservationId,
 };
 
 impl VrmComponent for ADC {

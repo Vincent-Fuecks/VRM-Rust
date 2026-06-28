@@ -16,8 +16,6 @@ use crate::domain::vrm_system_model::vrm_component::{
 use crate::domain::simulator;
 use crate::domain::simulator::simulator::{Simulator, SystemSimulator};
 use crate::domain::vrm_system_model::client::client::Clients;
-use crate::domain::vrm_system_model::reservation::reservation::Reservation;
-use crate::domain::vrm_system_model::reservation::reservation_store::{self, ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::utils::id::ComponentId;
 use crate::domain::vrm_system_model::vrm;
 use crate::domain::vrm_system_model::{
@@ -26,6 +24,8 @@ use crate::domain::vrm_system_model::{
     vrm_system_model::Vrm,
     workflow::workflow::Workflow,
 };
+use crate::vrm::reservation::reservation::Reservation;
+use crate::vrm::reservation::reservation_store::{self, ReservationId, ReservationStore};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 

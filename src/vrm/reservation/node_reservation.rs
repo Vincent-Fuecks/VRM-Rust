@@ -3,12 +3,14 @@ use std::{any::Any, collections::HashSet};
 use serde::{Deserialize, Serialize};
 
 use crate::domain::vrm_system_model::{
-    reservation::reservation::{ReservationBase, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp},
     rms::slurm_rms::api_client::response::tasks::{SlurmOptionExt, SlurmTask},
     utils::id::{ClientId, ComponentId, ReservationName},
 };
 
-use super::reservation_store::ReservationId;
+use super::{
+    reservation::{ReservationBase, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp},
+    reservation_store::ReservationId,
+};
 
 /// This structure extends [`ReservationBase`] to include fields specific to
 /// **computational node** (e.g., CPU cores).

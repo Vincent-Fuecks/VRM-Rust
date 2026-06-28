@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
-use crate::domain::vrm_system_model::reservation::reservation::Reservation;
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
+use crate::vrm::reservation::reservation::Reservation;
+use crate::vrm::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::SlottedNodeSchedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;

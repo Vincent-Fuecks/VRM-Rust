@@ -1,10 +1,10 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use crate::domain::vrm_system_model::reservation::probe_reservations::ProbeReservations;
-use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationState, ReservationTrait};
-use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
-use crate::domain::vrm_system_model::reservation::reservations::Reservations;
+use crate::vrm::reservation::probe_reservations::ProbeReservations;
+use crate::vrm::reservation::reservation::{Reservation, ReservationState, ReservationTrait};
+use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
+use crate::vrm::reservation::reservations::Reservations;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::slot::Slot;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::strategy_trait::SlottedScheduleStrategy;
 use crate::domain::vrm_system_model::utils::id::SlottedScheduleId;

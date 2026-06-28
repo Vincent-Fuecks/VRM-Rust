@@ -3,10 +3,9 @@ use std::{
     sync::{Arc, Condvar, Mutex, RwLock},
 };
 
-use crate::domain::vrm_system_model::{
-    reservation::{reservation::ReservationState, reservation_store::ReservationId},
-    utils::id::ComponentId,
-};
+use crate::domain::vrm_system_model::utils::id::ComponentId;
+
+use super::{reservation::ReservationState, reservation_store::ReservationId};
 
 /// The result returned to the ADC after waiting.
 #[derive(Clone, Debug)]

@@ -1,4 +1,4 @@
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
+use crate::vrm::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::rms::advance_reservation_trait::AdvanceReservationRms;
 use crate::domain::vrm_system_model::rms::rms_simulator::rms_network_simulator::RmsNetworkSimulator;
 use crate::domain::vrm_system_model::rms::rms_simulator::rms_node_simulator::RmsNodeSimulator;

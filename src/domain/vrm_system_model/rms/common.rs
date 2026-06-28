@@ -5,7 +5,7 @@ use std::sync::Arc;
 use parking_lot::RawRwLock;
 use parking_lot::lock_api::RwLock;
 
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
+use crate::vrm::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::resource::node_resource::NodeResource;
 use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;

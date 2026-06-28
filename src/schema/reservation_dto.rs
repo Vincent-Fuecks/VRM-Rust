@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::domain::vrm_system_model::reservation::reservation::{ReservationProceeding, ReservationState};
+use crate::vrm::reservation::reservation::{ReservationProceeding, ReservationState};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]

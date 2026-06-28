@@ -2,9 +2,9 @@ use std::sync::{ mpsc};
 
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::vrm_message::VrmMessage;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
-use crate::domain::vrm_system_model::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
-use crate::domain::vrm_system_model::reservation::reservation::Reservation;
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationId;
+use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
+use crate::vrm::reservation::reservation::Reservation;
+use crate::vrm::reservation::reservation_store::ReservationId;
 use crate::domain::vrm_system_model::rms::rms::RmsLoadMetric;
 use crate::domain::vrm_system_model::utils::id::{ComponentId, ShadowScheduleId};
 

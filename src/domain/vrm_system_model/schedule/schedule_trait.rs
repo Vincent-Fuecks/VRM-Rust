@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
-use crate::domain::vrm_system_model::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationId;
+use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
+use crate::vrm::reservation::reservation_store::ReservationId;
 use crate::domain::vrm_system_model::utils::load_buffer::LoadMetric;
 
 pub trait Schedule: Debug + Send + Sync {

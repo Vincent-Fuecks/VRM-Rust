@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::utils::id::{CoAllocationId, WorkflowNodeId};
+use crate::vrm::reservation::reservation_store::ReservationStore;
 
 use super::dependency::{CoAllocationDependency, DataDependency, SyncDependency};
 use super::workflow_node::WorkflowNode;

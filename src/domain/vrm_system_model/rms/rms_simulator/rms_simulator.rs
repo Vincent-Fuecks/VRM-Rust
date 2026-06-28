@@ -1,10 +1,8 @@
 use std::{any::Any, collections::HashMap, sync::Arc};
 
-use parking_lot::RwLock;
-
+use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::{
     domain::vrm_system_model::{
-        reservation::reservation_store::{ReservationId, ReservationStore},
         resource::resource_store::ResourceStore,
         rms::{
             common::{RmsSetupContext, get_nodes_and_links},
@@ -17,6 +15,7 @@ use crate::{
     schema::rms_dto::RmsSimulatorDto,
     vrm::global_clock::global_clock::GlobalClock,
 };
+use parking_lot::RwLock;
 
 /// Simulates both links and nodes of a cluster
 #[derive(Debug)]

@@ -1,8 +1,7 @@
 mod helpers;
 mod vrm_component;
 
-use std::sync::Arc;
-
+use crate::vrm::reservation::{reservation_store::ReservationStore, reservation_sync_gate::SyncRegistry};
 use crate::{
     domain::vrm_system_model::{
         grid_resource_management_system::{
@@ -10,11 +9,11 @@ use crate::{
             vrm_component_order::VrmComponentOrder,
             vrm_component_registry::{registry_client::RegistryClient, vrm_component_proxy::VrmComponentProxy},
         },
-        reservation::{reservation_store::ReservationStore, reservation_sync_gate::SyncRegistry},
         utils::id::AdcId,
     },
     vrm::global_clock::global_clock::GlobalClock,
 };
+use std::sync::Arc;
 
 use super::vrm_component_manager::VrmComponentManager;
 

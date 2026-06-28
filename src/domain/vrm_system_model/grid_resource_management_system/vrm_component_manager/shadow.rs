@@ -1,4 +1,4 @@
-use crate::domain::vrm_system_model::reservation::reservation::ReservationState;
+use crate::vrm::reservation::reservation::ReservationState;
 use crate::domain::vrm_system_model::utils::id::ShadowScheduleId;
 
 use super::VrmComponentManager;

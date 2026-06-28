@@ -1,15 +1,15 @@
 use crate::domain::vrm_system_model::{
-    reservation::{
-        probe_reservations::{ProbeReservationComparator, ProbeReservations},
-        reservation::ReservationState,
-        reservation_store::ReservationId,
-    },
     schedule::{
         schedule_trait::Schedule,
         slotted_schedule::{slotted_schedule_context::SlottedScheduleContext, strategy::strategy_trait::SlottedScheduleStrategy},
     },
     utils::load_buffer::LoadMetric,
 };
+use crate::vrm::reservation::{
+        probe_reservations::{ProbeReservationComparator, ProbeReservations},
+        reservation::ReservationState,
+        reservation_store::ReservationId,
+    };
 
 impl<S: SlottedScheduleStrategy> Schedule for SlottedScheduleContext<S> {
     fn clear(&mut self) {

@@ -6,6 +6,12 @@ use std::{
 };
 use tokio::time::{Duration, sleep};
 
+use crate::vrm::reservation::{
+    probe_reservations::ProbeReservationComparator,
+    reservation::{ReservationProceeding, ReservationState},
+    reservation_store::{ReservationId, ReservationStore},
+    vrm_state_listener::VrmStateListener,
+};
 use crate::{
     domain::vrm_system_model::{
         grid_resource_management_system::{
@@ -15,12 +21,6 @@ use crate::{
             vrm_component_order::VrmComponentOrder,
             vrm_component_registry::{registry_client::RegistryClient, vrm_component_proxy::VrmComponentProxy},
             vrm_component_trait::VrmComponent,
-        },
-        reservation::{
-            probe_reservations::ProbeReservationComparator,
-            reservation::{ReservationProceeding, ReservationState},
-            reservation_store::{ReservationId, ReservationStore},
-            vrm_state_listener::VrmStateListener,
         },
         utils::id::{AdcId, ComponentId},
     },

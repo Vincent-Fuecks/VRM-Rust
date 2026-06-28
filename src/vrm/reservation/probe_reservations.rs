@@ -1,12 +1,9 @@
 use std::{cmp::Ordering, collections::HashMap, fmt::Debug};
 
-use crate::domain::vrm_system_model::{
-    reservation::{
-        reservation::{Reservation, ReservationTrait},
-        reservation_store::{ReservationId, ReservationStore},
-    },
-    utils::id::{ComponentId, ProbeReservationId, ShadowScheduleId},
-};
+use crate::domain::vrm_system_model::utils::id::{ComponentId, ProbeReservationId, ShadowScheduleId};
+
+use super::reservation::{Reservation, ReservationTrait};
+use super::reservation_store::{ReservationId, ReservationStore};
 
 #[derive(Clone, Debug)]
 pub enum ProbeReservationComparator {

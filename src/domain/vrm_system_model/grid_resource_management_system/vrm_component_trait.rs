@@ -1,9 +1,8 @@
-use crate::domain::vrm_system_model::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
-use crate::domain::vrm_system_model::reservation::reservation::{Reservation};
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationId;
 use crate::domain::vrm_system_model::rms::rms::RmsLoadMetric;
 use crate::domain::vrm_system_model::utils::id::{ComponentId, ShadowScheduleId};
-
+use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
+use crate::vrm::reservation::reservation::Reservation;
+use crate::vrm::reservation::reservation_store::ReservationId;
 
 /// A specialized interface for a fully-featured **Distributed Resource Management System**.
 ///

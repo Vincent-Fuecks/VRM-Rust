@@ -2,17 +2,16 @@ use core::f64;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 
-use crate::domain::vrm_system_model::reservation::reservation::{
-    Reservation, ReservationBase, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp,
-};
-use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
-use crate::domain::vrm_system_model::reservation::{link_reservation::LinkReservation, node_reservation::NodeReservation};
 use crate::domain::vrm_system_model::utils::id::{
     ClientId, CoAllocationDependencyId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId,
 };
 use crate::error::Error;
 use crate::schema::reservation_dto::{ReservationProceedingDto, ReservationStateDto};
 use crate::schema::workflow_dto::{TaskDto, WorkflowDto};
+use crate::vrm::reservation::link_reservation::LinkReservation;
+use crate::vrm::reservation::node_reservation::NodeReservation;
+use crate::vrm::reservation::reservation::{Reservation, ReservationBase, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp};
+use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 
 use serde::{Deserialize, Serialize};
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};

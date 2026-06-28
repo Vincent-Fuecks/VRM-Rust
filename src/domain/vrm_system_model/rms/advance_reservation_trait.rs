@@ -1,6 +1,6 @@
-use crate::domain::vrm_system_model::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
-use crate::domain::vrm_system_model::reservation::reservation::Reservation;
-use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
+use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
+use crate::vrm::reservation::reservation::Reservation;
+use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::rms::rms::{Rms, RmsLoadMetric};
 use crate::domain::vrm_system_model::utils::id::ShadowScheduleId;
 

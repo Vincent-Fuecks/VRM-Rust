@@ -5,11 +5,12 @@ use std::{
     sync::{Arc, RwLock},
 };
 
+use crate::vrm::reservation::{
+    reservation::{Reservation, ReservationTrait},
+    reservation_store::{ReservationId, ReservationStore},
+};
+
 use crate::domain::vrm_system_model::{
-    reservation::{
-        reservation::{Reservation, ReservationTrait},
-        reservation_store::{ReservationId, ReservationStore},
-    },
     resource::{
         link_resource::LinkResource,
         node_resource::NodeResource,

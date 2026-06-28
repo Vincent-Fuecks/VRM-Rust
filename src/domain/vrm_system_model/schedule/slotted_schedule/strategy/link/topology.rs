@@ -1,4 +1,4 @@
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
+use crate::vrm::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::resource::link_resource::LinkResource;
 use crate::domain::vrm_system_model::resource::resource_store::{LinkResourceId, ResourceStore};
 use crate::domain::vrm_system_model::schedule::slotted_schedule::SlottedNodeSchedule;

@@ -2,13 +2,11 @@ use std::{collections::HashSet, sync::Arc};
 
 use parking_lot::RwLock;
 
-use crate::domain::vrm_system_model::{
-    reservation::{reservation::ReservationState, reservation_store::ReservationId},
-    utils::id::ReservationName,
-};
+use crate::domain::vrm_system_model::utils::id::ReservationName;
 
+use super::reservation::ReservationState;
 use super::reservation_notification_listener::ReservationNotificationListener;
-
+use super::reservation_store::ReservationId;
 /// A listener responsible for maintaining a synchronized view of active reservations
 /// within the VRM.
 ///

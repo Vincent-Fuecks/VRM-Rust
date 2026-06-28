@@ -1,8 +1,10 @@
-use crate::domain::vrm_system_model::reservation::reservation::ReservationState;
-use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
 use rand::seq::IndexedRandom;
 use std::collections::hash_set;
 use std::{collections::HashSet, i64};
+
+use crate::vrm::reservation::reservation::ReservationState;
+
+use super::reservation_store::{ReservationId, ReservationStore};
 
 /// This structure tracks a local subset of active `ReservationId`s while maintaining
 /// a reference to the global `ReservationStore` for metadata persistence and

@@ -1,6 +1,6 @@
 use crate::domain::vrm_system_model::grid_resource_management_system::adc::ADC;
-use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationState};
-use crate::domain::vrm_system_model::reservation::{
+use crate::vrm::reservation::reservation::{Reservation, ReservationState};
+use crate::vrm::reservation::{
     reservation_store::{ReservationId, ReservationStore},
     reservations::Reservations,
 };

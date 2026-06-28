@@ -1,7 +1,4 @@
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
-use crate::domain::vrm_system_model::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
-use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationState};
-use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::rms::advance_reservation_trait::AdvanceReservationRms;
 use crate::domain::vrm_system_model::rms::rms::RmsLoadMetric;
 use crate::domain::vrm_system_model::utils::id::{AciId, AdcId, ClientId, ComponentId, ShadowScheduleId};
@@ -10,6 +7,9 @@ use crate::error::ConversionError;
 use crate::schema::aci_dto::AcIDto;
 use crate::schema::rms_dto::RmsSystemWrapper;
 use crate::vrm::global_clock::global_clock::GlobalClock;
+use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
+use crate::vrm::reservation::reservation::{Reservation, ReservationState};
+use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 
 use std::collections::{BTreeMap, HashMap};
 use std::i64;
