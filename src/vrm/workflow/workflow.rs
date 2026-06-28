@@ -10,15 +10,16 @@ use crate::domain::vrm_system_model::reservation::{link_reservation::LinkReserva
 use crate::domain::vrm_system_model::utils::id::{
     ClientId, CoAllocationDependencyId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId,
 };
-use crate::domain::vrm_system_model::workflow::co_allocation::CoAllocation;
-use crate::domain::vrm_system_model::workflow::dependency::{CoAllocationDependency, DataDependency, SyncDependency};
-use crate::domain::vrm_system_model::workflow::workflow_node::WorkflowNode;
 use crate::error::Error;
 use crate::schema::reservation_dto::{ReservationProceedingDto, ReservationStateDto};
 use crate::schema::workflow_dto::{TaskDto, WorkflowDto};
 
 use serde::{Deserialize, Serialize};
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
+
+use super::co_allocation::CoAllocation;
+use super::dependency::{CoAllocationDependency, DataDependency, SyncDependency};
+use super::workflow_node::WorkflowNode;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Workflow {

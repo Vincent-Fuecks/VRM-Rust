@@ -4,8 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::utils::id::{CoAllocationId, WorkflowNodeId};
-use crate::domain::vrm_system_model::workflow::dependency::{CoAllocationDependency, DataDependency, SyncDependency};
-use crate::domain::vrm_system_model::workflow::workflow_node::WorkflowNode;
+
+use super::dependency::{CoAllocationDependency, DataDependency, SyncDependency};
+use super::workflow_node::WorkflowNode;
 
 /// A CoAllocation is a set of one or more compute tasks (WorkflowNodes) that must be scheduled to run at the exact same time (called "co-allocation" or "gang scheduling.").
 /// A CoAllocation is formed by any WorkflowNodes that are linked, directly or indirectly, by a SyncDependency.

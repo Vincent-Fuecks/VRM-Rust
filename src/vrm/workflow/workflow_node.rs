@@ -3,8 +3,9 @@ use serde::{Deserialize, Serialize};
 use crate::domain::vrm_system_model::{
     reservation::reservation_store::{ReservationId, ReservationStore},
     utils::id::{CoAllocationId, DataDependencyId, SyncDependencyId},
-    workflow::workflow::Workflow,
 };
+
+use super::workflow::Workflow;
 
 /// Represents a node in the workflow graph (a computation task).
 #[derive(Debug, Clone, Serialize, Deserialize)]

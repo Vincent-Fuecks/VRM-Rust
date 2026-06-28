@@ -8,4 +8,3 @@ pub mod scheduler_type;
 pub mod utils;
 pub mod vrm_manager;
 pub mod vrm_system_model;
-pub mod workflow;

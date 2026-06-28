@@ -2,15 +2,14 @@ use crate::domain::vrm_system_model::grid_resource_management_system::adc::ADC;
 use crate::domain::vrm_system_model::grid_resource_management_system::scheduler::workflow_scheduler::{WorkflowScheduler, WorkflowSchedulerBase};
 use crate::domain::vrm_system_model::reservation::probe_reservations::ProbeReservationComparator;
 use crate::domain::vrm_system_model::reservation::reservations::Reservations;
+use crate::vrm::workflow::workflow::Workflow;
+use crate::vrm::workflow::workflow_node::WorkflowNode;
 use std::any::Any;
 use std::collections::HashMap;
 
 use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationState, ReservationTrait};
 use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::utils::id::{ComponentId, RouterId, WorkflowNodeId};
-
-use crate::domain::vrm_system_model::workflow::workflow::Workflow;
-use crate::domain::vrm_system_model::workflow::workflow_node::WorkflowNode;
 
 /// A high-performance scheduler implementing the **HEFTSync** algorithm for distributed Virtual Resource Management (VRM).
 ///

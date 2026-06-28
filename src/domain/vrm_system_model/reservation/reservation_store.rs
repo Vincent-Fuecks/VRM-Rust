@@ -11,8 +11,8 @@ use crate::domain::vrm_system_model::reservation::reservation::{
     Reservation, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp,
 };
 use crate::domain::vrm_system_model::utils::id::{ClientId, ComponentId, ReservationName, RouterId};
-use crate::domain::vrm_system_model::workflow::workflow::Workflow;
-use crate::domain::vrm_system_model::workflow::workflow_node::WorkflowNode;
+use crate::vrm::workflow::workflow::Workflow;
+use crate::vrm::workflow::workflow_node::WorkflowNode;
 
 use super::reservation_notification_listener::ReservationNotificationListener;
 

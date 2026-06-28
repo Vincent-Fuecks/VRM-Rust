@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::{any::Any, collections::HashSet, ops::Not};
 
-use crate::domain::vrm_system_model::{
-    reservation::{link_reservation::LinkReservation, node_reservation::NodeReservation},
-    utils::id::{ClientId, ComponentId, ReservationName, RouterId},
-    workflow::workflow::Workflow,
+use crate::{
+    domain::vrm_system_model::{
+        reservation::{link_reservation::LinkReservation, node_reservation::NodeReservation},
+        utils::id::{ClientId, ComponentId, ReservationName, RouterId},
+    },
+    vrm::workflow::workflow::Workflow,
 };
 
 use super::reservation_store::ReservationId;

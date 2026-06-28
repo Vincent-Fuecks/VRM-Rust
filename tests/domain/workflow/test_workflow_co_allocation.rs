@@ -6,7 +6,6 @@ use vrm_rust_workflow::{
             reservation_store::ReservationStore,
         },
         utils::id::{ClientId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId},
-        workflow::workflow::Workflow,
     },
     error::Error,
     generate_system_model,
@@ -16,6 +15,7 @@ use vrm_rust_workflow::{
         },
         workflow_dto::{TaskDto, WorkflowDto},
     },
+    vrm::workflow::workflow::Workflow,
 };
 
 use std::collections::HashSet;
