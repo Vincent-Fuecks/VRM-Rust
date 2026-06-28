@@ -37,7 +37,7 @@ pub fn get_vrm_dto(file_path: &str) -> Result<VrmDto> {
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Path to the workflow input file (.json)
-    #[arg(short = 'f', long, default_value = "src/data/demo/workflow_with_direct_mapping.json")]
+    #[arg(short = 'f', long, default_value = "data/demo/workflow_with_direct_mapping.json")]
     input_file: String,
 
     /// Path to the output results/statistics file (.csv)
@@ -45,7 +45,7 @@ struct Args {
     output_file: String,
 
     /// Path to the VRM node simulator config
-    #[arg(short = 'c', long, default_value = "src/data/vrm_rms_simulator.json")]
+    #[arg(short = 'c', long, default_value = "data/vrm_rms_simulator.json")]
     config_file: String,
 
     /// Disables Logging
