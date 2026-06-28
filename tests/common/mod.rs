@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use vrm_rust_workflow::domain::vrm_system_model::grid_resource_management_system::aci::AcI;
-use vrm_rust_workflow::domain::vrm_system_model::utils::id::{ClientId, ReservationName};
+use vrm_rust_workflow::vrm::commons::id::{ClientId, ReservationName};
 use vrm_rust_workflow::schema::aci_dto::AcIDto;
 use vrm_rust_workflow::schema::adc_dto::ADCDto;
 use vrm_rust_workflow::schema::client_dto::{ClientDto, ClientsDto};

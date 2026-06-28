@@ -1,4 +1,4 @@
-use crate::domain::vrm_system_model::utils::statistics::AnalyticsSystem;
+use crate::vrm::commons::statistics::AnalyticsSystem;
 use crate::domain::vrm_system_model::vrm_manager::VrmManager;
 use crate::vrm::reservation::vrm_state_listener::VrmStateListener;
 

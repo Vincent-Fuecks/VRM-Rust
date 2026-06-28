@@ -132,7 +132,7 @@ mod tests {
     use std::io::BufWriter;
     use std::path::Path;
 
-    use crate::domain::vrm_system_model::utils::legacy_workflow_adapter::LegacyWorkflowAdapter;
+    use crate::vrm::commons::legacy_workflow_adapter::LegacyWorkflowAdapter;
     use crate::schema::client_dto::{ClientDto, ClientsDto};
 
     use super::*;

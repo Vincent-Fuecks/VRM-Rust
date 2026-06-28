@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::domain::vrm_system_model::utils::id::{CoAllocationDependencyId, CoAllocationId, DataDependencyId, WorkflowNodeId};
+use crate::vrm::commons::id::{CoAllocationDependencyId, CoAllocationId, DataDependencyId, WorkflowNodeId};
 use crate::vrm::reservation::reservation_store::ReservationId;
 
 /// Represents an edge for data transfer (file).

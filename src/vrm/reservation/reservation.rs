@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{any::Any, collections::HashSet, ops::Not};
 
 use crate::{
-    domain::vrm_system_model::utils::id::{ClientId, ComponentId, ReservationName, RouterId},
+    vrm::commons::id::{ClientId, ComponentId, ReservationName, RouterId},
     vrm::workflow::workflow::Workflow,
 };
 

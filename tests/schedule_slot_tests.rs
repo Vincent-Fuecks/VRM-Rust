@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use vrm_rust_workflow::vrm::reservation::{node_reservation::NodeReservation, reservation::{Reservation, ReservationProceeding, ReservationState}, reservation_store::ReservationStore};
 use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::slot::Slot;
-use vrm_rust_workflow::domain::vrm_system_model::utils::id::{ClientId, ReservationName};
+use vrm_rust_workflow::vrm::commons::id::{ClientId, ReservationName};
 
 fn make_id(store: &ReservationStore, name: &str) -> vrm_rust_workflow::vrm::reservation::reservation_store::ReservationId {
     let r = Reservation::Node(NodeReservation::new(

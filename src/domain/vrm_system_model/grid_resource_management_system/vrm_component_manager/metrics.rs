@@ -1,6 +1,6 @@
 use crate::domain::vrm_system_model::rms::rms::RmsLoadMetric;
-use crate::domain::vrm_system_model::utils::id::{ComponentId, ShadowScheduleId};
-use crate::domain::vrm_system_model::utils::load_buffer::LoadMetric;
+use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
+use crate::vrm::commons::load_buffer::LoadMetric;
 
 use super::VrmComponentManager;
 

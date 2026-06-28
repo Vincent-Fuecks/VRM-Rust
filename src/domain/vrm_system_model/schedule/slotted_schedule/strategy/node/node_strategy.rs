@@ -1,7 +1,7 @@
-use crate::domain::vrm_system_model::{
-    schedule::slotted_schedule::{slotted_schedule_context::SlottedScheduleContext, strategy::strategy_trait::SlottedScheduleStrategy},
-    utils::load_buffer::{LoadMetric, SLOTS_TO_DROP_ON_END, SLOTS_TO_DROP_ON_START},
+use crate::domain::vrm_system_model::schedule::slotted_schedule::{
+    slotted_schedule_context::SlottedScheduleContext, strategy::strategy_trait::SlottedScheduleStrategy,
 };
+use crate::vrm::commons::load_buffer::{LoadMetric, SLOTS_TO_DROP_ON_END, SLOTS_TO_DROP_ON_START};
 use crate::vrm::reservation::reservation_store::ReservationId;
 
 #[derive(Debug, Clone, Default)]

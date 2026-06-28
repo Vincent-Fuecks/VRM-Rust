@@ -7,8 +7,8 @@ use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore
 use crate::vrm::reservation::reservations::Reservations;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::slot::Slot;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::strategy_trait::SlottedScheduleStrategy;
-use crate::domain::vrm_system_model::utils::id::SlottedScheduleId;
-use crate::domain::vrm_system_model::utils::load_buffer::{GlobalLoadContext, LoadBuffer};
+use crate::vrm::commons::id::SlottedScheduleId;
+use crate::vrm::commons::load_buffer::{GlobalLoadContext, LoadBuffer};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 
 /// The core context for managing a time-slotted resource schedule within a distributed **VRM (Virtual Resource Management)** system.

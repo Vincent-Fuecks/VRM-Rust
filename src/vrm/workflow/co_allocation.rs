@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::domain::vrm_system_model::utils::id::{CoAllocationId, WorkflowNodeId};
+use crate::vrm::commons::id::{CoAllocationId, WorkflowNodeId};
 use crate::vrm::reservation::reservation_store::ReservationStore;
 
 use super::dependency::{CoAllocationDependency, DataDependency, SyncDependency};

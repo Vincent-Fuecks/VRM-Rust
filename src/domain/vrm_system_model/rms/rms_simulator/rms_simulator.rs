@@ -1,18 +1,18 @@
 use std::{any::Any, collections::HashMap, sync::Arc};
 
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
+use crate::vrm::resource::resource_store::ResourceStore;
 use crate::{
     domain::vrm_system_model::{
-        resource::resource_store::ResourceStore,
         rms::{
             common::{RmsSetupContext, get_nodes_and_links},
             rms::{Rms, RmsBase},
             rms_node_network_trait::Helper,
         },
         schedule::schedule_trait::Schedule,
-        utils::id::{ComponentId, ShadowScheduleId},
     },
     schema::rms_dto::RmsSimulatorDto,
+    vrm::commons::id::{ComponentId, ShadowScheduleId},
     vrm::global_clock::global_clock::GlobalClock,
 };
 use parking_lot::RwLock;

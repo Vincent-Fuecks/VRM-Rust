@@ -5,23 +5,22 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use crate::vrm::reservation::{
-    reservation::{Reservation, ReservationTrait},
-    reservation_store::{ReservationId, ReservationStore},
+use crate::vrm::{
+    reservation::{
+        reservation::{Reservation, ReservationTrait},
+        reservation_store::{ReservationId, ReservationStore},
+    },
+    resource::resource_trait::Resource,
 };
 
-use crate::domain::vrm_system_model::{
-    resource::{
-        link_resource::LinkResource,
-        node_resource::NodeResource,
-        resource_trait::{FeasibilityRequest, Resource},
-    },
-    schedule::slotted_schedule::{
-        slotted_schedule_context::SlottedScheduleContext,
-        strategy::{link::topology::Path, node::node_strategy::NodeStrategy},
-    },
-    utils::id::{ResourceName, RouterId},
+use crate::domain::vrm_system_model::schedule::slotted_schedule::{
+    slotted_schedule_context::SlottedScheduleContext,
+    strategy::{link::topology::Path, node::node_strategy::NodeStrategy},
 };
+
+use crate::vrm::commons::id::{ResourceName, RouterId};
+
+use super::{link_resource::LinkResource, node_resource::NodeResource, resource_trait::FeasibilityRequest};
 
 new_key_type! {
     pub struct NodeResourceId;
@@ -137,7 +136,7 @@ impl ResourceStore {
         let guard = self.inner.read().unwrap();
 
         for node in guard.nodes.values() {
-            let node = node.read().unwrap();
+            let node: std::sync::RwLockReadGuard<'_, NodeResource> = node.read().unwrap();
 
             if node.can_handle_request(&feasibility_request) {
                 log::debug!("Feasibility result is: {}", "TRUE".green().bold());

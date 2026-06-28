@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
+use crate::vrm::commons::load_buffer::LoadMetric;
 use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::vrm::reservation::reservation_store::ReservationId;
-use crate::domain::vrm_system_model::utils::load_buffer::LoadMetric;
 
 pub trait Schedule: Debug + Send + Sync {
     /// Calculates the resource **fragmentation score** over a specific, user-defined time range.

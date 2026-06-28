@@ -2,7 +2,7 @@ use core::f64;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 
-use crate::domain::vrm_system_model::utils::id::{
+use crate::vrm::commons::id::{
     ClientId, CoAllocationDependencyId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId,
 };
 use crate::error::Error;

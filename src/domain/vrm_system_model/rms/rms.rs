@@ -1,11 +1,11 @@
-use crate::vrm::reservation::reservation::ReservationState;
-use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
-use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::{Link, Node};
-use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RmsId, RouterId, ShadowScheduleId};
-use crate::domain::vrm_system_model::utils::load_buffer::LoadMetric;
 use crate::schema::rms_dto::DummyRmsDto;
+use crate::vrm::commons::id::{ComponentId, ResourceName, RmsId, RouterId, ShadowScheduleId};
+use crate::vrm::commons::load_buffer::LoadMetric;
+use crate::vrm::reservation::reservation::ReservationState;
+use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
+use crate::vrm::resource::resource_store::ResourceStore;
 
 use parking_lot::RwLock;
 use std::any::Any;

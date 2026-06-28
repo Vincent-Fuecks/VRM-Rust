@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::domain::vrm_system_model::utils::id::{CoAllocationId, DataDependencyId, SyncDependencyId};
+use crate::vrm::commons::id::{CoAllocationId, DataDependencyId, SyncDependencyId};
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 
 use super::workflow::Workflow;

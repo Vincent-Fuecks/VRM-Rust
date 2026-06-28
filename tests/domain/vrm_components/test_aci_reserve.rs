@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use vrm_rust_workflow::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
-use vrm_rust_workflow::domain::vrm_system_model::utils::id::ReservationName;
+use vrm_rust_workflow::vrm::commons::id::ReservationName;
 use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 use vrm_rust_workflow::vrm::reservation::reservation::ReservationState;
 use vrm_rust_workflow::vrm::reservation::reservation_store::ReservationStore;

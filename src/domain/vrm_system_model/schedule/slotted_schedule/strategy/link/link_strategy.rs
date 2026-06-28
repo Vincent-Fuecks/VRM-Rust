@@ -1,16 +1,14 @@
-use crate::domain::vrm_system_model::{
-    resource::resource_store::ResourceStore,
-    schedule::slotted_schedule::{
-        slotted_schedule_context::SlottedScheduleContext,
-        strategy::{
-            link::topology::{NetworkTopology, Path},
-            node::node_strategy::NodeStrategy,
-            strategy_trait::SlottedScheduleStrategy,
-        },
+use crate::domain::vrm_system_model::schedule::slotted_schedule::{
+    slotted_schedule_context::SlottedScheduleContext,
+    strategy::{
+        link::topology::{NetworkTopology, Path},
+        node::node_strategy::NodeStrategy,
+        strategy_trait::SlottedScheduleStrategy,
     },
-    utils::load_buffer::LoadMetric,
 };
+use crate::vrm::commons::load_buffer::LoadMetric;
 use crate::vrm::reservation::{reservation::ReservationState, reservation_store::ReservationId};
+use crate::vrm::resource::resource_store::ResourceStore;
 use std::collections::HashMap;
 
 /// Creates the schedule for Networks like RmsNetworkSimulator, SLURM etc.

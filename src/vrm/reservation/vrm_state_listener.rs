@@ -2,7 +2,7 @@ use std::{collections::HashSet, sync::Arc};
 
 use parking_lot::RwLock;
 
-use crate::domain::vrm_system_model::utils::id::ReservationName;
+use crate::vrm::commons::id::ReservationName;
 
 use super::reservation::ReservationState;
 use super::reservation_notification_listener::ReservationNotificationListener;

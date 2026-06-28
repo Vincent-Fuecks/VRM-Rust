@@ -1,4 +1,4 @@
-use crate::domain::vrm_system_model::utils::id::{ResourceName, RouterId};
+use crate::vrm::commons::id::{ResourceName, RouterId};
 
 use std::any::Any;
 

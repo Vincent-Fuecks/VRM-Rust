@@ -2,10 +2,8 @@ use std::{any::Any, collections::HashSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::domain::vrm_system_model::{
-    rms::slurm_rms::api_client::response::tasks::{SlurmOptionExt, SlurmTask},
-    utils::id::{ClientId, ComponentId, ReservationName},
-};
+use crate::domain::vrm_system_model::rms::slurm_rms::api_client::response::tasks::{SlurmOptionExt, SlurmTask};
+use crate::vrm::commons::id::{ClientId, ComponentId, ReservationName};
 
 use super::{
     reservation::{ReservationBase, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp},

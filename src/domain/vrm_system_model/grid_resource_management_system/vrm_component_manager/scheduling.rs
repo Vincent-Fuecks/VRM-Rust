@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_order::VrmComponentOrder;
-use crate::domain::vrm_system_model::utils::config::TRY_N_PROMOTIONS;
-use crate::domain::vrm_system_model::utils::id::{ComponentId, ShadowScheduleId};
+use crate::vrm::commons::config::TRY_N_PROMOTIONS;
+use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::vrm::reservation::reservation::ReservationState;
 use crate::vrm::reservation::reservation_store::ReservationId;

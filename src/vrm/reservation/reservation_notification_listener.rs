@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::domain::vrm_system_model::utils::id::ReservationName;
+use crate::vrm::commons::id::ReservationName;
 
 use super::reservation::ReservationState;
 use super::reservation_store::ReservationId;

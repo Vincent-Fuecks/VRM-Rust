@@ -1,15 +1,13 @@
 mod helpers;
 mod vrm_component;
 
+use crate::vrm::commons::id::AdcId;
 use crate::vrm::reservation::{reservation_store::ReservationStore, reservation_sync_gate::SyncRegistry};
 use crate::{
-    domain::vrm_system_model::{
-        grid_resource_management_system::{
-            scheduler::workflow_scheduler::WorkflowScheduler,
-            vrm_component_order::VrmComponentOrder,
-            vrm_component_registry::{registry_client::RegistryClient, vrm_component_proxy::VrmComponentProxy},
-        },
-        utils::id::AdcId,
+    domain::vrm_system_model::grid_resource_management_system::{
+        scheduler::workflow_scheduler::WorkflowScheduler,
+        vrm_component_order::VrmComponentOrder,
+        vrm_component_registry::{registry_client::RegistryClient, vrm_component_proxy::VrmComponentProxy},
     },
     vrm::global_clock::global_clock::GlobalClock,
 };

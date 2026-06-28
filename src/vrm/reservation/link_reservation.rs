@@ -2,7 +2,7 @@ use std::any::Any;
 
 use serde::{Deserialize, Serialize};
 
-use crate::domain::vrm_system_model::utils::id::RouterId;
+use crate::vrm::commons::id::RouterId;
 
 use super::reservation::{ReservationBase, ReservationTrait, ReservationTyp};
 /// This structure extends [`ReservationBase`] to include fields specific to

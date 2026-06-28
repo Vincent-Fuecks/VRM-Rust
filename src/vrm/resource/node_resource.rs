@@ -1,8 +1,9 @@
-use crate::domain::vrm_system_model::resource::resource_trait::FeasibilityRequest;
-use crate::domain::vrm_system_model::resource::{resource_trait::Resource, resources::BaseResource};
-use crate::domain::vrm_system_model::utils::id::ResourceName;
+use crate::vrm::commons::id::ResourceName;
 
 use std::any::Any;
+
+use super::resource_trait::{FeasibilityRequest, Resource};
+use super::resources::BaseResource;
 
 #[derive(Debug, Clone)]
 pub struct NodeResource {

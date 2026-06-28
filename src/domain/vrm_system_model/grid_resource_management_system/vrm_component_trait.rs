@@ -1,5 +1,5 @@
 use crate::domain::vrm_system_model::rms::rms::RmsLoadMetric;
-use crate::domain::vrm_system_model::utils::id::{ComponentId, ShadowScheduleId};
+use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::vrm::reservation::reservation::Reservation;
 use crate::vrm::reservation::reservation_store::ReservationId;

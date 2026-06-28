@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Condvar, Mutex, RwLock},
 };
 
-use crate::domain::vrm_system_model::utils::id::ComponentId;
+use crate::vrm::commons::id::ComponentId;
 
 use super::{reservation::ReservationState, reservation_store::ReservationId};
 

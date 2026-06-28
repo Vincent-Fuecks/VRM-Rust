@@ -6,8 +6,8 @@ use crate::domain::vrm_system_model::{
         slurm_rms::slurm_base::SlurmRms,
     },
     schedule::schedule_trait::Schedule,
-    utils::id::ShadowScheduleId,
 };
+use crate::vrm::commons::id::ShadowScheduleId;
 use crate::vrm::reservation::{
     reservation::{Reservation, ReservationTrait},
     reservation_store::{ReservationId, ReservationStore},

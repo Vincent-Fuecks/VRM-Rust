@@ -10,21 +10,21 @@ use tokio::time::{Duration, MissedTickBehavior, interval};
 use super::api_client::response::tasks::SlurmTaskResponse;
 use super::api_client::slurm_rest_api_client::SlurmRestApiClient;
 use super::api_client::slurm_rest_api_trait::SlurmRestApi;
-use crate::domain::vrm_system_model::resource::node_resource::NodeResource;
-use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::rms::rms::Rms;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
 use crate::domain::vrm_system_model::scheduler_type::ScheduleContext;
-use crate::domain::vrm_system_model::utils::config::SCHEDULE_SYNC_TIMEINTERVAL_S;
-use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
 use crate::domain::vrm_system_model::{rms::rms::RmsBase, scheduler_type::SchedulerType};
 use crate::schema::rms_dto::SlurmRmsDto;
+use crate::vrm::commons::config::SCHEDULE_SYNC_TIMEINTERVAL_S;
+use crate::vrm::commons::id::{ComponentId, ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::node_reservation::NodeReservation;
 use crate::vrm::reservation::reservation::{Reservation, ReservationState, ReservationTrait};
 use crate::vrm::reservation::reservation_store::ReservationId;
 use crate::vrm::reservation::reservation_store::ReservationStore;
+use crate::vrm::resource::node_resource::NodeResource;
+use crate::vrm::resource::resource_store::ResourceStore;
 
 #[derive(Debug)]
 pub struct SlurmRms {

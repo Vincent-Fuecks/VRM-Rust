@@ -1,9 +1,10 @@
 use std::collections::HashSet;
 
-use crate::domain::vrm_system_model::resource::link_resource::LinkResource;
-use crate::domain::vrm_system_model::resource::node_resource::NodeResource;
-use crate::domain::vrm_system_model::resource::resource_trait::Resource;
-use crate::domain::vrm_system_model::utils::id::{ResourceName, RouterId};
+use crate::vrm::commons::id::{ResourceName, RouterId};
+
+use super::link_resource::LinkResource;
+use super::node_resource::NodeResource;
+use super::resource_trait::Resource;
 
 #[derive(Debug, Clone)]
 pub struct BaseResource {
@@ -16,7 +17,7 @@ impl BaseResource {
         Self { name, capacity }
     }
 
-    /// Check if this resource can handle the task theoretically, does not guarantee that the request an be handeled.
+    /// Check if this resource can handle the task theoretically, does not guarantee that the request an be handled.
     /// If reservation not moldable, resource must have the requested capacity.
     /// If reservation moldable or requested capacity is 0 true is returned.
     /// Otherwise false is returned.
@@ -39,7 +40,7 @@ impl BaseResource {
 pub struct Resources {
     inner: Vec<Box<dyn Resource>>,
 
-    /// Router list contains all router of the rms. 
+    /// Router list contains all router of the rms.
     router_list: Vec<RouterId>,
 }
 

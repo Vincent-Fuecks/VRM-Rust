@@ -6,30 +6,27 @@ use std::{
 };
 use tokio::time::{Duration, sleep};
 
-use crate::vrm::reservation::{
-    probe_reservations::ProbeReservationComparator,
-    reservation::{ReservationProceeding, ReservationState},
-    reservation_store::{ReservationId, ReservationStore},
-    vrm_state_listener::VrmStateListener,
+use crate::vrm::{
+    commons::id::{AdcId, ClientId, ComponentId}, reservation::{
+        probe_reservations::ProbeReservationComparator,
+        reservation::{ReservationProceeding, ReservationState},
+        reservation_store::{ReservationId, ReservationStore},
+        vrm_state_listener::VrmStateListener,
+    },
 };
 use crate::{
-    domain::vrm_system_model::{
-        grid_resource_management_system::{
-            aci::AcI,
-            adc::ADC,
-            scheduler::workflow_scheduler_type::WorkflowSchedulerType,
-            vrm_component_order::VrmComponentOrder,
-            vrm_component_registry::{registry_client::RegistryClient, vrm_component_proxy::VrmComponentProxy},
-            vrm_component_trait::VrmComponent,
-        },
-        utils::id::{AdcId, ComponentId},
+    domain::vrm_system_model::grid_resource_management_system::{
+        aci::AcI,
+        adc::ADC,
+        scheduler::workflow_scheduler_type::WorkflowSchedulerType,
+        vrm_component_order::VrmComponentOrder,
+        vrm_component_registry::{registry_client::RegistryClient, vrm_component_proxy::VrmComponentProxy},
+        vrm_component_trait::VrmComponent,
     },
     error::ConversionError,
     schema::vrm_dto::VrmDto,
     vrm::global_clock::global_clock::GlobalClock,
 };
-
-use super::utils::id::ClientId;
 
 pub struct VrmManager {
     pub adc_master: VrmComponentProxy,

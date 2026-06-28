@@ -1,16 +1,14 @@
+use crate::vrm::commons::{
+    id::{ComponentId, ShadowScheduleId},
+    statistics::ANALYTICS_TARGET,
+};
 use crate::vrm::reservation::{probe_reservations::ProbeReservationComparator, reservation::ReservationState, reservation_store::ReservationId};
 use std::{
     collections::HashMap,
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::domain::vrm_system_model::{
-    grid_resource_management_system::adc::ADC,
-    utils::{
-        id::{ComponentId, ShadowScheduleId},
-        statistics::ANALYTICS_TARGET,
-    },
-};
+use crate::domain::vrm_system_model::grid_resource_management_system::adc::ADC;
 
 impl ADC {
     /// Orchestrates the Shadow Scheduling process to optimize system utilization.

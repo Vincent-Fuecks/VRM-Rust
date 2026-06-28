@@ -5,14 +5,13 @@ use crate::vrm::workflow::workflow_node::WorkflowNode;
 use std::any::Any;
 use std::collections::HashMap;
 
+use crate::vrm::commons::id::{ComponentId, RouterId, WorkflowNodeId};
 use crate::vrm::reservation::{
     probe_reservations::ProbeReservationComparator,
     reservation::{Reservation, ReservationState, ReservationTrait},
     reservation_store::{ReservationId, ReservationStore},
     reservations::Reservations,
 };
-
-use crate::domain::vrm_system_model::utils::id::{ComponentId, RouterId, WorkflowNodeId};
 
 /// A high-performance scheduler implementing the **HEFTSync** algorithm for distributed Virtual Resource Management (VRM).
 ///
