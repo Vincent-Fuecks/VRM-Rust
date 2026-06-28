@@ -1,8 +1,9 @@
+use crate::vrm::commons::id::ShadowScheduleId;
 use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::vrm::reservation::reservation::Reservation;
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
-use crate::domain::vrm_system_model::rms::rms::{Rms, RmsLoadMetric};
-use crate::vrm::commons::id::ShadowScheduleId;
+
+use super::rms::{Rms, RmsLoadMetric};
 
 /// Direct interface to a local Resource Management System (RMS) capable of making advance reservations.
 ///

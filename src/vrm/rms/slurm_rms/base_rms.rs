@@ -6,12 +6,12 @@ use std::time::Duration;
 
 use tokio::time::timeout;
 
-use crate::domain::vrm_system_model::rms::rms::{Rms, RmsBase};
-use crate::domain::vrm_system_model::rms::rms_node_network_trait::Helper;
 use crate::vrm::commons::config::{MEMORY_PER_NODE, SLURM_RMS_COMMIT_TIMEOUT_S, SLURM_RMS_DELETE_TIMEOUT_S};
 use crate::vrm::commons::id::ShadowScheduleId;
 use crate::vrm::reservation::reservation::{ReservationState, ReservationTrait};
 use crate::vrm::reservation::reservation_store::ReservationId;
+use crate::vrm::rms::rms::{Rms, RmsBase};
+use crate::vrm::rms::rms_node_network_trait::Helper;
 use crate::vrm::schedule::schedule_trait::Schedule;
 
 use super::api_client::payload::task_properties::{JobProperties, TaskSubmission};

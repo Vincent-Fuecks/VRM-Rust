@@ -2,13 +2,11 @@ use std::{any::Any, collections::HashMap, sync::Arc};
 
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::vrm::resource::resource_store::ResourceStore;
+use crate::vrm::rms::common::{RmsSetupContext, get_nodes_and_links};
+use crate::vrm::rms::rms::{Rms, RmsBase};
+use crate::vrm::rms::rms_node_network_trait::Helper;
 use crate::vrm::schedule::schedule_trait::Schedule;
 use crate::{
-    domain::vrm_system_model::rms::{
-        common::{RmsSetupContext, get_nodes_and_links},
-        rms::{Rms, RmsBase},
-        rms_node_network_trait::Helper,
-    },
     schema::rms_dto::RmsSimulatorDto,
     vrm::commons::id::{ComponentId, ShadowScheduleId},
     vrm::global_clock::global_clock::GlobalClock,

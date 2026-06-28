@@ -3,18 +3,16 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::time::sleep;
+use vrm_rust_workflow::schema::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto};
+use vrm_rust_workflow::vrm::commons::config::{SLURM_TEST_BASE_URL, SLURM_TEST_JWT_TOKEN, SLURM_TEST_USER_NAME, SLURM_TEST_VERSION};
+use vrm_rust_workflow::vrm::commons::id::{ClientId, ComponentId, ReservationName};
+use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 use vrm_rust_workflow::vrm::reservation::link_reservation::LinkReservation;
 use vrm_rust_workflow::vrm::reservation::node_reservation::NodeReservation;
 use vrm_rust_workflow::vrm::reservation::reservation::{Reservation, ReservationBase, ReservationProceeding, ReservationState};
 use vrm_rust_workflow::vrm::reservation::reservation_store::ReservationStore;
-use vrm_rust_workflow::domain::vrm_system_model::rms::rms::Rms;
-use vrm_rust_workflow::domain::vrm_system_model::rms::slurm_rms::slurm_base::SlurmRms;
-use vrm_rust_workflow::vrm::commons::config::{
-    SLURM_TEST_BASE_URL, SLURM_TEST_JWT_TOKEN, SLURM_TEST_USER_NAME, SLURM_TEST_VERSION,
-};
-use vrm_rust_workflow::vrm::commons::id::{ClientId, ComponentId, ReservationName};
-use vrm_rust_workflow::schema::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto};
-use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
+use vrm_rust_workflow::vrm::rms::rms::Rms;
+use vrm_rust_workflow::vrm::rms::slurm_rms::slurm_base::SlurmRms;
 
 /// Tests the normal commit process to the local RMS
 /// Reservation of state ReserveAnswer -> Committed and task is running on the local RMS.

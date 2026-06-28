@@ -2,11 +2,11 @@ use std::fmt::Debug;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::domain::vrm_system_model::rms::rms::RmsLoadMetric;
 use crate::vrm::commons::statistics::ANALYTICS_TARGET;
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::reservation::{ReservationProceeding, ReservationState};
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
+use crate::vrm::rms::rms::RmsLoadMetric;
 
 use super::id::{AciId, ReservationName};
 

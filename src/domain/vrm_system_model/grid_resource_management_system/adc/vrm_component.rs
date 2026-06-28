@@ -1,7 +1,4 @@
-use crate::domain::vrm_system_model::{
-    grid_resource_management_system::{adc::ADC, vrm_component_trait::VrmComponent},
-    rms::rms::RmsLoadMetric,
-};
+use crate::domain::vrm_system_model::grid_resource_management_system::{adc::ADC, vrm_component_trait::VrmComponent};
 
 use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::reservation::{
@@ -9,6 +6,7 @@ use crate::vrm::reservation::{
     reservation::{Reservation, ReservationState},
     reservation_store::ReservationId,
 };
+use crate::vrm::rms::rms::RmsLoadMetric;
 
 impl VrmComponent for ADC {
     fn get_id(&self) -> ComponentId {

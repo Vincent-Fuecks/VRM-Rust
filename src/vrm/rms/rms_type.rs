@@ -1,7 +1,3 @@
-use crate::domain::vrm_system_model::rms::advance_reservation_trait::AdvanceReservationRms;
-use crate::domain::vrm_system_model::rms::rms_simulator::rms_network_simulator::RmsNetworkSimulator;
-use crate::domain::vrm_system_model::rms::rms_simulator::rms_node_simulator::RmsNodeSimulator;
-use crate::domain::vrm_system_model::rms::slurm_rms::slurm_base::SlurmRms;
 use crate::error::ConversionError;
 use crate::schema::rms_dto::RmsSystemWrapper;
 use crate::vrm::commons::id::ComponentId;
@@ -10,7 +6,11 @@ use crate::vrm::reservation::reservation_store::ReservationStore;
 use std::str::FromStr;
 use std::sync::Arc;
 
+use super::advance_reservation_trait::AdvanceReservationRms;
+use super::rms_simulator::rms_network_simulator::RmsNetworkSimulator;
+use super::rms_simulator::rms_node_simulator::RmsNodeSimulator;
 use super::rms_simulator::rms_simulator::RmsSimulator;
+use super::slurm_rms::slurm_base::SlurmRms;
 
 #[derive(Debug)]
 pub enum RmsSimulatorType {

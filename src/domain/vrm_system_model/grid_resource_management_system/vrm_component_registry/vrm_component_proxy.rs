@@ -1,12 +1,12 @@
-use std::sync::{ mpsc};
+use std::sync::mpsc;
 
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::vrm_message::VrmMessage;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
+use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::vrm::reservation::reservation::Reservation;
 use crate::vrm::reservation::reservation_store::ReservationId;
-use crate::domain::vrm_system_model::rms::rms::RmsLoadMetric;
-use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
+use crate::vrm::rms::rms::RmsLoadMetric;
 
 /// Proxy forwards everything to the thread owning the real component.
 #[derive(Debug, Clone)]
