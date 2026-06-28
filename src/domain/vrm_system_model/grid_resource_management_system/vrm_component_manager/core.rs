@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_manager::VrmComponentContainer;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_order::VrmComponentOrder;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::vrm_component_proxy::VrmComponentProxy;
@@ -9,6 +8,7 @@ use crate::domain::vrm_system_model::reservation::reservation::Reservation;
 use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::utils::config::DELETE_ALL_VRM_MANAGED_RESERVATIONS_IF_VRM_COMPONENT_IS_DELETED;
 use crate::domain::vrm_system_model::utils::id::{ComponentId, RouterId};
+use crate::vrm::global_clock::global_clock::GlobalClock;
 
 use rand::rng;
 use rand::seq::SliceRandom;

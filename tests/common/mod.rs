@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use vrm_rust_workflow::domain::simulator::simulator::GlobalClock;
 use vrm_rust_workflow::domain::vrm_system_model::client::client::Clients;
 use vrm_rust_workflow::domain::vrm_system_model::grid_resource_management_system::aci::AcI;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::node_reservation::NodeReservation;
@@ -16,6 +15,7 @@ use vrm_rust_workflow::schema::reservation_dto::{
 };
 use vrm_rust_workflow::schema::rms_dto::{DummyRmsDto, GridNodeDto, NetworkLinkDto, RmsSystemWrapper};
 use vrm_rust_workflow::schema::workflow_dto::{TaskDto, WorkflowDto};
+use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 
 pub fn create_node_reservation(
     res_name: ReservationName,

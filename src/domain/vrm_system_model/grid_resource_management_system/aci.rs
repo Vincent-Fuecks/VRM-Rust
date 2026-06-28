@@ -1,4 +1,3 @@
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
 use crate::domain::vrm_system_model::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationState};
@@ -10,6 +9,7 @@ use crate::domain::vrm_system_model::utils::state_logging::{AnalyticLogger, Base
 use crate::error::ConversionError;
 use crate::schema::aci_dto::AcIDto;
 use crate::schema::rms_dto::RmsSystemWrapper;
+use crate::vrm::global_clock::global_clock::GlobalClock;
 
 use std::collections::{BTreeMap, HashMap};
 use std::i64;

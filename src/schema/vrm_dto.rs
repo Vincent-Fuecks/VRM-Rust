@@ -1,5 +1,6 @@
-use crate::domain::simulator::simulator::GlobalClockDto;
 use serde::Deserialize;
+
+use crate::vrm::global_clock::global_clock::GlobalClockDto;
 
 use super::aci_dto::AcIDto;
 use super::adc_dto::ADCDto;

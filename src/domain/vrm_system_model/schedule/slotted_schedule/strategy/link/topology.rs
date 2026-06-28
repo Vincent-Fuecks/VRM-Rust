@@ -1,10 +1,10 @@
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::resource::link_resource::LinkResource;
 use crate::domain::vrm_system_model::resource::resource_store::{LinkResourceId, ResourceStore};
 use crate::domain::vrm_system_model::schedule::slotted_schedule::SlottedNodeSchedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
 use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RouterId, SlottedScheduleId};
+use crate::vrm::global_clock::global_clock::GlobalClock;
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;

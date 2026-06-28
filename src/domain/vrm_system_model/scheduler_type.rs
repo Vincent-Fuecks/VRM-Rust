@@ -1,4 +1,3 @@
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
 use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
@@ -8,6 +7,7 @@ use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node:
 use crate::domain::vrm_system_model::utils::id::SlottedScheduleId;
 
 use crate::error::ConversionError;
+use crate::vrm::global_clock::global_clock::GlobalClock;
 use std::str::FromStr;
 use std::sync::Arc;
 

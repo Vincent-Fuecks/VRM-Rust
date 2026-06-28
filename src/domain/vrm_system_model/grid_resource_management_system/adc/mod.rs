@@ -3,9 +3,8 @@ mod vrm_component;
 
 use std::sync::Arc;
 
-use crate::domain::{
-    simulator::simulator::GlobalClock,
-    vrm_system_model::{
+use crate::{
+    domain::vrm_system_model::{
         grid_resource_management_system::{
             scheduler::workflow_scheduler::WorkflowScheduler,
             vrm_component_order::VrmComponentOrder,
@@ -14,6 +13,7 @@ use crate::domain::{
         reservation::{reservation_store::ReservationStore, reservation_sync_gate::SyncRegistry},
         utils::id::AdcId,
     },
+    vrm::global_clock::global_clock::GlobalClock,
 };
 
 use super::vrm_component_manager::VrmComponentManager;

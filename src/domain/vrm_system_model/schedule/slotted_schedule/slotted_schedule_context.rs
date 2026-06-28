@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::reservation::probe_reservations::ProbeReservations;
 use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationState, ReservationTrait};
 use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
@@ -10,6 +9,7 @@ use crate::domain::vrm_system_model::schedule::slotted_schedule::slot::Slot;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::strategy_trait::SlottedScheduleStrategy;
 use crate::domain::vrm_system_model::utils::id::SlottedScheduleId;
 use crate::domain::vrm_system_model::utils::load_buffer::{GlobalLoadContext, LoadBuffer};
+use crate::vrm::global_clock::global_clock::GlobalClock;
 
 /// The core context for managing a time-slotted resource schedule within a distributed **VRM (Virtual Resource Management)** system.
 ///

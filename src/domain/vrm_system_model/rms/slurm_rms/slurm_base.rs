@@ -7,7 +7,6 @@ use std::{str::FromStr, sync::Arc};
 use tokio::runtime::Handle;
 use tokio::time::{Duration, MissedTickBehavior, interval};
 
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::reservation::node_reservation::NodeReservation;
 use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationState, ReservationTrait};
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationId;
@@ -21,6 +20,7 @@ use crate::domain::vrm_system_model::utils::config::SCHEDULE_SYNC_TIMEINTERVAL_S
 use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
 use crate::domain::vrm_system_model::{reservation::reservation_store::ReservationStore, rms::rms::RmsBase, scheduler_type::SchedulerType};
 use crate::schema::rms_dto::SlurmRmsDto;
+use crate::vrm::global_clock::global_clock::GlobalClock;
 
 use super::api_client::response::tasks::SlurmTaskResponse;
 use super::api_client::slurm_rest_api_client::SlurmRestApiClient;

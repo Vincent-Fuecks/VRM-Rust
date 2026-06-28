@@ -1,4 +1,3 @@
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::reservation::vrm_state_listener::VrmStateListener;
 use crate::domain::vrm_system_model::utils::statistics::AnalyticsSystem;
 use crate::domain::vrm_system_model::vrm_manager::VrmManager;
@@ -18,12 +17,14 @@ use std::thread;
 use std::time::Duration;
 
 use self::schema::vrm_dto::VrmDto;
+use self::vrm::global_clock::global_clock::GlobalClock;
 
 pub mod domain;
 pub mod error;
 pub mod loader;
 pub mod logger;
 pub mod schema;
+pub mod vrm;
 
 pub fn get_vrm_dto(file_path: &str) -> Result<VrmDto> {
     log::info!("Starting VrmDto construction.");

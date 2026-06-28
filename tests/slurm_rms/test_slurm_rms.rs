@@ -3,7 +3,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::time::sleep;
-use vrm_rust_workflow::domain::simulator::simulator::GlobalClock;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::link_reservation::LinkReservation;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::node_reservation::NodeReservation;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationBase, ReservationProceeding, ReservationState};
@@ -15,6 +14,7 @@ use vrm_rust_workflow::domain::vrm_system_model::utils::config::{
 };
 use vrm_rust_workflow::domain::vrm_system_model::utils::id::{ClientId, ComponentId, ReservationName};
 use vrm_rust_workflow::schema::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto};
+use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 
 /// Tests the normal commit process to the local RMS
 /// Reservation of state ReserveAnswer -> Committed and task is running on the local RMS.

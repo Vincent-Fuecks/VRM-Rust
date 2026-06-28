@@ -7,7 +7,6 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
-use vrm_rust_workflow::domain::simulator::simulator::GlobalClock;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::node_reservation::NodeReservation;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationProceeding, ReservationState};
 use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
@@ -16,6 +15,7 @@ use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::Slo
 use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::slot::Slot;
 use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
 use vrm_rust_workflow::domain::vrm_system_model::utils::id::{ClientId, ReservationName, SlottedScheduleId};
+use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 
 // ---------------------------------------------------------------------------
 // Test Helpers

@@ -1,4 +1,3 @@
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationTrait};
 use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::resource::node_resource::NodeResource;
@@ -11,6 +10,7 @@ use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, Scheduler
 use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RouterId, ShadowScheduleId, SlottedScheduleId};
 use crate::error::ConversionError;
 use crate::schema::rms_dto::DummyRmsDto;
+use crate::vrm::global_clock::global_clock::GlobalClock;
 use parking_lot::RwLock;
 use std::any::Any;
 use std::collections::HashMap;

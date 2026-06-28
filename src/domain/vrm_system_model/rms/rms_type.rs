@@ -1,4 +1,3 @@
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::rms::advance_reservation_trait::AdvanceReservationRms;
 use crate::domain::vrm_system_model::rms::rms_simulator::rms_network_simulator::RmsNetworkSimulator;
@@ -7,6 +6,7 @@ use crate::domain::vrm_system_model::rms::slurm_rms::slurm_base::SlurmRms;
 use crate::domain::vrm_system_model::utils::id::ComponentId;
 use crate::error::ConversionError;
 use crate::schema::rms_dto::RmsSystemWrapper;
+use crate::vrm::global_clock::global_clock::GlobalClock;
 use std::str::FromStr;
 use std::sync::Arc;
 

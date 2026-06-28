@@ -10,6 +10,7 @@ pub mod error;
 pub mod loader;
 pub mod logger;
 pub mod schema;
+pub mod vrm;
 
 pub fn generate_system_model(file_path: &str, reservation_store: ReservationStore) -> Result<Clients> {
     logger::init();

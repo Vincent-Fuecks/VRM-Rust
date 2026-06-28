@@ -5,7 +5,6 @@ use std::sync::Arc;
 use parking_lot::RawRwLock;
 use parking_lot::lock_api::RwLock;
 
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use crate::domain::vrm_system_model::resource::node_resource::NodeResource;
 use crate::domain::vrm_system_model::resource::resource_store::ResourceStore;
@@ -15,6 +14,7 @@ use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, Scheduler
 use crate::domain::vrm_system_model::utils::config::RMS_GATEWAY_NAME;
 use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RmsId, RouterId, SlottedScheduleId};
 use crate::schema::rms_dto::{ComputeNodeDto, TopologyDto};
+use crate::vrm::global_clock::global_clock::GlobalClock;
 
 use super::rms::RmsBase;
 

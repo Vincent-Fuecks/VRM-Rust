@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
 use crate::domain::vrm_system_model::reservation::reservation::Reservation;
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
@@ -8,6 +7,7 @@ use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::SlottedNodeSchedule;
 use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
 use crate::domain::vrm_system_model::utils::id::SlottedScheduleId;
+use crate::vrm::global_clock::global_clock::GlobalClock;
 
 /// Container holds a VrmComponents (**AcI** or **ADC**) instance and metadata required for sorting and management.
 #[derive(Debug)]

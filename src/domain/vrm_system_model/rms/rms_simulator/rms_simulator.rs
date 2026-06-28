@@ -3,21 +3,19 @@ use std::{any::Any, collections::HashMap, sync::Arc};
 use parking_lot::RwLock;
 
 use crate::{
-    domain::{
-        simulator::simulator::GlobalClock,
-        vrm_system_model::{
-            reservation::reservation_store::{ReservationId, ReservationStore},
-            resource::resource_store::ResourceStore,
-            rms::{
-                common::{RmsSetupContext, get_nodes_and_links},
-                rms::{Rms, RmsBase},
-                rms_node_network_trait::Helper,
-            },
-            schedule::schedule_trait::Schedule,
-            utils::id::{ComponentId, ShadowScheduleId},
+    domain::vrm_system_model::{
+        reservation::reservation_store::{ReservationId, ReservationStore},
+        resource::resource_store::ResourceStore,
+        rms::{
+            common::{RmsSetupContext, get_nodes_and_links},
+            rms::{Rms, RmsBase},
+            rms_node_network_trait::Helper,
         },
+        schedule::schedule_trait::Schedule,
+        utils::id::{ComponentId, ShadowScheduleId},
     },
     schema::rms_dto::RmsSimulatorDto,
+    vrm::global_clock::global_clock::GlobalClock,
 };
 
 /// Simulates both links and nodes of a cluster

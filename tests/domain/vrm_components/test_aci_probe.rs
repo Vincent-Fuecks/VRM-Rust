@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use vrm_rust_workflow::domain::simulator::simulator::GlobalClock;
 use vrm_rust_workflow::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::probe_reservations::ProbeReservationComparator;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation::ReservationState;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use vrm_rust_workflow::domain::vrm_system_model::utils::id::ReservationName;
+use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 
 use crate::common::{create_dummy_aci, create_node_reservation};
 
@@ -67,5 +67,4 @@ async fn test_best_probe() {
     } else {
         assert!(false, "Error in the promotion process happened.");
     }
-    
 }
