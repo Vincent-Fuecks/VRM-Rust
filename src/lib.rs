@@ -4,11 +4,10 @@ use crate::vrm::reservation::reservation_store::ReservationStore;
 
 use self::schema::client_dto::ClientsDto;
 use self::vrm::client::client::Clients;
+use self::vrm::commons::logging::logger;
 
-pub mod domain;
 pub mod error;
 pub mod loader;
-pub mod logger;
 pub mod schema;
 pub mod vrm;
 

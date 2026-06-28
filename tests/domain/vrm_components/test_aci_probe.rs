@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use vrm_rust_workflow::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
+use vrm_rust_workflow::vrm::vrm_component::vrm_component_trait::VrmComponent;
 use vrm_rust_workflow::vrm::reservation::probe_reservations::ProbeReservationComparator;
 use vrm_rust_workflow::vrm::reservation::reservation::ReservationState;
 use vrm_rust_workflow::vrm::reservation::reservation_store::ReservationStore;

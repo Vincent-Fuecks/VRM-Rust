@@ -1,7 +1,7 @@
 use crate::vrm::reservation::reservation_store::ReservationId;
 use std::fmt::Debug;
 
-use crate::vrm::commons::load_buffer::LoadMetric;
+use crate::vrm::schedule::load_buffer::LoadMetric;
 use crate::vrm::schedule::slotted_schedule::slotted_schedule_context::SlottedScheduleContext;
 pub trait SlottedScheduleStrategy: Send + Sync + Debug + Clone + Sized + 'static {
     fn adjust_requirement_to_slot_capacity(

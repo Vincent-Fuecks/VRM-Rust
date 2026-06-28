@@ -7,7 +7,7 @@ use crate::vrm::schedule::slotted_schedule::{
     },
 };
 
-use crate::vrm::commons::load_buffer::LoadMetric;
+use crate::vrm::schedule::load_buffer::LoadMetric;
 use crate::vrm::reservation::{reservation::ReservationState, reservation_store::ReservationId};
 use crate::vrm::resource::resource_store::ResourceStore;
 use std::collections::HashMap;

@@ -1,9 +1,8 @@
-use crate::vrm::commons::statistics::AnalyticsSystem;
-use crate::domain::vrm_system_model::vrm_manager::VrmManager;
 use crate::vrm::reservation::vrm_state_listener::VrmStateListener;
+use crate::vrm::vrm_manager::VrmManager;
 
-use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::registry_client::RegistryClient;
 use crate::vrm::reservation::reservation_store::ReservationStore;
+use crate::vrm::vrm_component::vrm_component_registry::registry_client::RegistryClient;
 
 #[cfg(debug_assertions)]
 use crate::error::Result;
@@ -16,12 +15,12 @@ use std::time::Duration;
 
 use self::schema::vrm_dto::VrmDto;
 use self::vrm::client::client::Clients;
+use self::vrm::commons::logging::logger;
+use self::vrm::commons::logging::statistics::AnalyticsSystem;
 use self::vrm::global_clock::global_clock::GlobalClock;
 
-pub mod domain;
 pub mod error;
 pub mod loader;
-pub mod logger;
 pub mod schema;
 pub mod vrm;
 

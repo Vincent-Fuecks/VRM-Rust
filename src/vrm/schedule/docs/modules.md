@@ -43,7 +43,7 @@ schedule/
 **Depends on:**
 - `crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations}`
 - `crate::vrm::reservation::reservation_store::ReservationId`
-- `crate::vrm::commons::load_buffer::LoadMetric`
+- `crate::vrm::schedule::load_buffer::LoadMetric`
 
 **Defines:**
 - `pub trait Schedule: Debug + Send + Sync` — 13 methods for scheduling operations

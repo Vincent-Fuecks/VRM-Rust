@@ -5,4 +5,7 @@ pub mod reservation;
 pub mod resource;
 pub mod rms;
 pub mod schedule;
+pub mod vrm;
+pub mod vrm_component;
+pub mod vrm_manager;
 pub mod workflow;

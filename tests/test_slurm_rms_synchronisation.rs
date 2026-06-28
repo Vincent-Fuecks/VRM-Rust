@@ -2,7 +2,7 @@ use std::sync::Arc;
 use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 
 use vrm_rust_workflow::{
-    domain::vrm_system_model::grid_resource_management_system::aci::AcI,
+    vrm::vrm_component::aci::AcI,
     schema::{
         aci_dto::AcIDto,
         rms_dto::{RmsSystemWrapper, SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},

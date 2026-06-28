@@ -12,7 +12,6 @@ use super::api_client::response::tasks::SlurmTaskResponse;
 use super::api_client::slurm_rest_api_client::SlurmRestApiClient;
 use super::api_client::slurm_rest_api_trait::SlurmRestApi;
 
-use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, SchedulerType};
 use crate::schema::rms_dto::SlurmRmsDto;
 use crate::vrm::commons::config::SCHEDULE_SYNC_TIMEINTERVAL_S;
 use crate::vrm::commons::id::{ComponentId, ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
@@ -25,6 +24,7 @@ use crate::vrm::resource::node_resource::NodeResource;
 use crate::vrm::resource::resource_store::ResourceStore;
 use crate::vrm::rms::rms::{Rms, RmsBase};
 use crate::vrm::schedule::schedule_trait::Schedule;
+use crate::vrm::schedule::scheduler_type::{ScheduleContext, SchedulerType};
 use crate::vrm::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
 
 #[derive(Debug)]
