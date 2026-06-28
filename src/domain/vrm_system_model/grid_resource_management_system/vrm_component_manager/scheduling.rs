@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::io::Write;
 
 use lazy_static::lazy_static;
 

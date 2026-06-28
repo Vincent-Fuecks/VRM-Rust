@@ -1,4 +1,4 @@
-use std::sync::mpsc;
+use std::sync::{ mpsc};
 
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::vrm_message::VrmMessage;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
@@ -52,17 +52,11 @@ impl VrmComponent for VrmComponentProxy {
     }
 
     fn can_handel(&self, res: Reservation) -> bool {
-        log::debug!("DEBUG: VrmComponentProxy::can_handel() called for component {:?}", self.id);
-        let result = self.call(|tx| VrmMessage::CanHandel { reservation: res, reply_to: tx });
-        log::debug!("DEBUG: VrmComponentProxy::can_handel() got result for component {:?}: {:?}", self.id, result);
-        result
+        self.call(|tx| VrmMessage::CanHandel { reservation: res, reply_to: tx })
     }
 
     fn probe(&mut self, reservation_id: ReservationId, shadow_schedule_id: Option<ShadowScheduleId>) -> ProbeReservations {
-        log::debug!("DEBUG: VrmComponentProxy::probe() called for reservation {:?}, component {:?}", reservation_id, self.id);
-        let result = self.call(|tx| VrmMessage::Probe { reservation_id, shadow_schedule_id, reply_to: tx });
-        log::debug!("DEBUG: VrmComponentProxy::probe() got result for reservation {:?}, component {:?}", reservation_id, self.id);
-        result
+        self.call(|tx| VrmMessage::Probe { reservation_id, shadow_schedule_id, reply_to: tx })
     }
 
     fn probe_best(
