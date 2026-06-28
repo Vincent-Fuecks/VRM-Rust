@@ -13,7 +13,7 @@ use crate::vrm::{
     resource::resource_trait::Resource,
 };
 
-use crate::domain::vrm_system_model::schedule::slotted_schedule::{
+use crate::vrm::schedule::slotted_schedule::{
     slotted_schedule_context::SlottedScheduleContext,
     strategy::{link::topology::Path, node::node_strategy::NodeStrategy},
 };

@@ -1,4 +1,4 @@
-use crate::{domain::vrm_system_model::schedule::{
+use crate::{vrm::schedule::{
         schedule_trait::Schedule,
         slotted_schedule::{slotted_schedule_context::SlottedScheduleContext, strategy::strategy_trait::SlottedScheduleStrategy},
     }, vrm::commons::load_buffer::LoadMetric};

@@ -1,17 +1,16 @@
-use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
-use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::link_strategy::LinkStrategy;
-use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
-use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
 use crate::vrm::commons::id::SlottedScheduleId;
 use crate::vrm::reservation::reservation_store::ReservationStore;
 use crate::vrm::resource::resource_store::ResourceStore;
+use crate::vrm::schedule::schedule_trait::Schedule;
+use crate::vrm::schedule::slotted_schedule::strategy::link::link_strategy::LinkStrategy;
+use crate::vrm::schedule::slotted_schedule::strategy::link::topology::NetworkTopology;
+use crate::vrm::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
+use crate::vrm::schedule::slotted_schedule::{SlottedLinkSchedule, SlottedNodeSchedule};
 
 use crate::error::ConversionError;
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use std::str::FromStr;
 use std::sync::Arc;
-
-use super::schedule::slotted_schedule::{SlottedLinkSchedule, SlottedNodeSchedule};
 
 #[derive(Debug, Clone)]
 pub enum SchedulerType {

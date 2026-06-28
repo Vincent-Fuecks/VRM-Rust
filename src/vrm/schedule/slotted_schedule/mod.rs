@@ -1,4 +1,4 @@
-use crate::domain::vrm_system_model::schedule::slotted_schedule::{
+use crate::vrm::schedule::slotted_schedule::{
     slotted_schedule_context::SlottedScheduleContext,
     strategy::{link::link_strategy::LinkStrategy, node::node_strategy::NodeStrategy},
 };

@@ -1,10 +1,10 @@
-use crate::domain::vrm_system_model::schedule::slotted_schedule::SlottedNodeSchedule;
-use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
 use crate::vrm::commons::id::{ComponentId, ResourceName, RouterId, SlottedScheduleId};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::reservation_store::ReservationStore;
 use crate::vrm::resource::link_resource::LinkResource;
 use crate::vrm::resource::resource_store::{LinkResourceId, ResourceStore};
+use crate::vrm::schedule::slotted_schedule::SlottedNodeSchedule;
+use crate::vrm::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;

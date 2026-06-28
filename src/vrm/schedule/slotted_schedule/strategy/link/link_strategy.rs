@@ -1,4 +1,4 @@
-use crate::domain::vrm_system_model::schedule::slotted_schedule::{
+use crate::vrm::schedule::slotted_schedule::{
     slotted_schedule_context::SlottedScheduleContext,
     strategy::{
         link::topology::{NetworkTopology, Path},
@@ -6,6 +6,7 @@ use crate::domain::vrm_system_model::schedule::slotted_schedule::{
         strategy_trait::SlottedScheduleStrategy,
     },
 };
+
 use crate::vrm::commons::load_buffer::LoadMetric;
 use crate::vrm::reservation::{reservation::ReservationState, reservation_store::ReservationId};
 use crate::vrm::resource::resource_store::ResourceStore;

@@ -1,16 +1,16 @@
-use crate::domain::vrm_system_model::{
-    rms::{
+use crate::vrm::commons::id::ShadowScheduleId;
+use crate::vrm::reservation::{
+    reservation::{Reservation, ReservationTrait},
+    reservation_store::{ReservationId, ReservationStore},
+};
+use crate::{
+    domain::vrm_system_model::rms::{
         advance_reservation_trait::AdvanceReservationRms,
         rms::{Rms, RmsLoadMetric},
         rms_simulator::rms_simulator::RmsSimulator,
         slurm_rms::slurm_base::SlurmRms,
     },
-    schedule::schedule_trait::Schedule,
-};
-use crate::vrm::commons::id::ShadowScheduleId;
-use crate::vrm::reservation::{
-    reservation::{Reservation, ReservationTrait},
-    reservation_store::{ReservationId, ReservationStore},
+    vrm::schedule::schedule_trait::Schedule,
 };
 use parking_lot::RwLock;
 use std::collections::HashMap;

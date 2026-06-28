@@ -1,7 +1,7 @@
 use std::any::Any;
 
-use crate::domain::vrm_system_model::schedule::slotted_schedule::slotted_schedule_context::SlottedScheduleContext;
-use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
+use crate::vrm::schedule::slotted_schedule::slotted_schedule_context::SlottedScheduleContext;
+use crate::vrm::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
 use crate::vrm::commons::id::{ResourceName, RouterId};
 
 use super::resource_trait::{FeasibilityRequest, Resource};

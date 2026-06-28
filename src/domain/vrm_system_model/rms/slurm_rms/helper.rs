@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::{Link, Node},
     schema::rms_dto::SlurmRmsDto,
     vrm::commons::id::{ResourceName, RouterId},
+    vrm::schedule::slotted_schedule::strategy::link::topology::{Link, Node},
 };
 
 use super::{api_client::response::nodes::SlurmNodesResponse, slurm_base::SlurmRms};

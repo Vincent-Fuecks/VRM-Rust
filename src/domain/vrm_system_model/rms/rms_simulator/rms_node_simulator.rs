@@ -1,7 +1,5 @@
 use crate::domain::vrm_system_model::rms::advance_reservation_trait::AdvanceReservationRms;
 use crate::domain::vrm_system_model::rms::rms::{Rms, RmsBase, RmsLoadMetric};
-use crate::domain::vrm_system_model::schedule::schedule_trait::Schedule;
-use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::Node;
 use crate::domain::vrm_system_model::scheduler_type::{ScheduleContext, SchedulerType};
 use crate::error::ConversionError;
 use crate::schema::rms_dto::DummyRmsDto;
@@ -11,6 +9,8 @@ use crate::vrm::reservation::reservation::{Reservation, ReservationTrait};
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::vrm::resource::node_resource::NodeResource;
 use crate::vrm::resource::resource_store::ResourceStore;
+use crate::vrm::schedule::schedule_trait::Schedule;
+use crate::vrm::schedule::slotted_schedule::strategy::link::topology::Node;
 use parking_lot::RwLock;
 use std::any::Any;
 use std::collections::HashMap;
