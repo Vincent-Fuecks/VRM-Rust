@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::vrm::commons::id::SlottedScheduleId;
+use crate::vrm::common::id::SlottedScheduleId;
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::reservation::Reservation;
 use crate::vrm::reservation::reservation_store::ReservationStore;

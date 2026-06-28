@@ -15,8 +15,8 @@ use std::time::Duration;
 
 use self::schema::vrm_dto::VrmDto;
 use self::vrm::client::client::Clients;
-use self::vrm::commons::logging::logger;
-use self::vrm::commons::logging::statistics::AnalyticsSystem;
+use self::vrm::common::logging::logger;
+use self::vrm::common::logging::statistics::AnalyticsSystem;
 use self::vrm::global_clock::global_clock::GlobalClock;
 
 pub mod error;

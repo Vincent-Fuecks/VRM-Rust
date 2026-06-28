@@ -1,6 +1,6 @@
 use crate::error::ConversionError;
 use crate::schema::rms_dto::RmsSystemWrapper;
-use crate::vrm::commons::id::ComponentId;
+use crate::vrm::common::id::ComponentId;
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::reservation_store::ReservationStore;
 use std::str::FromStr;

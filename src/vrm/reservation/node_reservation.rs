@@ -2,7 +2,7 @@ use std::{any::Any, collections::HashSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::vrm::commons::id::{ClientId, ComponentId, ReservationName};
+use crate::vrm::common::id::{ClientId, ComponentId, ReservationName};
 use crate::vrm::rms::slurm_rms::api_client::response::tasks::{SlurmOptionExt, SlurmTask};
 
 use super::{

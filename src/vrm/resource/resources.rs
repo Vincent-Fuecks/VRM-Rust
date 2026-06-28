@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::vrm::commons::id::{ResourceName, RouterId};
+use crate::vrm::common::id::{ResourceName, RouterId};
 
 use super::link_resource::LinkResource;
 use super::node_resource::NodeResource;

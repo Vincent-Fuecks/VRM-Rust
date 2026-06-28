@@ -6,8 +6,8 @@ use parking_lot::RawRwLock;
 use parking_lot::lock_api::RwLock;
 
 use crate::schema::rms_dto::{ComputeNodeDto, TopologyDto};
-use crate::vrm::commons::config::RMS_GATEWAY_NAME;
-use crate::vrm::commons::id::{ComponentId, ResourceName, RmsId, RouterId, SlottedScheduleId};
+use crate::vrm::common::config::RMS_GATEWAY_NAME;
+use crate::vrm::common::id::{ComponentId, ResourceName, RmsId, RouterId, SlottedScheduleId};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::reservation_store::ReservationStore;
 use crate::vrm::resource::node_resource::NodeResource;

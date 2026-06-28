@@ -4,7 +4,7 @@ use anyhow::Result;
 use vrm_rust_workflow::{
     schema::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},
     vrm::{
-        commons::{
+        common::{
             config::{SLURM_TEST_BASE_URL, SLURM_TEST_JWT_TOKEN, SLURM_TEST_USER_NAME, SLURM_TEST_VERSION},
             id::ComponentId,
         },

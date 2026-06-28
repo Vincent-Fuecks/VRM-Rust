@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     schema::rms_dto::SlurmRmsDto,
-    vrm::commons::id::{ResourceName, RouterId},
+    vrm::common::id::{ResourceName, RouterId},
     vrm::schedule::slotted_schedule::strategy::link::topology::{Link, Node},
 };
 

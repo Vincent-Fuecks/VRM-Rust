@@ -1,4 +1,4 @@
-use crate::vrm::commons::id::ClientId;
+use crate::vrm::common::id::ClientId;
 use crate::error::Result;
 use crate::loader::parser::parse_json_file;
 use crate::schema::client_dto::ClientsDto;

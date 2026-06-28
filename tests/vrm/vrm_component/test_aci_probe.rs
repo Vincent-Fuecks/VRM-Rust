@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use vrm_rust_workflow::vrm::vrm_component::vrm_component_trait::VrmComponent;
+use vrm_rust_workflow::vrm::common::id::ReservationName;
+use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 use vrm_rust_workflow::vrm::reservation::probe_reservations::ProbeReservationComparator;
 use vrm_rust_workflow::vrm::reservation::reservation::ReservationState;
 use vrm_rust_workflow::vrm::reservation::reservation_store::ReservationStore;
-use vrm_rust_workflow::vrm::commons::id::ReservationName;
-use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
+use vrm_rust_workflow::vrm::vrm_component::vrm_component_trait::VrmComponent;
 
-use crate::common::{create_dummy_aci, create_node_reservation};
+use crate::vrm::common::{create_dummy_aci, create_node_reservation};
 
 /// Normal probe request with subsequent promotion of the request.  
 #[tokio::test]

@@ -18,7 +18,7 @@ use crate::vrm::schedule::slotted_schedule::{
     strategy::{link::topology::Path, node::node_strategy::NodeStrategy},
 };
 
-use crate::vrm::commons::id::{ResourceName, RouterId};
+use crate::vrm::common::id::{ResourceName, RouterId};
 
 use super::{link_resource::LinkResource, node_resource::NodeResource, resource_trait::FeasibilityRequest};
 

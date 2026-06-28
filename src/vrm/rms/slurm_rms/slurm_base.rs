@@ -13,8 +13,8 @@ use super::api_client::slurm_rest_api_client::SlurmRestApiClient;
 use super::api_client::slurm_rest_api_trait::SlurmRestApi;
 
 use crate::schema::rms_dto::SlurmRmsDto;
-use crate::vrm::commons::config::SCHEDULE_SYNC_TIMEINTERVAL_S;
-use crate::vrm::commons::id::{ComponentId, ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
+use crate::vrm::common::config::SCHEDULE_SYNC_TIMEINTERVAL_S;
+use crate::vrm::common::id::{ComponentId, ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::node_reservation::NodeReservation;
 use crate::vrm::reservation::reservation::{Reservation, ReservationState, ReservationTrait};

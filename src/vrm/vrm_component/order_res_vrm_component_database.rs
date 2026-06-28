@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap};
 
 use super::vrm_component_manager::VrmComponentManager;
-use crate::vrm::commons::id::ComponentId;
+use crate::vrm::common::id::ComponentId;
 use crate::vrm::reservation::reservation_store::ReservationId;
 use crate::vrm::vrm_component::vrm_component_container::VrmComponentContainer;
 

@@ -1,7 +1,7 @@
 use crate::vrm::schedule::schedule_trait::Schedule;
 use crate::vrm::schedule::slotted_schedule::strategy::link::topology::{Link, Node};
 use crate::schema::rms_dto::DummyRmsDto;
-use crate::vrm::commons::id::{ComponentId, ResourceName, RmsId, RouterId, ShadowScheduleId};
+use crate::vrm::common::id::{ComponentId, ResourceName, RmsId, RouterId, ShadowScheduleId};
 use crate::vrm::schedule::load_buffer::LoadMetric;
 use crate::vrm::reservation::reservation::ReservationState;
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};

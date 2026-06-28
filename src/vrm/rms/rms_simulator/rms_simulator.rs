@@ -8,7 +8,7 @@ use crate::vrm::rms::rms_node_network_trait::Helper;
 use crate::vrm::schedule::schedule_trait::Schedule;
 use crate::{
     schema::rms_dto::RmsSimulatorDto,
-    vrm::commons::id::{ComponentId, ShadowScheduleId},
+    vrm::common::id::{ComponentId, ShadowScheduleId},
     vrm::global_clock::global_clock::GlobalClock,
 };
 use parking_lot::RwLock;

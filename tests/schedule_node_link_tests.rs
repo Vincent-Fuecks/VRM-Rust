@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
-use vrm_rust_workflow::vrm::commons::id::{ClientId, ReservationName, SlottedScheduleId};
+use vrm_rust_workflow::vrm::common::id::{ClientId, ReservationName, SlottedScheduleId};
 use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 use vrm_rust_workflow::vrm::reservation::node_reservation::NodeReservation;
 use vrm_rust_workflow::vrm::reservation::reservation::{Reservation, ReservationProceeding, ReservationState};
@@ -1203,7 +1203,7 @@ mod node_capacity_update {
 
 mod link_schedule_network {
     use super::*;
-    use vrm_rust_workflow::vrm::commons::id::{ComponentId, ResourceName, RouterId};
+    use vrm_rust_workflow::vrm::common::id::{ComponentId, ResourceName, RouterId};
     use vrm_rust_workflow::vrm::reservation::link_reservation::LinkReservation;
     use vrm_rust_workflow::vrm::reservation::reservation::ReservationBase;
     use vrm_rust_workflow::vrm::resource::resource_store::ResourceStore;
@@ -1374,7 +1374,7 @@ mod link_schedule_network {
 
 mod link_schedule_paths {
     use super::*;
-    use vrm_rust_workflow::vrm::commons::id::{ComponentId, ResourceName, RouterId};
+    use vrm_rust_workflow::vrm::common::id::{ComponentId, ResourceName, RouterId};
     use vrm_rust_workflow::vrm::reservation::link_reservation::LinkReservation;
     use vrm_rust_workflow::vrm::reservation::reservation::ReservationBase;
     use vrm_rust_workflow::vrm::resource::resource_store::ResourceStore;

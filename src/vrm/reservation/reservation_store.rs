@@ -6,7 +6,7 @@ use std::fmt::Debug;
 use parking_lot::RwLock;
 use std::sync::Arc;
 
-use crate::vrm::commons::id::{ClientId, ComponentId, ReservationName, RouterId};
+use crate::vrm::common::id::{ClientId, ComponentId, ReservationName, RouterId};
 use crate::vrm::workflow::workflow::Workflow;
 use crate::vrm::workflow::workflow_node::WorkflowNode;
 

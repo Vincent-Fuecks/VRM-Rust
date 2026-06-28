@@ -1,4 +1,4 @@
-use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
+use crate::vrm::common::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::schedule::load_buffer::LoadMetric;
 use crate::vrm::rms::rms::RmsLoadMetric;
 

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::vrm::reservation::reservation::ReservationState;
 use crate::vrm::reservation::reservation_store::ReservationId;
-use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
+use crate::vrm::common::id::{ComponentId, ShadowScheduleId};
 
 use super::VrmComponentManager;
 

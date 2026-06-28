@@ -1,7 +1,7 @@
 use crate::error::ConversionError;
 use crate::schema::aci_dto::AcIDto;
 use crate::schema::rms_dto::RmsSystemWrapper;
-use crate::vrm::commons::{
+use crate::vrm::common::{
     id::{AciId, AdcId, ClientId, ComponentId, ShadowScheduleId},
     logging::state_logging::{AnalyticLogger, BaseLog, DetailLog, ProbeLog, VrmCommand},
 };

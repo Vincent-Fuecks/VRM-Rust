@@ -5,7 +5,7 @@ use crate::vrm::workflow::workflow_node::WorkflowNode;
 use std::any::Any;
 use std::collections::HashMap;
 
-use crate::vrm::commons::id::{ComponentId, RouterId, WorkflowNodeId};
+use crate::vrm::common::id::{ComponentId, RouterId, WorkflowNodeId};
 use crate::vrm::reservation::{
     probe_reservations::ProbeReservationComparator,
     reservation::{Reservation, ReservationState, ReservationTrait},

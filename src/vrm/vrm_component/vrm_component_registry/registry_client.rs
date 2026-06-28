@@ -5,7 +5,7 @@ use std::thread;
 use crate::vrm::vrm_component::vrm_component_registry::vrm_component_proxy::VrmComponentProxy;
 use crate::vrm::vrm_component::vrm_component_registry::vrm_message::VrmMessage;
 use crate::vrm::vrm_component::vrm_component_trait::VrmComponent;
-use crate::vrm::commons::id::ComponentId;
+use crate::vrm::common::id::ComponentId;
 
 /// The RegistryClient maps ComponentId -> Sender
 #[derive(Clone, Debug)]

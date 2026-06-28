@@ -7,7 +7,7 @@ use std::{
 use tokio::time::{Duration, sleep};
 
 use crate::vrm::{
-    commons::id::{AdcId, ClientId, ComponentId},
+    common::id::{AdcId, ClientId, ComponentId},
     reservation::{
         probe_reservations::ProbeReservationComparator,
         reservation::{ReservationProceeding, ReservationState},

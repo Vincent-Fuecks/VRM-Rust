@@ -1,4 +1,4 @@
-use crate::vrm::commons::id::ResourceName;
+use crate::vrm::common::id::ResourceName;
 
 use std::any::Any;
 

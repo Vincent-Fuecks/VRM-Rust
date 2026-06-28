@@ -1,4 +1,4 @@
-use crate::vrm::commons::id::SlottedScheduleId;
+use crate::vrm::common::id::SlottedScheduleId;
 use crate::vrm::reservation::reservation_store::ReservationStore;
 use crate::vrm::resource::resource_store::ResourceStore;
 use crate::vrm::schedule::schedule_trait::Schedule;

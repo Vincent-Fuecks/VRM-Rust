@@ -1,5 +1,5 @@
 use vrm_rust_workflow::{
-    vrm::commons::id::{ClientId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId},
+    vrm::common::id::{ClientId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId},
     error::Error,
     generate_system_model,
     schema::{

@@ -1,4 +1,4 @@
-use crate::vrm::commons::id::ShadowScheduleId;
+use crate::vrm::common::id::ShadowScheduleId;
 use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::vrm::reservation::reservation::Reservation;
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};

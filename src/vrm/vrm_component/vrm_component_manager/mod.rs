@@ -4,7 +4,7 @@ use std::sync::Arc;
 use super::vrm_component_container::VrmComponentContainer;
 use super::vrm_component_registry::vrm_component_proxy::VrmComponentProxy;
 use super::vrm_component_trait::VrmComponent;
-use crate::vrm::commons::id::{AdcId, ComponentId, ShadowScheduleId};
+use crate::vrm::common::id::{AdcId, ComponentId, ShadowScheduleId};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 

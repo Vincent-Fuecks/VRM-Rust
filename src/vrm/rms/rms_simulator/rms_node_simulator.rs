@@ -1,6 +1,6 @@
 use crate::error::ConversionError;
 use crate::schema::rms_dto::DummyRmsDto;
-use crate::vrm::commons::id::{ComponentId, ResourceName, RouterId, ShadowScheduleId, SlottedScheduleId};
+use crate::vrm::common::id::{ComponentId, ResourceName, RouterId, ShadowScheduleId, SlottedScheduleId};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::reservation::{Reservation, ReservationTrait};
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};

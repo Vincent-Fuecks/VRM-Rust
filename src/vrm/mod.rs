@@ -1,5 +1,5 @@
 pub mod client;
-pub mod commons;
+pub mod common;
 pub mod global_clock;
 pub mod reservation;
 pub mod resource;

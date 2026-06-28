@@ -2,7 +2,7 @@ use std::sync::mpsc;
 
 use crate::vrm::vrm_component::vrm_component_registry::vrm_message::VrmMessage;
 use crate::vrm::vrm_component::vrm_component_trait::VrmComponent;
-use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
+use crate::vrm::common::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::vrm::reservation::reservation::Reservation;
 use crate::vrm::reservation::reservation_store::ReservationId;

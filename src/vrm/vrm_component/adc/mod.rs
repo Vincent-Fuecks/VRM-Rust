@@ -1,7 +1,7 @@
 mod helpers;
 mod vrm_component;
 
-use crate::vrm::commons::id::AdcId;
+use crate::vrm::common::id::AdcId;
 use crate::vrm::reservation::{reservation_store::ReservationStore, reservation_sync_gate::SyncRegistry};
 use crate::{
     vrm::global_clock::global_clock::GlobalClock,

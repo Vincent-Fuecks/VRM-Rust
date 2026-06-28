@@ -1,4 +1,4 @@
-use crate::vrm::commons::{
+use crate::vrm::common::{
     id::{ComponentId, ShadowScheduleId},
     logging::statistics::ANALYTICS_TARGET,
 };

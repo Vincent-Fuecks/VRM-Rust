@@ -1,4 +1,4 @@
-use crate::vrm::commons::id::ShadowScheduleId;
+use crate::vrm::common::id::ShadowScheduleId;
 use crate::vrm::reservation::reservation::ReservationState;
 
 use super::VrmComponentManager;

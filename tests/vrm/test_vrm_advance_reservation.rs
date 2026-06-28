@@ -8,7 +8,7 @@ use vrm_rust_workflow::vrm::reservation::reservation_store::ReservationStore;
 use vrm_rust_workflow::vrm::vrm_component::vrm_component_registry::registry_client::RegistryClient;
 use vrm_rust_workflow::vrm::vrm_manager::VrmManager;
 
-use crate::common::{get_aci_dto, get_adc_dto, get_clients, get_workflow_dto_with_one_task};
+use crate::vrm::common::{get_aci_dto, get_adc_dto, get_clients, get_workflow_dto_with_one_task};
 
 /// Test Probe
 #[tokio::test]

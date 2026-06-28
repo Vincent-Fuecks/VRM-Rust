@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashMap, fmt::Debug};
 
-use crate::vrm::commons::id::{ComponentId, ProbeReservationId, ShadowScheduleId};
+use crate::vrm::common::id::{ComponentId, ProbeReservationId, ShadowScheduleId};
 
 use super::reservation::{Reservation, ReservationTrait};
 use super::reservation_store::{ReservationId, ReservationStore};

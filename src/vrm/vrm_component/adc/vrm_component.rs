@@ -1,6 +1,6 @@
 use crate::vrm::vrm_component::{adc::ADC, vrm_component_trait::VrmComponent};
 
-use crate::vrm::commons::id::{ComponentId, ShadowScheduleId};
+use crate::vrm::common::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::reservation::{
     probe_reservations::{ProbeReservationComparator, ProbeReservations},
     reservation::{Reservation, ReservationState},
