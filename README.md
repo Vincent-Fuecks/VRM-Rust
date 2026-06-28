@@ -37,9 +37,9 @@ The system architecture allows for atomic task or workflow submission from **Cli
 
 The **VrmComponentManager** then submits the tasks to the underlying **VrmComponent**s, which consist of **AcI**s and/or **ADC**s. These components distribute the requests to their connected subsystems. The **ADC** tracks reservations on underlying components and aggregates performance data and results from requested operations.
 
-The **AcI** features an **AdvanceReservationRms** adapter that links the RMS of the HPC cluster to the VRM system. For Slurm-based RMSs, the **SlurmRms** adapter connects the physical RMS system to the VRM system through the Slurm REST API, facilitating task and node synchronisation as well as task submission. Additionally, three simulation adapter mocks are implemented: **RmsNetworkSimulator**, **RmsNodeSimulator**, and **RmsSimulator**. Furthermore, the **AdvanceReservationRms** interface provides the functionality of shadow scheduling**. This capability allows for what-if planning phases or schedule optimisations in a sandbox environment, without executing actions on the official schedule. 
+The **AcI** features an **AdvanceReservationRms** adapter that links the RMS of the HPC cluster to the VRM system. For Slurm-based RMSs, the **SlurmRms** adapter connects the physical RMS system to the VRM system through the Slurm REST API, facilitating task and node synchronisation as well as task submission. Additionally, three simulation adapter mocks are implemented: **RmsNetworkSimulator**, **RmsNodeSimulator**, and **RmsSimulator**. Furthermore, the **AdvanceReservationRms** interface provides the functionality of **shadow scheduling**. This capability allows for what-if planning phases or schedule optimisations in a sandbox environment, without executing actions on the official schedule. 
 
-In instances where the underlying RMS employs a queuing-based system rather than a planning-based one (such as Slurm), the adapter reflects the current reservation state of the physical RMS in the **Schedule** (which contains the current state of the RMS system and the requested Advance Reservation for a specific RMS). The only currently available implementation represents a slotted time model. There exist two distinct versions of this **Schedule**: one for nodes, referred to as the **SlottedNodeSchedule**, and another for links, known as the **SlottedLinkSchedule**. The latter incorporates the **NetworkTopology**, which contains the underlying link infrastructure to facilitate path routing within the network.
+In instances where the underlying RMS employs a queuing-based system rather than a planning-based one (such as Slurm), the adapter reflects the current reservation state of the physical RMS in the **Schedule** (which contains the current state of the RMS system and the requested Advance Reservation for a specific RMS). The **Schedule** implementation uses a generic **strategy pattern** via `SlottedScheduleContext<S: SlottedScheduleStrategy>`, where the strategy type is resolved at compile time. Two concrete strategies exist: **NodeStrategy** for compute node capacity tracking, and **LinkStrategy** for network bandwidth management across paths. The latter incorporates the **NetworkTopology**, which contains the underlying link infrastructure and a K-shortest-paths cache to facilitate path routing within the network.
 
 <a name="arch-diagram"></a>
 ![Architecture Diagram](./diagrams/architecture.svg)
@@ -48,7 +48,7 @@ In instances where the underlying RMS employs a queuing-based system rather than
 ### Features and Capabilities
 
 - **Abstraction & Usability:** Provides a high-level interface for virtual resources and SLAs.
-- **Slurm Support:** Integrates with Slurm-based RMSs via a the Slurm REST API.
+- **Slurm Support:** Integrates with Slurm-based RMSs via the Slurm REST API.
 - **Security & Information Hiding:** Uses a hierarchical aggregation model (ADC) to hide underlying resource topologies from higher layers.
 - **SLA Enforcement:** Guarantees Advance Reservations and execution deadlines.
 - **System Simulation:** Built-in support for emulating cluster nodes and network topologies for testing and development.
@@ -58,7 +58,8 @@ In instances where the underlying RMS employs a queuing-based system rather than
 
 A reservation in the VRM system represents a resource request made by a **Client**. These reservations are derived from the workflow or atomic task submitted by the **Client**. There are three kinds of reservations: **NodeReservation**, **LinkReservation** and **WorkflowReservation** (contains all link- or node reservations for the corresponding workflow). 
 
-The life cycle of these reservations is defined by the four **ReservationProceeding**s that specify the requested action for each reservation made by the **Client**. 
+The life cycle of these reservations is defined by the five **ReservationProceeding**s that specify the requested action for each reservation made by the **Client**. 
+
 
 These reservation proceedings are the following:
 * Probe: This request returns a **ProbeReservation** object that includes all feasible resource reservations capable of fulfilling the specified requirements. This request checks all connected RMS environments to the VRM system for feasible resources that match the requirement. 
