@@ -1,26 +1,21 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use vrm_rust_workflow::api::rms_config_dto::rms_dto::{DummyRmsDto, GridNodeDto, NetworkLinkDto, RmsSystemWrapper};
-use vrm_rust_workflow::api::vrm_system_model_dto::aci_dto::AcIDto;
-use vrm_rust_workflow::api::vrm_system_model_dto::adc_dto::ADCDto;
-use vrm_rust_workflow::api::vrm_system_model_dto::vrm_dto::VrmDto;
-use vrm_rust_workflow::api::workflow_dto::client_dto::{ClientDto, ClientsDto};
-use vrm_rust_workflow::api::workflow_dto::dependency_dto::DependencyDto;
-use vrm_rust_workflow::api::workflow_dto::reservation_dto::{
-    DataInDto, DataOutDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto,
-};
-use vrm_rust_workflow::api::workflow_dto::workflow_dto::{TaskDto, WorkflowDto};
-use vrm_rust_workflow::domain::simulator::simulator::{GlobalClock, GlobalClockDto};
+use vrm_rust_workflow::domain::simulator::simulator::GlobalClock;
 use vrm_rust_workflow::domain::vrm_system_model::client::client::Clients;
 use vrm_rust_workflow::domain::vrm_system_model::grid_resource_management_system::aci::AcI;
-use vrm_rust_workflow::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::registry_client::RegistryClient;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::node_reservation::NodeReservation;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation::{Reservation, ReservationBase, ReservationProceeding, ReservationState};
 use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use vrm_rust_workflow::domain::vrm_system_model::utils::id::{ClientId, ReservationName};
-use vrm_rust_workflow::domain::vrm_system_model::vrm_manager::VrmManager;
-use vrm_rust_workflow::domain::vrm_system_model::{client, workflow};
+use vrm_rust_workflow::schema::aci_dto::AcIDto;
+use vrm_rust_workflow::schema::adc_dto::ADCDto;
+use vrm_rust_workflow::schema::client_dto::{ClientDto, ClientsDto};
+use vrm_rust_workflow::schema::reservation_dto::{
+    DataInDto, DataOutDto, DependencyDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto,
+};
+use vrm_rust_workflow::schema::rms_dto::{DummyRmsDto, GridNodeDto, NetworkLinkDto, RmsSystemWrapper};
+use vrm_rust_workflow::schema::workflow_dto::{TaskDto, WorkflowDto};
 
 pub fn create_node_reservation(
     res_name: ReservationName,

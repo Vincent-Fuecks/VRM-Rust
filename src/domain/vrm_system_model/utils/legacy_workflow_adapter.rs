@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::path::Path;
 
-use crate::api::workflow_dto::workflow_dto::WorkflowDto;
+use crate::schema::workflow_dto::WorkflowDto;
 
 pub struct LegacyWorkflowAdapter;
 
@@ -57,7 +57,7 @@ impl LegacyWorkflowAdapter {
             xml.push_str(&format!("        <CPUS>{}</CPUS>\n", task.node_reservation.cpus));
             xml.push_str(&format!("        <Duration>{}</Duration>\n", task.node_reservation.duration));
 
-            // Data Out 
+            // Data Out
             if source_nodes.contains(&task.id) {
                 xml.push_str(&format!("        <DataOut name=\"port_{}\" file=\"output_{}.txt\" size=\"1\" version=\"1.1\"/>\n", task.id, task.id));
             }

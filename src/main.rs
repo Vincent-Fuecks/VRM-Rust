@@ -9,7 +9,6 @@ use crate::domain::vrm_system_model::grid_resource_management_system::vrm_compon
 use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 
 #[cfg(debug_assertions)]
-use crate::api::vrm_system_model_dto::vrm_dto::VrmDto;
 use crate::error::Result;
 use crate::loader::parser::parse_json_file;
 use clap::Parser;
@@ -18,11 +17,13 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-pub mod api;
+use self::schema::vrm_dto::VrmDto;
+
 pub mod domain;
 pub mod error;
 pub mod loader;
 pub mod logger;
+pub mod schema;
 
 pub fn get_vrm_dto(file_path: &str) -> Result<VrmDto> {
     log::info!("Starting VrmDto construction.");

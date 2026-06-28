@@ -1,7 +1,7 @@
 use anyhow::{Context, Ok, Result};
 use reqwest::{Client, header};
 
-use crate::api::rms_config_dto::rms_dto::SlurmConfigDto;
+use crate::schema::rms_dto::SlurmConfigDto;
 
 use super::payload::task_properties::TaskSubmission;
 use super::response::delete::SlurmDeleteResponse;

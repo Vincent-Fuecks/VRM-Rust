@@ -1,9 +1,8 @@
 use std::collections::HashSet;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use tokio::time::sleep;
-use vrm_rust_workflow::api::rms_config_dto::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto};
 use vrm_rust_workflow::domain::simulator::simulator::GlobalClock;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::link_reservation::LinkReservation;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::node_reservation::NodeReservation;
@@ -14,7 +13,8 @@ use vrm_rust_workflow::domain::vrm_system_model::rms::slurm_rms::slurm_base::Slu
 use vrm_rust_workflow::domain::vrm_system_model::utils::config::{
     SLURM_TEST_BASE_URL, SLURM_TEST_JWT_TOKEN, SLURM_TEST_USER_NAME, SLURM_TEST_VERSION,
 };
-use vrm_rust_workflow::domain::vrm_system_model::utils::id::{AciId, ClientId, ComponentId, ReservationName};
+use vrm_rust_workflow::domain::vrm_system_model::utils::id::{ClientId, ComponentId, ReservationName};
+use vrm_rust_workflow::schema::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto};
 
 /// Tests the normal commit process to the local RMS
 /// Reservation of state ReserveAnswer -> Committed and task is running on the local RMS.

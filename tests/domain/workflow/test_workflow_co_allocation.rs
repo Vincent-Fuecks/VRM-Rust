@@ -1,9 +1,4 @@
 use vrm_rust_workflow::{
-    api::workflow_dto::{
-        dependency_dto::DependencyDto,
-        reservation_dto::{DataInDto, DataOutDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto},
-        workflow_dto::{TaskDto, WorkflowDto},
-    },
     domain::vrm_system_model::{
         reservation::{
             node_reservation::NodeReservation,
@@ -15,6 +10,12 @@ use vrm_rust_workflow::{
     },
     error::Error,
     generate_system_model,
+    schema::{
+        reservation_dto::{
+            DataInDto, DataOutDto, DependencyDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto,
+        },
+        workflow_dto::{TaskDto, WorkflowDto},
+    },
 };
 
 use std::collections::HashSet;

@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::api::rms_config_dto::rms_dto::RmsSystemWrapper;
+use super::rms_dto::RmsSystemWrapper;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]

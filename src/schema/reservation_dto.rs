@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::workflow_dto::dependency_dto::DependencyDto;
 use crate::domain::vrm_system_model::reservation::reservation::{ReservationProceeding, ReservationState};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -105,4 +104,10 @@ pub struct DataInDto {
     pub source_reservation: String,
     pub source_port: String,
     pub file: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DependencyDto {
+    pub data: Vec<String>,
+    pub sync: Vec<String>,
 }

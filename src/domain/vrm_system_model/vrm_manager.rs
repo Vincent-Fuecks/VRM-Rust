@@ -7,7 +7,6 @@ use std::{
 use tokio::time::{Duration, sleep};
 
 use crate::{
-    api::vrm_system_model_dto::vrm_dto::VrmDto,
     domain::{
         simulator::simulator::GlobalClock,
         vrm_system_model::{
@@ -29,9 +28,10 @@ use crate::{
         },
     },
     error::ConversionError,
+    schema::vrm_dto::VrmDto,
 };
 
-use super::{reservation::reservation::ReservationTyp, utils::id::ClientId};
+use super::utils::id::ClientId;
 
 pub struct VrmManager {
     pub adc_master: VrmComponentProxy,

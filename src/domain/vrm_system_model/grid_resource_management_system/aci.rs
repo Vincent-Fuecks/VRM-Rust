@@ -1,5 +1,3 @@
-use crate::api::rms_config_dto::rms_dto::RmsSystemWrapper;
-use crate::api::vrm_system_model_dto::aci_dto::AcIDto;
 use crate::domain::simulator::simulator::GlobalClock;
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_trait::VrmComponent;
 use crate::domain::vrm_system_model::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
@@ -10,6 +8,8 @@ use crate::domain::vrm_system_model::rms::rms::RmsLoadMetric;
 use crate::domain::vrm_system_model::utils::id::{AciId, AdcId, ClientId, ComponentId, ShadowScheduleId};
 use crate::domain::vrm_system_model::utils::state_logging::{AnalyticLogger, BaseLog, DetailLog, ProbeLog, VrmCommand};
 use crate::error::ConversionError;
+use crate::schema::aci_dto::AcIDto;
+use crate::schema::rms_dto::RmsSystemWrapper;
 
 use std::collections::{BTreeMap, HashMap};
 use std::i64;

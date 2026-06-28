@@ -1,6 +1,5 @@
-use crate::api::workflow_dto::dependency_dto::DependencyDto;
-use crate::api::workflow_dto::reservation_dto::{LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto};
-use crate::api::workflow_dto::workflow_dto::{TaskDto, WorkflowDto};
+use crate::schema::reservation_dto::{DependencyDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto};
+use crate::schema::workflow_dto::{TaskDto, WorkflowDto};
 
 pub struct WorkflowGenerator {
     pub depth: usize,
@@ -133,8 +132,8 @@ mod tests {
     use std::io::BufWriter;
     use std::path::Path;
 
-    use crate::api::workflow_dto::client_dto::{ClientDto, ClientsDto};
     use crate::domain::vrm_system_model::utils::legacy_workflow_adapter::LegacyWorkflowAdapter;
+    use crate::schema::client_dto::{ClientDto, ClientsDto};
 
     use super::*;
 

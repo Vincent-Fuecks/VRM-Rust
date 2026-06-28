@@ -4,9 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::vrm_system_model::{
     reservation::reservation::{ReservationBase, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp},
-    resource::resource_store::NodeResourceId,
     rms::slurm_rms::api_client::response::tasks::{SlurmOptionExt, SlurmTask},
-    utils::id::{ClientId, ComponentId, ReservationName, ResourceName},
+    utils::id::{ClientId, ComponentId, ReservationName},
 };
 
 use super::reservation_store::ReservationId;

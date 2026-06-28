@@ -1,17 +1,16 @@
 use std::sync::Arc;
 
-use vrm_rust_workflow::api::vrm_system_model_dto::vrm_dto::VrmDto;
-use vrm_rust_workflow::api::workflow_dto::reservation_dto::{ReservationProceedingDto, ReservationStateDto};
 use vrm_rust_workflow::domain::simulator::simulator::{GlobalClock, GlobalClockDto};
 use vrm_rust_workflow::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::registry_client::RegistryClient;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation::ReservationState;
 use vrm_rust_workflow::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use vrm_rust_workflow::domain::vrm_system_model::vrm_manager::VrmManager;
+use vrm_rust_workflow::schema::reservation_dto::{ReservationProceedingDto, ReservationStateDto};
+use vrm_rust_workflow::schema::vrm_dto::VrmDto;
 
 use crate::common::{get_aci_dto, get_adc_dto, get_clients, get_workflow_dto_with_one_task};
 
 /// Test Probe
-/// TODO
 #[tokio::test]
 async fn test_probe() {
     let store = ReservationStore::new();

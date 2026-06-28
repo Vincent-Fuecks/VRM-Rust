@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::workflow_dto::reservation_dto::{LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto};
+use super::reservation_dto::{LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]

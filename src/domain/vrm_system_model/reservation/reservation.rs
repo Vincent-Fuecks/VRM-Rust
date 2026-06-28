@@ -24,10 +24,6 @@ pub enum ReservationTyp {
 }
 
 impl Reservation {
-    pub fn new_workflow(base: ReservationBase) -> Self {
-        todo!()
-    }
-
     pub fn new_node(
         base: ReservationBase,
         data_dependencies: HashSet<ReservationId>,

@@ -19,12 +19,8 @@ use crate::domain::vrm_system_model::schedule::slotted_schedule::strategy::link:
 use crate::domain::vrm_system_model::scheduler_type::ScheduleContext;
 use crate::domain::vrm_system_model::utils::config::SCHEDULE_SYNC_TIMEINTERVAL_S;
 use crate::domain::vrm_system_model::utils::id::{ComponentId, ResourceName, RmsId, ShadowScheduleId, SlottedScheduleId};
-use crate::{
-    api::rms_config_dto::rms_dto::SlurmRmsDto,
-    domain::vrm_system_model::{
-        reservation::reservation_store::ReservationStore, rms::rms::RmsBase, scheduler_type::SchedulerType, utils::id::AciId,
-    },
-};
+use crate::domain::vrm_system_model::{reservation::reservation_store::ReservationStore, rms::rms::RmsBase, scheduler_type::SchedulerType};
+use crate::schema::rms_dto::SlurmRmsDto;
 
 use super::api_client::response::tasks::SlurmTaskResponse;
 use super::api_client::slurm_rest_api_client::SlurmRestApiClient;
@@ -59,7 +55,8 @@ impl SlurmRms {
         reservation_store: ReservationStore,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let rest_api_client = SlurmRestApiClient::new(dto.rest_api_config.clone())?;
-        let nodes_response = rest_api_client.get_nodes().await.expect(&format!("Connection to Slurm based RMS of AcI {:?} was not possible", component_id));
+        let nodes_response =
+            rest_api_client.get_nodes().await.expect(&format!("Connection to Slurm based RMS of AcI {:?} was not possible", component_id));
 
         let (nodes, links) = SlurmRms::get_nodes_and_links(&dto, &nodes_response);
         let resource_store = ResourceStore::new();
@@ -151,7 +148,8 @@ impl SlurmRms {
                 interval.tick().await;
 
                 if let Err(e) =
-                    Self::perform_sync(&slurm_rest_client, &resource_store, &reservation_store, &node_schedule, &task_mapping, &rms_id, &component_id).await
+                    Self::perform_sync(&slurm_rest_client, &resource_store, &reservation_store, &node_schedule, &task_mapping, &rms_id, &component_id)
+                        .await
                 {
                     log::error!("Slurm Schedule Sync Error: {:?}", e);
                 }

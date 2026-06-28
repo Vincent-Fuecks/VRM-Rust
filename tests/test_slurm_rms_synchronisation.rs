@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use vrm_rust_workflow::{
-    api::{
-        rms_config_dto::rms_dto::{RmsSystemWrapper, SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},
-        vrm_system_model_dto::aci_dto::AcIDto,
-    },
     domain::{
         simulator::simulator::GlobalClock,
         vrm_system_model::{grid_resource_management_system::aci::AcI, reservation::reservation_store::ReservationStore},
+    },
+    schema::{
+        aci_dto::AcIDto,
+        rms_dto::{RmsSystemWrapper, SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},
     },
 };
 

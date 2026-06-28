@@ -2,8 +2,6 @@ use core::f64;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 
-use crate::api::workflow_dto::reservation_dto::{ReservationProceedingDto, ReservationStateDto};
-use crate::api::workflow_dto::workflow_dto::{TaskDto, WorkflowDto};
 use crate::domain::vrm_system_model::reservation::reservation::{
     Reservation, ReservationBase, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp,
 };
@@ -16,6 +14,8 @@ use crate::domain::vrm_system_model::workflow::co_allocation::CoAllocation;
 use crate::domain::vrm_system_model::workflow::dependency::{CoAllocationDependency, DataDependency, SyncDependency};
 use crate::domain::vrm_system_model::workflow::workflow_node::WorkflowNode;
 use crate::error::Error;
+use crate::schema::reservation_dto::{ReservationProceedingDto, ReservationStateDto};
+use crate::schema::workflow_dto::{TaskDto, WorkflowDto};
 
 use serde::{Deserialize, Serialize};
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
@@ -815,7 +815,7 @@ impl Workflow {
     /// A `Vec<Option<WorkflowNode>>` containing the `representative` node for
     /// every `CoAllocation` in the workflow, ordered by `rank_downward` in descending
     /// order (largest ranks are first).
-    fn calculate_downward_rank(mut self, avg_net_speed: i64, reservation_store: ReservationStore) -> Vec<Option<WorkflowNode>> {
+    fn _calculate_downward_rank(mut self, avg_net_speed: i64, reservation_store: ReservationStore) -> Vec<Option<WorkflowNode>> {
         let mut finished_node_keys: Vec<CoAllocationId> = Vec::with_capacity(self.co_allocations.len());
         let mut queue: Vec<CoAllocationId> = Vec::new();
 

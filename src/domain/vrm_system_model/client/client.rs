@@ -1,9 +1,9 @@
-use crate::api::workflow_dto::client_dto::ClientsDto;
 use crate::domain::vrm_system_model::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::domain::vrm_system_model::utils::id::ClientId;
 use crate::domain::vrm_system_model::workflow::workflow::Workflow;
 use crate::error::Result;
 use crate::loader::parser::parse_json_file;
+use crate::schema::client_dto::ClientsDto;
 
 #[derive(Debug)]
 pub struct Clients {

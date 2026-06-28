@@ -2,7 +2,6 @@ use std::{collections::HashSet, sync::Arc};
 
 use anyhow::Result;
 use vrm_rust_workflow::{
-    api::rms_config_dto::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},
     domain::{
         simulator::simulator::GlobalClock,
         vrm_system_model::{
@@ -16,10 +15,11 @@ use vrm_rust_workflow::{
             },
             utils::{
                 config::{SLURM_TEST_BASE_URL, SLURM_TEST_JWT_TOKEN, SLURM_TEST_USER_NAME, SLURM_TEST_VERSION},
-                id::{AciId, ComponentId},
+                id::ComponentId,
             },
         },
     },
+    schema::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},
 };
 
 /// Tests the Slurm Rest API ping.

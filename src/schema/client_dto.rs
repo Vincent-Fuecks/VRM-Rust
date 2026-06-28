@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::workflow_dto::workflow_dto::WorkflowDto;
+use super::workflow_dto::WorkflowDto;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ClientsDto {

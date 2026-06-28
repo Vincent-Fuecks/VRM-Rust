@@ -1,25 +1,23 @@
-use std::{any::Any, collections::HashMap, str::FromStr, sync::Arc};
+use std::{any::Any, collections::HashMap, sync::Arc};
 
 use parking_lot::RwLock;
 
 use crate::{
-    api::rms_config_dto::rms_dto::{DummyRmsDto, RmsSimulatorDto},
     domain::{
         simulator::simulator::GlobalClock,
         vrm_system_model::{
             reservation::reservation_store::{ReservationId, ReservationStore},
-            resource::{node_resource::NodeResource, resource_store::ResourceStore},
+            resource::resource_store::ResourceStore,
             rms::{
-                common::{RmsSetupContext, add_node_information, get_nodes_and_links},
+                common::{RmsSetupContext, get_nodes_and_links},
                 rms::{Rms, RmsBase},
                 rms_node_network_trait::Helper,
             },
-            schedule::{schedule_trait::Schedule, slotted_schedule::strategy::link::topology::NetworkTopology},
-            scheduler_type::{ScheduleContext, SchedulerType},
-            utils::id::{AciId, ComponentId, RouterId, ShadowScheduleId, SlottedScheduleId},
+            schedule::schedule_trait::Schedule,
+            utils::id::{ComponentId, ShadowScheduleId},
         },
     },
-    error::ConversionError,
+    schema::rms_dto::RmsSimulatorDto,
 };
 
 /// Simulates both links and nodes of a cluster
@@ -90,12 +88,11 @@ impl RmsSimulator {
             schedule_name,
             resource_store,
         );
-        
-        let base = rms_setup_context.get_base()?;
-        let node_schedule = rms_setup_context.get_node_schedule()?; 
-        let network_schedule = rms_setup_context.get_network_schedule()?; 
 
-        
+        let base = rms_setup_context.get_base()?;
+        let node_schedule = rms_setup_context.get_node_schedule()?;
+        let network_schedule = rms_setup_context.get_network_schedule()?;
+
         Ok(RmsSimulator {
             base: base,
             node_schedule: node_schedule,

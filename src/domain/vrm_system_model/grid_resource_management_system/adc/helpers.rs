@@ -1,18 +1,12 @@
 use std::{
-    cmp::Ordering,
     collections::HashMap,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use crate::domain::vrm_system_model::{
-    grid_resource_management_system::{adc::ADC, vrm_component_registry::vrm_component_proxy::VrmComponentProxy, vrm_component_trait::VrmComponent},
-    reservation::{
-        probe_reservations::{ProbeReservationComparator, ProbeReservations},
-        reservation::ReservationState,
-        reservation_store::ReservationId,
-    },
+    grid_resource_management_system::adc::ADC,
+    reservation::{probe_reservations::ProbeReservationComparator, reservation::ReservationState, reservation_store::ReservationId},
     utils::{
-        config::TRY_N_PROMOTIONS,
         id::{ComponentId, ShadowScheduleId},
         statistics::ANALYTICS_TARGET,
     },

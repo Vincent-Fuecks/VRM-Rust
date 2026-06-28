@@ -1,7 +1,8 @@
-use crate::api::vrm_system_model_dto::aci_dto::AcIDto;
-use crate::api::vrm_system_model_dto::adc_dto::ADCDto;
 use crate::domain::simulator::simulator::GlobalClockDto;
 use serde::Deserialize;
+
+use super::aci_dto::AcIDto;
+use super::adc_dto::ADCDto;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]

@@ -161,7 +161,7 @@ impl VrmComponent for ADC {
         self.manager.create_shadow_schedule(shadow_schedule_id)
     }
 
-    fn delete_shadow_schedule(&mut self, shadow_schedule_id: ShadowScheduleId) -> bool {
+    fn delete_shadow_schedule(&mut self, _shadow_schedule_id: ShadowScheduleId) -> bool {
         todo!()
     }
 
@@ -238,9 +238,9 @@ impl VrmComponent for ADC {
 
     fn probe_best(
         &mut self,
-        reservation_id: ReservationId,
-        shadow_schedule_id: Option<ShadowScheduleId>,
-        probe_reservation_comparator: ProbeReservationComparator,
+        _reservation_id: ReservationId,
+        _shadow_schedule_id: Option<ShadowScheduleId>,
+        _probe_reservation_comparator: ProbeReservationComparator,
     ) -> ProbeReservations {
         todo!()
     }
