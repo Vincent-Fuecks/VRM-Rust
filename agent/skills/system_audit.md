@@ -2,7 +2,7 @@ You are an experienced software architect and Rust expert. Your task is to condu
 
 IMPORTANT RULE: Make absolutely NO changes to the source code or configuration. Your task is purely analytical and documentary (Read-Only).
 
-Please analyze the project and create the following four artifacts in Markdown format in `/docs` directory of the dedicated VRM-Rust core component. Generate the content precisely, structured, and in professional English.
+Please analyze the project and create the following four artifacts in Markdown format in `agent/docs/{vrmComponentName}` directory of the dedicated VRM-Rust core component. Generate the content precisely, structured, and in professional English.
 
 ### Artifact 1: docs/technical-audit.md
 Create a detailed audit report that evaluates the following aspects objectively and thoroughly:
@@ -10,7 +10,6 @@ Create a detailed audit report that evaluates the following aspects objectively 
 - Module Structure: Cohesion and coupling of the current modules.
 - Dependencies: Analysis of `Cargo.toml` (outdated packages, redundant dependencies, security risks).
 - Technical Debt: Code smells, outdated patterns, workarounds, or areas requiring refactoring.
-- Clippy Warnings: If possible, run `cargo clippy` or analyze the code for typical Rust anti-patterns and document them.
 - Test Coverage: Evaluate the quantity and quality of existing tests (unit, integration), if discernible. Where are tests missing?
 - Documentation Gaps: Identify missing inline documentation (Rustdoc), missing READMEs, or unclear concept descriptions.
 - Risks: Potential sources of error (e.g., excessive use of `unwrap()`, improper error handling, concurrency issues, unsafe code).
