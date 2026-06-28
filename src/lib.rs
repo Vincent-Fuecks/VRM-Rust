@@ -1,9 +1,9 @@
-use crate::domain::vrm_system_model::client::client::Clients;
 use crate::error::Result;
 use crate::loader::parser::parse_json_file;
 use crate::vrm::reservation::reservation_store::ReservationStore;
 
 use self::schema::client_dto::ClientsDto;
+use self::vrm::client::client::Clients;
 
 pub mod domain;
 pub mod error;

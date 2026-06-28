@@ -1,3 +1,4 @@
+pub mod client;
 pub mod global_clock;
-pub mod workflow;
 pub mod reservation;
+pub mod workflow;

@@ -1,4 +1,3 @@
-pub mod client;
 pub mod grid_resource_management_system;
 pub mod resource;
 pub mod rms;

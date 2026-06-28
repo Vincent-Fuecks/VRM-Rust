@@ -1,8 +1,6 @@
-use crate::vrm::reservation::vrm_state_listener::VrmStateListener;
 use crate::domain::vrm_system_model::utils::statistics::AnalyticsSystem;
 use crate::domain::vrm_system_model::vrm_manager::VrmManager;
-
-use crate::domain::vrm_system_model::client::client::Clients;
+use crate::vrm::reservation::vrm_state_listener::VrmStateListener;
 
 use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::registry_client::RegistryClient;
 use crate::vrm::reservation::reservation_store::ReservationStore;
@@ -17,6 +15,7 @@ use std::thread;
 use std::time::Duration;
 
 use self::schema::vrm_dto::VrmDto;
+use self::vrm::client::client::Clients;
 use self::vrm::global_clock::global_clock::GlobalClock;
 
 pub mod domain;
