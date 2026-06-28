@@ -7,15 +7,15 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
-use vrm_rust_workflow::domain::vrm_system_model::schedule::schedule_trait::Schedule;
-use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::SlottedNodeSchedule;
-use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::slot::Slot;
-use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
 use vrm_rust_workflow::vrm::commons::id::{ClientId, ReservationName, SlottedScheduleId};
 use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 use vrm_rust_workflow::vrm::reservation::node_reservation::NodeReservation;
 use vrm_rust_workflow::vrm::reservation::reservation::{Reservation, ReservationProceeding, ReservationState};
 use vrm_rust_workflow::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
+use vrm_rust_workflow::vrm::schedule::schedule_trait::Schedule;
+use vrm_rust_workflow::vrm::schedule::slotted_schedule::SlottedNodeSchedule;
+use vrm_rust_workflow::vrm::schedule::slotted_schedule::slot::Slot;
+use vrm_rust_workflow::vrm::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
 
 // ---------------------------------------------------------------------------
 // Test Helpers
@@ -1203,15 +1203,13 @@ mod node_capacity_update {
 
 mod link_schedule_network {
     use super::*;
-    use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::SlottedLinkSchedule;
-    use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::link_strategy::LinkStrategy;
-    use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::{
-        Link, NetworkTopology, Node as TopoNode,
-    };
     use vrm_rust_workflow::vrm::commons::id::{ComponentId, ResourceName, RouterId};
     use vrm_rust_workflow::vrm::reservation::link_reservation::LinkReservation;
     use vrm_rust_workflow::vrm::reservation::reservation::ReservationBase;
     use vrm_rust_workflow::vrm::resource::resource_store::ResourceStore;
+    use vrm_rust_workflow::vrm::schedule::slotted_schedule::SlottedLinkSchedule;
+    use vrm_rust_workflow::vrm::schedule::slotted_schedule::strategy::link::link_strategy::LinkStrategy;
+    use vrm_rust_workflow::vrm::schedule::slotted_schedule::strategy::link::topology::{Link, NetworkTopology, Node as TopoNode};
 
     /// Creates a simple link schedule with two routers connected by a single link.
     fn setup_link_schedule(num_slots: i64, slot_width: i64, link_capacity: i64) -> (SlottedLinkSchedule, ReservationStore, Arc<GlobalClock>) {
@@ -1376,15 +1374,13 @@ mod link_schedule_network {
 
 mod link_schedule_paths {
     use super::*;
-    use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::SlottedLinkSchedule;
-    use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::link_strategy::LinkStrategy;
-    use vrm_rust_workflow::domain::vrm_system_model::schedule::slotted_schedule::strategy::link::topology::{
-        Link, NetworkTopology, Node as TopoNode,
-    };
     use vrm_rust_workflow::vrm::commons::id::{ComponentId, ResourceName, RouterId};
     use vrm_rust_workflow::vrm::reservation::link_reservation::LinkReservation;
     use vrm_rust_workflow::vrm::reservation::reservation::ReservationBase;
     use vrm_rust_workflow::vrm::resource::resource_store::ResourceStore;
+    use vrm_rust_workflow::vrm::schedule::slotted_schedule::SlottedLinkSchedule;
+    use vrm_rust_workflow::vrm::schedule::slotted_schedule::strategy::link::link_strategy::LinkStrategy;
+    use vrm_rust_workflow::vrm::schedule::slotted_schedule::strategy::link::topology::{Link, NetworkTopology, Node as TopoNode};
 
     /// Creates a linear topology: router-a → router-b → router-c
     /// With nodes attached to router-a and router-c
