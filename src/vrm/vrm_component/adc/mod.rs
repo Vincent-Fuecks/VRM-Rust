@@ -73,14 +73,14 @@ impl ADC {
         ADC {
             id: adc_id,
             manager: vrm_component_manager,
-            registry: registry,
-            workflow_scheduler: workflow_scheduler,
-            reservation_store: reservation_store,
-            vrm_component_order: vrm_component_order,
-            commit_timeout: commit_timeout,
-            simulator: simulator,
-            num_of_slots: num_of_slots,
-            slot_width: slot_width,
+            registry,
+            workflow_scheduler,
+            reservation_store,
+            vrm_component_order,
+            commit_timeout,
+            simulator,
+            num_of_slots,
+            slot_width,
             sync_registry: SyncRegistry::new(),
         }
     }

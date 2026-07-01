@@ -35,7 +35,7 @@ impl VrmComponentManager {
         // 3. Store the shadow context
         self.shadow_schedule_reservations.insert(shadow_schedule_id, (shadow_map, shadow_store));
 
-        return true;
+        true
     }
 
     /// Discards a Shadow Schedule without applying changes (Rollback).
@@ -52,7 +52,7 @@ impl VrmComponentManager {
         // 2. Remove local shadow context
         self.shadow_schedule_reservations.remove(&shadow_schedule_id);
 
-        return true;
+        true
     }
 
     /// Commits the Shadow Schedule to be the new Master Schedule.
@@ -99,6 +99,6 @@ impl VrmComponentManager {
             }
         }
 
-        return true;
+        true
     }
 }

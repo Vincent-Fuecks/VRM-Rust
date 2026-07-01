@@ -107,8 +107,8 @@ impl BaseLog {
             };
 
             let base_log = BaseLog {
-                log_description: log_description,
-                component_id: component_id,
+                log_description,
+                component_id,
                 time: now,
                 command,
                 processing_time,
@@ -123,7 +123,7 @@ impl BaseLog {
             };
             return Some(base_log);
         }
-        return None;
+        None
     }
 }
 
@@ -163,7 +163,7 @@ impl ProbeLog {
         if let Some(base_log) = base_log {
             return Some(ProbeLog { base: base_log, n_probe_answers: num_of_answers });
         }
-        return None;
+        None
     }
 }
 
@@ -219,6 +219,6 @@ impl DetailLog {
                 system_fragmentation,
             });
         }
-        return None;
+        None
     }
 }

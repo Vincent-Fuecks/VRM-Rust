@@ -44,14 +44,14 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
         let node_schedule_clone = self.get_node_schedule().read().clone_box();
         let network_schedule_clone = self.get_network_schedule().read().clone_box();
 
-        if !self.get_mut_node_shadow_schedule().insert(shadow_schedule_id.clone(), Arc::new(RwLock::new(node_schedule_clone))).is_none()
-            || !self.get_mut_network_shadow_schedule().insert(shadow_schedule_id.clone(), Arc::new(RwLock::new(network_schedule_clone))).is_none()
+        if self.get_mut_node_shadow_schedule().insert(shadow_schedule_id.clone(), Arc::new(RwLock::new(node_schedule_clone))).is_some()
+            || self.get_mut_network_shadow_schedule().insert(shadow_schedule_id.clone(), Arc::new(RwLock::new(network_schedule_clone))).is_some()
         {
             log::error!("ErrorShadowScheduleAlreadyExists: ShadowSchedule is now curupted.");
             return false;
         }
 
-        return true;
+        true
     }
 
     fn commit_shadow_schedule(&mut self, shadow_schedule_id: &ShadowScheduleId) -> bool {
@@ -69,7 +69,7 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
         }
 
         log::error!("Finding and removing of shadow schedule with id {} was not possible", shadow_schedule_id.clone());
-        return false;
+        false
     }
 
     fn delete_shadow_schedule(&mut self, shadow_schedule_id: &ShadowScheduleId) -> bool {
@@ -85,7 +85,7 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
         }
 
         log::error!("Removing shadow schedule was not possible. Shadow schedule id ({}) was not found", shadow_schedule_id.clone());
-        return false;
+        false
     }
 
     fn get_fragmentation(&mut self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> f64 {
@@ -139,7 +139,7 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
             res.get_type(),
             res.get_name()
         );
-        return false;
+        false
     }
 
     fn can_handle_aci_request(&self, reservation_store: ReservationStore, reservation_id: ReservationId) -> bool {
@@ -153,7 +153,7 @@ impl<T: RmsNodeNetwork> AdvanceReservationRms for T {
             reservation_store.get_type(reservation_id),
             reservation_store.get_name_for_key(reservation_id)
         );
-        return false;
+        false
     }
 
     fn get_load_metric(&self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> RmsLoadMetric {

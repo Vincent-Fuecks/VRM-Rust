@@ -36,8 +36,8 @@ impl Reservation {
             base,
             data_dependencies,
             current_working_directory: cwd,
-            environment: environment,
-            task_path: task_path,
+            environment,
+            task_path,
             output_path: out_path,
             error_path: err_path,
         })

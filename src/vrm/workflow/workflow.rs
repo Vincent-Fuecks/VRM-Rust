@@ -2,12 +2,12 @@ use core::f64;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 
-use crate::vrm::common::id::{
-    ClientId, CoAllocationDependencyId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId,
-};
 use crate::error::Error;
 use crate::schema::reservation_dto::{ReservationProceedingDto, ReservationStateDto};
 use crate::schema::workflow_dto::{TaskDto, WorkflowDto};
+use crate::vrm::common::id::{
+    ClientId, CoAllocationDependencyId, CoAllocationId, DataDependencyId, ReservationName, SyncDependencyId, WorkflowNodeId,
+};
 use crate::vrm::reservation::link_reservation::LinkReservation;
 use crate::vrm::reservation::node_reservation::NodeReservation;
 use crate::vrm::reservation::reservation::{Reservation, ReservationBase, ReservationProceeding, ReservationState, ReservationTrait, ReservationTyp};
@@ -87,12 +87,11 @@ impl Workflow {
                 node.co_allocation_key = Some(group_id.clone());
                 let reservation_id_opt = node.reservation_id;
 
-                if let Some(co_alloc) = co_allocations.get_mut(&group_id) {
-                    if let Some(rep) = &mut co_alloc.representative {
-                        if rep.reservation_id == reservation_id_opt {
-                            rep.co_allocation_key = Some(group_id);
-                        }
-                    }
+                if let Some(co_alloc) = co_allocations.get_mut(&group_id)
+                    && let Some(rep) = &mut co_alloc.representative
+                    && rep.reservation_id == reservation_id_opt
+                {
+                    rep.co_allocation_key = Some(group_id);
                 }
             }
         }
@@ -100,7 +99,7 @@ impl Workflow {
         // Add the Data dependencies to all node reservations of the workflow.
 
         // Update ReservationStore information
-        for (_, link) in &data_dependencies {
+        for link in data_dependencies.values() {
             if let Some(res_handle) = reservation_store.get(link.reservation_id) {
                 let mut res = res_handle.write();
                 // Add source and target node to the link reservation
@@ -108,20 +107,18 @@ impl Workflow {
                 res.as_link_mut().unwrap().set_end_point(Some(link.target_node.clone().unwrap().cast()));
 
                 // Add the Data dependency to the NodeReservation
-                if let Some(target_node_id) = &link.target_node {
-                    if let Some(target_node) = nodes.get(target_node_id) {
-                        if let Some(source_node) = nodes.get(&link.source_node.clone().unwrap()) {
-                            if let Some(node_handle) = reservation_store.get(target_node.reservation_id) {
-                                let mut res = node_handle.write();
-                                res.as_node_mut().unwrap().data_dependencies.insert(source_node.reservation_id);
-                            }
-                        }
-                    }
+                if let Some(target_node_id) = &link.target_node
+                    && let Some(target_node) = nodes.get(target_node_id)
+                    && let Some(source_node) = nodes.get(&link.source_node.clone().unwrap())
+                    && let Some(node_handle) = reservation_store.get(target_node.reservation_id)
+                {
+                    let mut res = node_handle.write();
+                    res.as_node_mut().unwrap().data_dependencies.insert(source_node.reservation_id);
                 }
             }
         }
 
-        for (_, link) in &sync_dependencies {
+        for link in sync_dependencies.values() {
             if let Some(res_handle) = reservation_store.get(link.reservation_id) {
                 let mut res = res_handle.write();
                 res.as_link_mut().unwrap().set_start_point(Some(link.source_node.clone().unwrap().cast()));
@@ -153,7 +150,7 @@ impl Workflow {
     pub fn build_base_workflow(dto: &WorkflowDto, client_id: ClientId) -> ReservationBase {
         ReservationBase {
             name: ReservationName::new(dto.id.clone()),
-            client_id: client_id,
+            client_id,
             handler_id: None,
             state: dto.reservation_state.to_reservation_state(), // Workflow state is managed separately
             request_proceeding: dto.request_proceeding.to_reservation_proceeding(), // Default
@@ -422,7 +419,7 @@ impl Workflow {
                 is_moldable: false,
                 moldable_work: 0,
                 frag_delta: f64::MAX,
-            };
+                };
             let link_res = LinkReservation { base: dep_base, start_point: None, end_point: None };
             let reservation_id = reservation_store.add(Reservation::Link(link_res));
 
@@ -571,20 +568,19 @@ impl Workflow {
             node_to_co_allocation.insert(node_id.clone(), final_group_id.clone());
 
             // If we haven't created the group for this representative yet, extract it from preliminary
-            if !merged_groups.contains_key(&rep_node_id) {
-                if let Some(mut base_group) = preliminary_co_allocation.remove(&rep_node_id) {
-                    base_group.id = final_group_id.clone();
-                    merged_groups.insert(rep_node_id.clone(), base_group);
-                }
+            if !merged_groups.contains_key(&rep_node_id)
+                && let Some(mut base_group) = preliminary_co_allocation.remove(&rep_node_id)
+            {
+                base_group.id = final_group_id.clone();
+                merged_groups.insert(rep_node_id.clone(), base_group);
             }
 
             // If this node is not the representative, merge it into the representative's group
-            if node_id != &rep_node_id {
-                if let Some(mut prelim_group) = preliminary_co_allocation.remove(node_id) {
-                    if let Some(final_group) = merged_groups.get_mut(&rep_node_id) {
-                        final_group.members.append(&mut prelim_group.members);
-                    }
-                }
+            if node_id != &rep_node_id
+                && let Some(mut prelim_group) = preliminary_co_allocation.remove(node_id)
+                && let Some(final_group) = merged_groups.get_mut(&rep_node_id)
+            {
+                final_group.members.append(&mut prelim_group.members);
             }
         }
 
@@ -745,7 +741,7 @@ impl Workflow {
                 continue;
             }
 
-            let node_duration = node.get_co_allocation_duration(&self.nodes, &reservation_store);
+            let node_duration = node.get_co_allocation_duration(&self.nodes, reservation_store);
             let outgoing_deps = node.outgoing_co_allocation_dependencies.clone();
             let mut rank = node_duration;
             let mut number_of_nodes_critical_path = 1;
@@ -802,7 +798,7 @@ impl Workflow {
         });
 
         // 7. Map keys to the representative nodes
-        return finished_node_keys.into_iter().map(|key| self.co_allocations.get(&key).unwrap().representative.clone().unwrap()).collect();
+        finished_node_keys.into_iter().map(|key| self.co_allocations.get(&key).unwrap().representative.clone().unwrap()).collect()
     }
 
     /// Computes the downward rank for all `CoAllocation`s in the Workflow.
@@ -897,7 +893,7 @@ impl Workflow {
             b_rank.cmp(&a_rank)
         });
 
-        return finished_node_keys.into_iter().map(|key| self.co_allocations.get(&key).unwrap().representative.clone()).collect();
+        finished_node_keys.into_iter().map(|key| self.co_allocations.get(&key).unwrap().representative.clone()).collect()
     }
 }
 
@@ -967,17 +963,17 @@ impl Workflow {
         let mut workflow_res_ids = Vec::new();
 
         for node in self.nodes.values() {
-            workflow_res_ids.push(node.reservation_id.clone());
+            workflow_res_ids.push(node.reservation_id);
         }
 
         for data_dep in self.data_dependencies.values() {
-            workflow_res_ids.push(data_dep.reservation_id.clone());
+            workflow_res_ids.push(data_dep.reservation_id);
         }
 
         for sync_dep in self.sync_dependencies.values() {
-            workflow_res_ids.push(sync_dep.reservation_id.clone());
+            workflow_res_ids.push(sync_dep.reservation_id);
         }
 
-        return workflow_res_ids;
+        workflow_res_ids
     }
 }

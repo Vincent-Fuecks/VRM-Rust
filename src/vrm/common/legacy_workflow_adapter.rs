@@ -18,9 +18,9 @@ impl LegacyWorkflowAdapter {
 
         // Client and Workflow
         xml.push_str("  <CLIENT version=\"1.0\" name=\"GeneratedClient\">\n");
-        xml.push_str(&format!("    <AdcName>ADC</AdcName>\n"));
+        xml.push_str("    <AdcName>ADC</AdcName>\n");
         xml.push_str(&format!("    <Workflow version=\"1.1\" id=\"{}\">\n", workflow.id));
-        xml.push_str(&format!("      <JobState>OPEN</JobState>\n"));
+        xml.push_str("      <JobState>OPEN</JobState>\n");
 
         xml.push_str("      <RequestProceeding>Commit</RequestProceeding>\n");
         xml.push_str(&format!("      <ArrivalTime>{}</ArrivalTime>\n", workflow.arrival_time));
@@ -38,8 +38,8 @@ impl LegacyWorkflowAdapter {
         // Map Tasks to NodeReservations
         for task in &workflow.tasks {
             xml.push_str(&format!("      <NodeReservation name=\"{}\" version=\"1.2\">\n", task.id));
-            xml.push_str(&format!("        <JobState>OPEN</JobState>\n"));
-            xml.push_str(&format!("        <RequestProceeding>COMMIT</RequestProceeding>\n"));
+            xml.push_str("        <JobState>OPEN</JobState>\n");
+            xml.push_str("        <RequestProceeding>COMMIT</RequestProceeding>\n");
 
             // Sync Dependencies (e.g., <Dependency sync="job0" version="1.0"/>)
             // for sync_target in &task.node_reservation.dependencies.sync {

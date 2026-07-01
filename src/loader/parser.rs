@@ -12,9 +12,9 @@ use crate::error::{Error, Result};
 /// - `Error::IoError` if the file cannot be read.
 /// - `Error::DeserializationError` if the JSON is malformed.
 pub fn parse_json_file<T: DeserializeOwned>(file_path: &str) -> Result<T> {
-    let data = fs::read_to_string(file_path).map_err(|e| Error::IoError(e))?;
+    let data = fs::read_to_string(file_path).map_err(Error::IoError)?;
 
-    let parsed_data: T = serde_json::from_str(&data).map_err(|e| Error::DeserializationError(e))?;
+    let parsed_data: T = serde_json::from_str(&data).map_err(Error::DeserializationError)?;
 
     Ok(parsed_data)
 }

@@ -25,9 +25,9 @@ impl BaseResource {
         log::debug!("Resource: {:?}, has capacity: {:?}", self.name, self.capacity);
 
         if !is_res_moldable && res_reserved_capacity > 0 {
-            return res_reserved_capacity <= self.capacity;
+            res_reserved_capacity <= self.capacity
         } else {
-            return true;
+            true
         }
     }
 
@@ -46,7 +46,7 @@ pub struct Resources {
 
 impl Resources {
     pub fn new(inner: Vec<Box<dyn Resource>>, router_list: Vec<RouterId>) -> Self {
-        Self { inner: inner, router_list: router_list }
+        Self { inner, router_list }
     }
 
     pub fn add(&mut self, resource: Box<dyn Resource>, router_list: HashSet<RouterId>) {
@@ -80,11 +80,11 @@ impl Resources {
 
     /// Returns true, if provided RouterId exists in Router-List of RMS
     pub fn contains_router(&self, router_id: RouterId) -> bool {
-        return self.router_list.contains(&router_id);
+        self.router_list.contains(&router_id)
     }
 
     /// Return the, the list of all RouterIds, which the Resource contains
     pub fn get_router_list(&self) -> Vec<RouterId> {
-        return self.router_list.clone();
+        self.router_list.clone()
     }
 }

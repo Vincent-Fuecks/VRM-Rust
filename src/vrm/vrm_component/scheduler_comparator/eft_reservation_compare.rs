@@ -15,7 +15,7 @@ impl EFTReservationCompare {
         let assigned_end0 = self.reservation_store.get_assigned_end(reservation_id0);
         let assigned_end1 = self.reservation_store.get_assigned_end(reservation_id1);
 
-        return assigned_end0.partial_cmp(&assigned_end1).unwrap();
+        assigned_end0.partial_cmp(&assigned_end1).unwrap()
     }
 }
 

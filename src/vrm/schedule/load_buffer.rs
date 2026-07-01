@@ -23,6 +23,12 @@ pub struct GlobalLoadContext {
     last_global_load: AtomicI64,
 }
 
+impl Default for GlobalLoadContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GlobalLoadContext {
     pub fn new() -> Self {
         Self { first_global_load: AtomicI64::new(i64::MAX), last_global_load: AtomicI64::new(-1) }

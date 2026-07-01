@@ -104,6 +104,6 @@ impl CoAllocation {
                 log::warn!("Warning: Node key '{}' not found in nodes map.", node_key);
             }
         }
-        return max_duration;
+        max_duration
     }
 }

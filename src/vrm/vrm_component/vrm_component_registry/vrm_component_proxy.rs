@@ -1,12 +1,12 @@
 use std::sync::mpsc;
 
-use crate::vrm::vrm_component::vrm_component_registry::vrm_message::VrmMessage;
-use crate::vrm::vrm_component::vrm_component_trait::VrmComponent;
 use crate::vrm::common::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::vrm::reservation::reservation::Reservation;
 use crate::vrm::reservation::reservation_store::ReservationId;
 use crate::vrm::rms::rms::RmsLoadMetric;
+use crate::vrm::vrm_component::vrm_component_registry::vrm_message::VrmMessage;
+use crate::vrm::vrm_component::vrm_component_trait::VrmComponent;
 
 /// Proxy forwards everything to the thread owning the real component.
 #[derive(Debug, Clone)]
@@ -44,7 +44,7 @@ impl VrmComponent for VrmComponentProxy {
     }
 
     fn get_total_node_capacity(&self) -> i64 {
-        self.call(|tx| VrmMessage::GetTotalNodeCapacity(tx))
+        self.call(VrmMessage::GetTotalNodeCapacity)
     }
 
     fn get_link_resource_count(&self) -> usize {

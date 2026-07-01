@@ -45,7 +45,7 @@ impl TryFrom<(DummyRmsDto, Arc<GlobalClock>, ComponentId, ReservationStore)> for
             let node = Node {
                 name: ResourceName::new(node_dto.id.clone()),
                 cpus: node_dto.cpus,
-                connected_to_router: node_dto.connected_to_router.iter().map(|router_id| RouterId::new(router_id)).collect(),
+                connected_to_router: node_dto.connected_to_router.iter().map(RouterId::new).collect(),
             };
 
             schedule_capacity += node_dto.cpus;
@@ -122,7 +122,7 @@ impl AdvanceReservationRms for RmsNodeSimulator {
 
         let schedule_clone = self.node_schedule.read().clone_box();
         self.node_shadow_schedule.insert(shadow_schedule_id.clone(), Arc::new(RwLock::new(schedule_clone)));
-        return true;
+        true
     }
 
     fn commit_shadow_schedule(&mut self, shadow_schedule_id: &ShadowScheduleId) -> bool {
@@ -132,7 +132,7 @@ impl AdvanceReservationRms for RmsNodeSimulator {
         }
 
         log::error!("Finding and removing of shadow schedule with id {} was not possible", shadow_schedule_id.clone());
-        return false;
+        false
     }
 
     fn delete_shadow_schedule(&mut self, shadow_schedule_id: &ShadowScheduleId) -> bool {
@@ -141,7 +141,7 @@ impl AdvanceReservationRms for RmsNodeSimulator {
         }
 
         log::error!("Removing shadow schedule was not possible. Shadow schedule id ({}) was not found", shadow_schedule_id.clone());
-        return false;
+        false
     }
 
     fn get_fragmentation(&mut self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> f64 {
@@ -171,7 +171,7 @@ impl AdvanceReservationRms for RmsNodeSimulator {
             res.get_type(),
             res.get_name()
         );
-        return true;
+        true
     }
 
     fn can_handle_aci_request(&self, reservation_store: ReservationStore, reservation_id: ReservationId) -> bool {
@@ -185,7 +185,7 @@ impl AdvanceReservationRms for RmsNodeSimulator {
             reservation_store.get_type(reservation_id),
             reservation_store.get_name_for_key(reservation_id)
         );
-        return true;
+        true
     }
 
     fn get_load_metric(&self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> RmsLoadMetric {

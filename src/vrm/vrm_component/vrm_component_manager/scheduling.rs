@@ -2,12 +2,12 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::vrm::vrm_component::vrm_component_order::VrmComponentOrder;
 use crate::vrm::common::config::TRY_N_PROMOTIONS;
 use crate::vrm::common::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::reservation::probe_reservations::{ProbeReservationComparator, ProbeReservations};
 use crate::vrm::reservation::reservation::ReservationState;
 use crate::vrm::reservation::reservation_store::ReservationId;
+use crate::vrm::vrm_component::vrm_component_order::VrmComponentOrder;
 
 use super::VrmComponentManager;
 
@@ -35,7 +35,7 @@ impl VrmComponentManager {
                     shadow_schedule_id
                 );
 
-                return ProbeReservations::new(reservation_id, self.reservation_store.clone());
+                ProbeReservations::new(reservation_id, self.reservation_store.clone())
             }
         }
     }
@@ -43,7 +43,7 @@ impl VrmComponentManager {
     pub fn probe_all_components(&mut self, reservation_id: ReservationId) -> ProbeReservations {
         let mut probe_results = ProbeReservations::new(reservation_id, self.reservation_store.clone());
 
-        for (_, container) in &mut self.vrm_components {
+        for container in self.vrm_components.values_mut() {
             let res_snapshot = self.reservation_store.get_reservation_snapshot(reservation_id).unwrap();
 
             if container.can_handel(res_snapshot) {
@@ -57,7 +57,7 @@ impl VrmComponentManager {
             self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
         }
 
-        return probe_results;
+        probe_results
     }
 
     pub fn reserve(
@@ -76,7 +76,7 @@ impl VrmComponentManager {
                 println!("{:?}", component_id.clone());
                 self.res_to_vrm_component.insert(reservation_id, component_id);
 
-                return reservation_id;
+                reservation_id
             }
             None => {
                 log::error!(
@@ -87,7 +87,7 @@ impl VrmComponentManager {
                     shadow_schedule_id
                 );
 
-                return reservation_id;
+                reservation_id
             }
         }
     }
@@ -117,27 +117,27 @@ impl VrmComponentManager {
                 }
                 // Del Reservation form VrmComponent and update Local schedule view
                 if let Some(container) = self.vrm_components.get_mut(component_id) {
-                    container.vrm_component.delete(reservation_id.clone(), shadow_schedule_id);
-                    container.schedule.delete_reservation(reservation_id.clone());
+                    container.vrm_component.delete(*reservation_id, shadow_schedule_id);
+                    container.schedule.delete_reservation(*reservation_id);
                 } else {
                     log::error!(
                         "ComponentManagerHasNotFoundVrmComponentWhereReservationIsLocated: ComponentManager of ADC {}, requested to delete the reservation {:?} on shadow schedule {:?} on VrmComponent {}. ",
                         self.adc_id,
-                        self.reservation_store.get_name_for_key(reservation_id.clone()),
+                        self.reservation_store.get_name_for_key(*reservation_id),
                         shadow_schedule_id,
                         component_id,
                     );
                 }
-                return *reservation_id;
+                *reservation_id
             }
             None => {
                 log::error!(
                     "ComponentManagerHasNotFoundVrmComponentForReservationToDelete: ComponentManager of ADC {}, requested to delete the reservation {:?} on shadow schedule {:?}. ",
                     self.adc_id,
-                    self.reservation_store.get_name_for_key(reservation_id.clone()),
+                    self.reservation_store.get_name_for_key(*reservation_id),
                     shadow_schedule_id
                 );
-                return *reservation_id;
+                *reservation_id
             }
         }
     }
@@ -146,7 +146,7 @@ impl VrmComponentManager {
         let mut target_component = None;
 
         if let Some(sid) = &shadow_schedule_id {
-            if let Some((shadow_map, _)) = self.shadow_schedule_reservations.get(&sid) {
+            if let Some((shadow_map, _)) = self.shadow_schedule_reservations.get(sid) {
                 target_component = shadow_map.get(&reservation_id).cloned();
             }
         } else {
@@ -158,7 +158,7 @@ impl VrmComponentManager {
                 // No Real Task
                 if component_id == *DUMMY_COMPONENT_ID {
                     if let Some(sid) = &shadow_schedule_id {
-                        if let Some((_, store)) = self.shadow_schedule_reservations.get(&sid) {
+                        if let Some((_, store)) = self.shadow_schedule_reservations.get(sid) {
                             store.update_state(reservation_id, ReservationState::Deleted);
                         }
                     } else {
@@ -175,7 +175,7 @@ impl VrmComponentManager {
                 // If shadow, we check the shadow store
                 let is_deleted = if let Some(sid) = &shadow_schedule_id {
                     // Check shadow store state
-                    if let Some((_, store)) = self.shadow_schedule_reservations.get(&sid) {
+                    if let Some((_, store)) = self.shadow_schedule_reservations.get(sid) {
                         store.get_state(reservation_id) == ReservationState::Deleted
                     } else {
                         false
@@ -191,7 +191,7 @@ impl VrmComponentManager {
 
                     // Cleanup Mapping
                     if let Some(sid) = &shadow_schedule_id {
-                        if let Some((shadow_map, _)) = self.shadow_schedule_reservations.get_mut(&sid) {
+                        if let Some((shadow_map, _)) = self.shadow_schedule_reservations.get_mut(sid) {
                             shadow_map.remove(&reservation_id);
                         }
                     } else {
@@ -202,7 +202,7 @@ impl VrmComponentManager {
                 }
 
                 self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
-                return false;
+                false
             }
             None => {
                 log::error!(
@@ -211,7 +211,7 @@ impl VrmComponentManager {
                     shadow_schedule_id,
                     self.reservation_store.get_name_for_key(reservation_id)
                 );
-                return false;
+                false
             }
         }
     }
@@ -237,7 +237,7 @@ impl VrmComponentManager {
         // If commit fails, clean up local schedule and global mapping
         container.schedule.delete_reservation(reservation_id);
         self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
-        return false;
+        false
     }
 
     /// Transitions all committed reservations into state `ReservationState::Rejected` state following a scheduling or resource failure.
@@ -293,7 +293,7 @@ impl VrmComponentManager {
             self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
         }
 
-        return reservation_id;
+        reservation_id
     }
 
     /// Probes all available VrmComponents and selects the best candidate based on the provided comparison function.
@@ -351,6 +351,6 @@ impl VrmComponentManager {
                 }
             }
         }
-        return None;
+        None
     }
 }

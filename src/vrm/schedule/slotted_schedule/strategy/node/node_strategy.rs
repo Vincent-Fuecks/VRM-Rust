@@ -1,5 +1,5 @@
-use crate::vrm::schedule::load_buffer::{LoadMetric, SLOTS_TO_DROP_ON_END, SLOTS_TO_DROP_ON_START};
 use crate::vrm::reservation::reservation_store::ReservationId;
+use crate::vrm::schedule::load_buffer::{LoadMetric, SLOTS_TO_DROP_ON_END, SLOTS_TO_DROP_ON_START};
 use crate::vrm::schedule::slotted_schedule::{slotted_schedule_context::SlottedScheduleContext, strategy::strategy_trait::SlottedScheduleStrategy};
 
 #[derive(Debug, Clone, Default)]
@@ -21,7 +21,7 @@ impl SlottedScheduleStrategy for NodeStrategy {
         reservation_id: ReservationId,
     ) -> i64 {
         if let Some(slot) = ctx.get_slot(slot_index) {
-            return slot.get_adjust_requirement(requirement);
+            slot.get_adjust_requirement(requirement)
         } else {
             log::error!(
                 "SlottedSchedule: {}: requested slot outside of scheduling window. Slot index: {}, window start: {}  window width: {} ReservationId: {:?}",
@@ -32,7 +32,7 @@ impl SlottedScheduleStrategy for NodeStrategy {
                 reservation_id,
             );
 
-            return 0;
+            0
         }
     }
 
@@ -60,7 +60,7 @@ impl SlottedScheduleStrategy for NodeStrategy {
             return ctx.get_fragmentation_quadratic_mean(start_slot_index, end_slot_index);
         }
 
-        return ctx.get_fragmentation_resubmit(start_slot_index, end_slot_index);
+        ctx.get_fragmentation_resubmit(start_slot_index, end_slot_index)
     }
 
     fn get_system_fragmentation(ctx: &mut SlottedScheduleContext<Self>) -> f64 {
@@ -69,7 +69,7 @@ impl SlottedScheduleStrategy for NodeStrategy {
             ctx.is_frag_cache_up_to_date = true;
         }
 
-        return ctx.fragmentation_cache;
+        ctx.fragmentation_cache
     }
 
     fn get_load_metric(ctx: &SlottedScheduleContext<Self>, start_time: i64, end_time: i64) -> LoadMetric {
@@ -94,7 +94,7 @@ impl SlottedScheduleStrategy for NodeStrategy {
 
         let mut number_of_slots = 0;
 
-        if ctx.slots.len() > 0 {
+        if !ctx.slots.is_empty() {
             number_of_slots = end_slot_nr - start_slot_nr + 1;
         }
 
@@ -108,7 +108,7 @@ impl SlottedScheduleStrategy for NodeStrategy {
         LoadMetric {
             start_time,
             end_time,
-            avg_reserved_capacity: avg_reserved_capacity,
+            avg_reserved_capacity,
             possible_capacity: NodeStrategy::get_capacity(ctx) as f64,
             utilization: avg_reserved_capacity / (NodeStrategy::get_capacity(ctx) as f64),
         }
@@ -121,7 +121,7 @@ impl SlottedScheduleStrategy for NodeStrategy {
         let index_of_last_slot: i64 = ctx.load_buffer.context.get_last_load() - SLOTS_TO_DROP_ON_END;
         let start_time_of_last_slot: i64 = ctx.get_slot_start_time(index_of_last_slot);
 
-        return ctx.load_buffer.get_effective_overall_load(NodeStrategy::get_capacity(ctx) as f64, start_time_of_first_slot, start_time_of_last_slot);
+        ctx.load_buffer.get_effective_overall_load(NodeStrategy::get_capacity(ctx) as f64, start_time_of_first_slot, start_time_of_last_slot)
     }
 
     /// Inserts a new reservation requirement into the specified slot.

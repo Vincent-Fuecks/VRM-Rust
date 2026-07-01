@@ -252,10 +252,10 @@ where
         let mut visitor = AnalyticsVisitor::new();
         event.record(&mut visitor);
 
-        if !visitor.values.contains_key(&StatParameter::Time) {
+        visitor.values.entry(StatParameter::Time).or_insert_with(|| {
             let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
-            visitor.values.insert(StatParameter::Time, now.to_string());
-        }
+            now.to_string()
+        });
 
         self.write_csv_row(&visitor);
     }

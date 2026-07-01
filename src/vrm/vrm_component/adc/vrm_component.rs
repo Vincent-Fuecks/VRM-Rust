@@ -95,11 +95,18 @@ impl VrmComponent for ADC {
                             );
                             return false;
                         };
+
                         let component_answer = self.manager.commit_at_component(w_entry_job, component_id.clone());
 
                         // Check if this specific sub-component succeeded
-                        if self.reservation_store.is_reservation_state_at_least(w_entry_job, ReservationState::Committed) || !component_answer {
-                            log::error!("Sub-task {:?} failed in workflow {:?}", w_entry_job, reservation_id);
+                        if !self.reservation_store.is_reservation_state_at_least(w_entry_job, ReservationState::Committed) || !component_answer {
+                            log::error!(
+                                "Committing workflow entry task {:?} of workflow {:?} failed. Expected ReservationState::Committed actual state is: {:?}. And the VrmComponent answer is: {:?}",
+                                w_entry_job,
+                                reservation_id,
+                                self.reservation_store.get_state(w_entry_job),
+                                component_answer
+                            );
                             self.manager.handle_commit_failure(w_entry_jobs);
                             return false;
                         }
@@ -138,8 +145,13 @@ impl VrmComponent for ADC {
             let is_committed = self.manager.commit_at_component(reservation_id, component_id);
 
             // Check if this specific sub-component succeeded
-            if self.reservation_store.is_reservation_state_at_least(reservation_id, ReservationState::Committed) || !is_committed {
-                log::debug!("Commit for Task {:?} failed. Perform clean up.", reservation_id);
+            if !self.reservation_store.is_reservation_state_at_least(reservation_id, ReservationState::Committed) || !is_committed {
+                log::error!(
+                    "Commit for Task {:?} failed. Perform clean up.. Expected ReservationState::Committed actual state is: {:?}. And the VrmComponent answer is: {:?}",
+                    reservation_id,
+                    self.reservation_store.get_state(reservation_id),
+                    is_committed
+                );
 
                 self.manager.handle_commit_failure(vec![reservation_id]);
                 return false;
@@ -149,7 +161,7 @@ impl VrmComponent for ADC {
         log::debug!("Success: Committed at ADC {} Reservation {:?}.", self.id, self.reservation_store.get_name_for_key(reservation_id));
 
         self.log_stat("Commit".to_string(), reservation_id, arrival_time);
-        return true;
+        true
     }
 
     fn commit_shadow_schedule(&mut self, shadow_schedule_id: ShadowScheduleId) -> bool {
@@ -194,7 +206,7 @@ impl VrmComponent for ADC {
 
         // Handle cleanup of atomic Reservation
         self.manager.delete_task_at_component(reservation_id, shadow_schedule_id);
-        return reservation_id;
+        reservation_id
     }
 
     fn get_load_metric(&self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> RmsLoadMetric {
@@ -232,7 +244,7 @@ impl VrmComponent for ADC {
             self.log_state_probe(probe_request_answer.len() as i64, arrival_time);
         }
 
-        return probe_request_answer;
+        probe_request_answer
     }
 
     fn probe_best(
@@ -297,6 +309,6 @@ impl VrmComponent for ADC {
         if shadow_schedule_id.is_none() {
             self.log_stat("Reserve".to_string(), reservation_id, arrival_time);
         }
-        return reservation_id;
+        reservation_id
     }
 }

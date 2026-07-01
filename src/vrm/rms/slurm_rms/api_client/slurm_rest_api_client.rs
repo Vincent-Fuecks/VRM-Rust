@@ -57,19 +57,19 @@ impl SlurmRestApiClient {
 #[async_trait::async_trait]
 impl SlurmRestApi for SlurmRestApiClient {
     async fn get_nodes(&self) -> Result<SlurmNodesResponse> {
-        let res = self.client.get(self.url(&SlurmEndpoint::Nodes.path())).send().await.context("Failed to send node request to Slurm")?;
+        let res = self.client.get(self.url(SlurmEndpoint::Nodes.path())).send().await.context("Failed to send node request to Slurm")?;
 
         return res.error_for_status()?.json().await.context("Failed to parse SlurmNodesResponse");
     }
 
     async fn get_tasks(&self) -> Result<SlurmTaskResponse> {
-        let res = self.client.get(self.url(&SlurmEndpoint::Jobs.path())).send().await.context("Failed to send jobs request to Slurm")?;
+        let res = self.client.get(self.url(SlurmEndpoint::Jobs.path())).send().await.context("Failed to send jobs request to Slurm")?;
 
         return res.error_for_status()?.json().await.context("Failed to parse SlurmTaskResponse");
     }
 
     async fn is_rms_alive(&self) -> Result<bool> {
-        let res = self.client.get(self.url(&SlurmEndpoint::Ping.path())).send().await.context("Failed to reach Slurm REST API for ping")?;
+        let res = self.client.get(self.url(SlurmEndpoint::Ping.path())).send().await.context("Failed to reach Slurm REST API for ping")?;
 
         return Ok(res.status().is_success());
     }
@@ -77,7 +77,7 @@ impl SlurmRestApi for SlurmRestApiClient {
     async fn commit(&self, payload: TaskSubmission) -> Result<u32> {
         let res = self
             .client
-            .post(self.url(&SlurmEndpoint::JobSubmit.path()))
+            .post(self.url(SlurmEndpoint::JobSubmit.path()))
             .json(&payload)
             .send()
             .await
@@ -104,11 +104,10 @@ impl SlurmRestApi for SlurmRestApiClient {
 
         let response_data: SlurmDeleteResponse = res.json().await.context("Failed to parse delete response")?;
 
-        if let Some(errors) = response_data.errors {
-            if !errors.is_empty() {
+        if let Some(errors) = response_data.errors
+            && !errors.is_empty() {
                 anyhow::bail!("Slurm encountered an error in the deletion process: {:?}", errors);
             }
-        }
 
         return Ok(true);
     }

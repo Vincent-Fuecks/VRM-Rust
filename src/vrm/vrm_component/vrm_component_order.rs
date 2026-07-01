@@ -1,8 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::vrm::vrm_component::comparator::{
-    load_compare::LoadCompare, position_compare::PositionCompare, size_compare::SizeCompare,
-};
+use crate::vrm::vrm_component::comparator::{load_compare::LoadCompare, position_compare::PositionCompare, size_compare::SizeCompare};
 use crate::vrm::vrm_component::vrm_component_container::VrmComponentContainer;
 
 /// An enum to describe the available ways to sort the registered VrmComponents.

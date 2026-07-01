@@ -5,6 +5,12 @@ use std::cmp::Ordering;
 /// Compares VrmComponentContainer by the size of the resources managed by the AcI
 pub struct SizeCompare;
 
+impl Default for SizeCompare {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SizeCompare {
     pub fn new() -> Self {
         Self

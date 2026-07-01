@@ -24,7 +24,7 @@ pub struct Slot {
 
 impl Slot {
     pub fn new(capacity: i64) -> Self {
-        Slot { capacity: capacity, load: 0, reservation_ids: HashSet::new() }
+        Slot { capacity, load: 0, reservation_ids: HashSet::new() }
     }
 
     /// Checks the available capacity in the slot against a potential reservation requirement.
@@ -44,7 +44,7 @@ impl Slot {
             );
         }
 
-        return capacity_left;
+        capacity_left
     }
 
     /// Resets the slot state by clearing all associated reservation keys and setting the

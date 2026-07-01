@@ -1,5 +1,5 @@
-use crate::vrm::vrm_component::vrm_component_container::VrmComponentContainer;
 use crate::vrm::rms::rms::RmsLoadMetric;
+use crate::vrm::vrm_component::vrm_component_container::VrmComponentContainer;
 
 use std::cmp::Ordering;
 

@@ -34,7 +34,7 @@ impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {
         // Add free blocks which are cut by the end of the investigated time range
         self.add_block_which_are_cut_by_range_end(&mut quad_sum_per_free_block, &mut sum_per_free_block, &mut current_free_block_len);
 
-        return self.calculate_avg_fragmentation(&quad_sum_per_free_block, &sum_per_free_block);
+        self.calculate_avg_fragmentation(&quad_sum_per_free_block, &sum_per_free_block)
     }
 
     fn add_block_which_end_in_range(
@@ -96,7 +96,7 @@ impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {
             return 0.0;
         }
 
-        return 1.0 - block_fragmentation.iter().sum::<f64>() / (block_fragmentation.len() as f64);
+        1.0 - block_fragmentation.iter().sum::<f64>() / (block_fragmentation.len() as f64)
     }
 
     /// Calculates the **Resubmission Fragmentation Index (RFI)** for a specific time window.
@@ -153,8 +153,8 @@ impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {
             let random_reservation_id: ReservationId = loop {
                 let id = self.active_reservations.get_random_id().expect("No random ReservationId was found in test SlottedSchedule.");
 
-                let is_non_overlapping = self.reservation_store.get_assigned_start(id.clone()) > self.get_slot_end_time(end_slot_index)
-                    || self.reservation_store.get_assigned_end(id.clone()) < self.get_slot_start_time(start_slot_index);
+                let is_non_overlapping = self.reservation_store.get_assigned_start(id) > self.get_slot_end_time(end_slot_index)
+                    || self.reservation_store.get_assigned_end(id) < self.get_slot_start_time(start_slot_index);
 
                 if !is_non_overlapping {
                     break id;
@@ -164,9 +164,9 @@ impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {
             match test_schedule.reserve(random_reservation_id) {
                 // Could not book again
                 Some(id) => {
-                    remaining_capacity -= self.reservation_store.get_reserved_capacity(id.clone());
+                    remaining_capacity -= self.reservation_store.get_reserved_capacity(id);
                     rejected_capacity +=
-                        self.reservation_store.get_reserved_capacity(id.clone()) * self.reservation_store.get_task_duration(id.clone());
+                        self.reservation_store.get_reserved_capacity(id) * self.reservation_store.get_task_duration(id);
                 }
                 // Success
                 None => {
@@ -174,6 +174,6 @@ impl<S: SlottedScheduleStrategy + Clone + 'static> SlottedScheduleContext<S> {
                 }
             }
         }
-        return (rejected_capacity as f64) / ((free_capacity_in_range * self.slot_width) as f64);
+        (rejected_capacity as f64) / ((free_capacity_in_range * self.slot_width) as f64)
     }
 }

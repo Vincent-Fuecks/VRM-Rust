@@ -47,6 +47,12 @@ pub struct Path {
     pub network_links: Vec<LinkResourceId>,
 }
 
+impl Default for Path {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Path {
     pub fn new() -> Self {
         Self { network_links: Vec::new() }
@@ -149,7 +155,7 @@ impl NetworkTopology {
         // 4.  Pre-calculating all K-shortest paths between Grid Access Points.
         topology.calc_all_paths();
 
-        return topology;
+        topology
     }
 
     /// Calculates the K-shortest paths between the source and target router using a Breadth-First Search (BFS) approach.
@@ -165,7 +171,7 @@ impl NetworkTopology {
             for link_id in outgoing_links {
                 if self.link_ids.contains(link_id) {
                     let mut p = Path::new();
-                    p.network_links.push(link_id.clone());
+                    p.network_links.push(*link_id);
                     queue.push_back(p);
                 }
             }
@@ -201,7 +207,7 @@ impl NetworkTopology {
 
                     if !is_loop {
                         let mut new_path = current_path.clone();
-                        new_path.network_links.push(outgoing_link_id.clone());
+                        new_path.network_links.push(*outgoing_link_id);
                         queue.push_back(new_path);
                     }
                 }
@@ -263,7 +269,7 @@ impl NetworkTopology {
 
             for target_id in &router_ids {
                 let target_router = self.routers.get(target_id).unwrap().clone();
-                if !target_router.is_grid_access_point || source_id.eq(&target_id) {
+                if !target_router.is_grid_access_point || source_id.eq(target_id) {
                     continue;
                 }
 
@@ -297,7 +303,7 @@ impl NetworkTopology {
                 if router_id.eq(&source) {
                     source_found = true;
 
-                    adjacency.entry(source.clone()).or_insert_with(HashSet::new).insert(*link_id);
+                    adjacency.entry(source.clone()).or_default().insert(*link_id);
 
                     if target_found {
                         break;
@@ -322,7 +328,7 @@ impl NetworkTopology {
             }
         }
 
-        return adjacency;
+        adjacency
     }
 
     /// Derives the set of all Routers from the DTO configurations (GridNodes, LinkResources).
@@ -349,7 +355,7 @@ impl NetworkTopology {
             }
         }
 
-        return routers;
+        routers
     }
 
     /// Initializes all `LinkResource` structs and the importance database.
@@ -396,6 +402,6 @@ impl NetworkTopology {
                 component_id
             );
         }
-        return links_ids;
+        links_ids
     }
 }

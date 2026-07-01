@@ -123,14 +123,14 @@ impl AcI {
 
         Ok(AcI {
             id: aci_id,
-            adc_id: adc_id,
+            adc_id,
             commit_timeout: dto.commit_timeout,
             rms_system,
             shadow_schedule_reservations: ShadowScheduleReservations::new(),
             not_committed_reservations: HashMap::new(),
             committed_reservations: HashMap::new(),
             open_probe_reservations: HashMap::new(),
-            simulator: simulator,
+            simulator,
             reservation_store: reservation_store.clone(),
         })
     }
@@ -241,7 +241,7 @@ impl VrmComponent for AcI {
             reservation_id,
             arrival_time,
         );
-        return true;
+        true
     }
 
     fn commit_shadow_schedule(&mut self, shadow_schedule_id: ShadowScheduleId) -> bool {
@@ -253,7 +253,7 @@ impl VrmComponent for AcI {
         if is_committed {
             self.committed_reservations = shadow_schedule_committed_reservations;
 
-            return self.shadow_schedule_reservations.delete_shadow_schedule(&shadow_schedule_id, &self.id);
+            self.shadow_schedule_reservations.delete_shadow_schedule(&shadow_schedule_id, &self.id)
         } else {
             panic!(
                 "During the process of promoting a shadow schedule ({}) to the new master schedule in Aci: {} happened an error. The current shadow schedule of aci and the underlying rms are now not synchronized anymore.",
@@ -279,14 +279,14 @@ impl VrmComponent for AcI {
             "The process of creating a new shadow schedule failed. However, the shadow schedule of aci: {} and the underlying rms are sill synchronized.",
             self.id
         );
-        return false;
+        false
     }
 
     fn delete(&mut self, reservation_id: ReservationId, shadow_schedule_id: Option<ShadowScheduleId>) -> ReservationId {
         let arrival_time = self.simulator.get_system_time_s();
         let container;
 
-        if !shadow_schedule_id.is_none() {
+        if shadow_schedule_id.is_some() {
             container = self.shadow_schedule_reservations.delete_reservation_container(reservation_id, &shadow_schedule_id.clone().unwrap());
         } else {
             container = self.not_committed_reservations.remove(&reservation_id);
@@ -310,7 +310,7 @@ impl VrmComponent for AcI {
         // Remove Task from Schedule and local Rms (if ReservationState::Committed)
         self.rms_system.delete_task(reservation_id, shadow_schedule_id.clone());
 
-        return reservation_id;
+        reservation_id
     }
 
     fn delete_shadow_schedule(&mut self, shadow_schedule_id: ShadowScheduleId) -> bool {
@@ -330,7 +330,7 @@ impl VrmComponent for AcI {
             "The process of deleting a shadow schedule failed. However, the shadow schedule of aci: {} and the underlying rms are sill synchronized.",
             self.id
         );
-        return false;
+        false
     }
 
     fn get_load_metric_up_to_date(&mut self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> RmsLoadMetric {
@@ -401,7 +401,7 @@ impl VrmComponent for AcI {
             );
         }
 
-        return prob_request_answer;
+        prob_request_answer
     }
 
     fn probe_best(
@@ -436,7 +436,7 @@ impl VrmComponent for AcI {
 
         // Init ProbeReservation tracking -> Informs AcI if VrmComponent likes to reserve a ProbeReservation
         self.open_probe_reservations.insert(reservation_id, shadow_schedule_id);
-        return probe_best_answer;
+        probe_best_answer
     }
 
     fn reserve(&mut self, reservation_id: ReservationId, shadow_schedule_id: Option<ShadowScheduleId>) -> ReservationId {
@@ -485,7 +485,7 @@ impl VrmComponent for AcI {
                         arrival_time,
                     );
                 }
-                return reservation_id;
+                reservation_id
             }
             Some(reservation_id_of_answer) => {
                 if !self.reservation_store.is_reservation_state_at_least(reservation_id, ReservationState::ReserveAnswer) {
@@ -506,7 +506,7 @@ impl VrmComponent for AcI {
                     self.simulator.get_system_time_s() + self.commit_timeout,
                 );
 
-                if !shadow_schedule_id.is_none() {
+                if shadow_schedule_id.is_some() {
                     let mut new_committed_reservations: HashMap<ReservationId, ReservationContainer> = HashMap::new();
                     new_committed_reservations.insert(reservation_id_of_answer, reservation_container.clone());
 
@@ -527,7 +527,7 @@ impl VrmComponent for AcI {
                     );
                 }
 
-                return reservation_id;
+                reservation_id
             }
         }
     }

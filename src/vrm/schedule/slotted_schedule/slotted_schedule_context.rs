@@ -2,12 +2,12 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use crate::vrm::common::id::SlottedScheduleId;
-use crate::vrm::schedule::load_buffer::{GlobalLoadContext, LoadBuffer};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::probe_reservations::ProbeReservations;
 use crate::vrm::reservation::reservation::{Reservation, ReservationState, ReservationTrait};
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::vrm::reservation::reservations::Reservations;
+use crate::vrm::schedule::load_buffer::{GlobalLoadContext, LoadBuffer};
 use crate::vrm::schedule::slotted_schedule::slot::Slot;
 use crate::vrm::schedule::slotted_schedule::strategy::strategy_trait::SlottedScheduleStrategy;
 
@@ -92,8 +92,8 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
         let mut slotted_context = SlottedScheduleContext {
             strategy,
             id: SlottedScheduleId::new(id),
-            slots: slots,
-            slot_width: slot_width,
+            slots,
+            slot_width,
             start_slot_index: simulator.get_system_time_s(),
             end_slot_index: number_of_real_slots,
             scheduling_window_start_time: simulator.get_system_time_s(),
@@ -102,7 +102,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
             active_reservations: Reservations::new_empty(reservation_store.clone()),
             is_frag_cache_up_to_date: true,
             fragmentation_cache: 0.0,
-            use_quadratic_mean_fragmentation: use_quadratic_mean_fragmentation,
+            use_quadratic_mean_fragmentation,
             is_frag_needed: false,
             reservation_store,
             simulator,
@@ -110,7 +110,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
 
         slotted_context.update();
 
-        return slotted_context;
+        slotted_context
     }
 
     pub fn clear(&mut self) {
@@ -126,7 +126,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
     /// Computes a  **real index** in `slots` to a corresponding **virtual slot index** in the
     /// overall schedule timeline.
     pub fn get_real_slot_index(&self, index: i64) -> i64 {
-        return (index % (self.slots.len() as i64)) as i64;
+        index % (self.slots.len() as i64)
     }
 
     /// Retrieves the `Slot` corresponding to the given **virtual index**, if it exists within the current window.
@@ -142,7 +142,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
         }
 
         let real_index: i64 = self.get_real_slot_index(index);
-        return self.slots.get(real_index as usize);
+        self.slots.get(real_index as usize)
     }
 
     /// Retrieves the `Slot` corresponding to the given **virtual index**, if it exists within the current window.
@@ -158,7 +158,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
         }
 
         let real_index: i64 = self.get_real_slot_index(index);
-        return self.slots.get_mut(real_index as usize);
+        self.slots.get_mut(real_index as usize)
     }
 
     /// Calculates the **virtual index** of the time slot that contains the given point in time.
@@ -178,17 +178,17 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
             return 0;
         }
 
-        return index;
+        index
     }
 
     /// Computes the **absolute start time** in seconds of a virtual slot.
     pub fn get_slot_start_time(&self, index: i64) -> i64 {
-        return index * self.slot_width;
+        index * self.slot_width
     }
 
     /// Computes the **absolute end time** in seconds of a virtual slot.
     pub fn get_slot_end_time(&self, index: i64) -> i64 {
-        return index * self.slot_width + self.slot_width - 1;
+        index * self.slot_width + self.slot_width - 1
     }
 
     /// Limits a given **virtual slot index** to ensure it is bounded by the current schedule window.
@@ -205,7 +205,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
             effective_slot_index = self.end_slot_index;
         }
 
-        return effective_slot_index;
+        effective_slot_index
     }
     /// **Updates the scheduling window** by advancing the internal time pointers based on the current simulation time.
     ///
@@ -228,9 +228,9 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
         for clean_index in self.start_slot_index..effective_cleanup_end {
             if let Some(slot) = self.get_slot(clean_index) {
                 for id in &slot.reservation_ids {
-                    let last_slot_of_reservation = self.get_slot_index(self.reservation_store.get_assigned_end(id.clone()) - 1);
+                    let last_slot_of_reservation = self.get_slot_index(self.reservation_store.get_assigned_end(*id) - 1);
                     if last_slot_of_reservation == clean_index {
-                        ids_to_remove.insert(id.clone());
+                        ids_to_remove.insert(*id);
                     }
                 }
             }
@@ -271,10 +271,10 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
         // Can not Del unreserved reservation
         if !self.active_reservations.contains_key(&id) {
             log::error!("DEL Reservation form Schedule: {}, However Schedule does not contain reservation with id: {:?}", self.id, id);
-            self.reservation_store.update_state(id.clone(), ReservationState::Rejected);
+            self.reservation_store.update_state(id, ReservationState::Rejected);
             return false;
         }
-        return true;
+        true
     }
 
     /// Deletes the provided ReservationId form the specified slot.
@@ -286,23 +286,23 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
                 return false;
             }
         };
-        return slot.delete_reservation(reservation_id, reservation_reserved_capacity);
+        slot.delete_reservation(reservation_id, reservation_reserved_capacity)
     }
 
     /// Performs the actual deletion of the reservation in the SlottedScheduleContext
     pub fn delete_reservation(&mut self, id: ReservationId) {
         let current_time = self.simulator.get_system_time_s();
         // Can not delete already finished reservations
-        let task_finished: bool = self.reservation_store.get_assigned_end(id.clone()) <= current_time;
+        let task_finished: bool = self.reservation_store.get_assigned_end(id) <= current_time;
 
         if task_finished {
             log::error!("Can't deleted reservation {:?} form Schedule: {}, because reservation is already finished.", id, self.id,);
             return;
         }
 
-        let del_res_assigned_start = self.reservation_store.get_assigned_start(id.clone());
-        let del_res_assigned_end = self.reservation_store.get_assigned_end(id.clone());
-        let del_res_reserved_capacity = self.reservation_store.get_reserved_capacity(id.clone());
+        let del_res_assigned_start = self.reservation_store.get_assigned_start(id);
+        let del_res_assigned_end = self.reservation_store.get_assigned_end(id);
+        let del_res_reserved_capacity = self.reservation_store.get_reserved_capacity(id);
 
         // Delete reservation from schedule
         if !self.active_reservations.delete_reservation(&id) {
@@ -329,11 +329,10 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
                 }
             };
 
-            slot.delete_reservation(id.clone(), del_res_reserved_capacity);
+            slot.delete_reservation(id, del_res_reserved_capacity);
         }
 
         self.is_frag_cache_up_to_date = false;
-        return;
     }
 
     /// Checks if a given point in time falls within the schedule's defined **scheduling window**.
@@ -342,7 +341,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
             return false;
         }
 
-        return true;
+        true
     }
 
     /// Retrieves the current resource load (reserved capacity) for a slot at a given index.
@@ -356,7 +355,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
                     self.id,
                     index,
                 );
-                return 0;
+                0
             }
         }
     }
@@ -373,9 +372,9 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
     /// Returns a `Reservations` object containing a map of all feasible reservations (candidates) found.
     /// Each candidate represents a valid assignment time within the schedule's constraints.
     pub fn calculate_schedule(&mut self, id: ReservationId) -> ProbeReservations {
-        let mut request_start_boundary: i64 = self.reservation_store.get_booking_interval_start(id.clone());
-        let mut request_end_boundary: i64 = self.reservation_store.get_booking_interval_end(id.clone());
-        let initial_duration: i64 = self.reservation_store.get_task_duration(id.clone());
+        let mut request_start_boundary: i64 = self.reservation_store.get_booking_interval_start(id);
+        let mut request_end_boundary: i64 = self.reservation_store.get_booking_interval_end(id);
+        let initial_duration: i64 = self.reservation_store.get_task_duration(id);
 
         // Normalize sentinel values from ReservationStore.
         // i64::MIN indicates an unset boundary, treated as "no restriction".
@@ -398,9 +397,9 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
             return search_results;
         }
 
-        if !self.reservation_store.is_moldable(id.clone())
+        if !self.reservation_store.is_moldable(id)
             && S::get_capacity(self) > 0
-            && S::get_capacity(self) < self.reservation_store.get_reserved_capacity(id.clone())
+            && S::get_capacity(self) < self.reservation_store.get_reserved_capacity(id)
         {
             return search_results;
         }
@@ -416,11 +415,11 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
                 let _ = search_results.add_reservation(res_candidate);
             }
         }
-        return search_results;
+        search_results
     }
 
     fn try_fit_reservation(&mut self, candidate_id: ReservationId, slot_start_index: i64, request_end_boundary: i64) -> Option<Reservation> {
-        let mut candidate = match self.reservation_store.get_reservation_snapshot(candidate_id.clone()) {
+        let mut candidate = match self.reservation_store.get_reservation_snapshot(candidate_id) {
             Some(candidate) => candidate,
             None => {
                 log::error!(
@@ -431,8 +430,8 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
             }
         };
 
-        let mut current_required_capacity = self.reservation_store.get_reserved_capacity(candidate_id.clone());
-        let mut current_duration: i64 = self.reservation_store.get_task_duration(candidate_id.clone());
+        let mut current_required_capacity = self.reservation_store.get_reserved_capacity(candidate_id);
+        let mut current_duration: i64 = self.reservation_store.get_task_duration(candidate_id);
         let mut start_time = self.get_slot_start_time(slot_start_index);
 
         let booking_interval_start = candidate.get_booking_interval_start();
@@ -466,7 +465,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
 
                 end_time = start_time + current_duration;
 
-                if false == self.is_time_in_scheduling_window(end_time) || end_time > request_end_boundary {
+                if !self.is_time_in_scheduling_window(end_time) || end_time > request_end_boundary {
                     is_feasible = false;
                     break;
                 }
@@ -486,7 +485,7 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
             return Some(candidate);
         }
 
-        return None;
+        None
     }
 
     /// Updates the total resource capacity for all time slots within the schedule.
@@ -511,11 +510,11 @@ impl<S: SlottedScheduleStrategy> SlottedScheduleContext<S> {
             // Start reservation pruning
             // Clone required because we mutate (delete from) the set while iterating.
             for res_in_slot in slot.reservation_ids.clone().iter() {
-                if !slot.delete_reservation(res_in_slot.clone(), self.reservation_store.get_reserved_capacity(res_in_slot.clone())) {
+                if !slot.delete_reservation(*res_in_slot, self.reservation_store.get_reserved_capacity(*res_in_slot)) {
                     log::error!(
                         "ErrorSlottedScheduleContextUpdateCapacity: In schedule {:?} with reservation {:?}",
                         self.id,
-                        self.reservation_store.get_name_for_key(res_in_slot.clone())
+                        self.reservation_store.get_name_for_key(*res_in_slot)
                     );
                 }
 

@@ -1,11 +1,11 @@
-use crate::vrm::schedule::schedule_trait::Schedule;
-use crate::vrm::schedule::slotted_schedule::strategy::link::topology::{Link, Node};
 use crate::schema::rms_dto::DummyRmsDto;
 use crate::vrm::common::id::{ComponentId, ResourceName, RmsId, RouterId, ShadowScheduleId};
-use crate::vrm::schedule::load_buffer::LoadMetric;
 use crate::vrm::reservation::reservation::ReservationState;
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::vrm::resource::resource_store::ResourceStore;
+use crate::vrm::schedule::load_buffer::LoadMetric;
+use crate::vrm::schedule::schedule_trait::Schedule;
+use crate::vrm::schedule::slotted_schedule::strategy::link::topology::{Link, Node};
 
 use parking_lot::RwLock;
 use std::any::Any;
@@ -36,7 +36,9 @@ pub trait Rms: std::fmt::Debug + Any {
     /// The `ReservationId` of the committed job.
     fn commit(&self, reservation_id: ReservationId) {
         self.get_base().reservation_store.update_state(reservation_id, ReservationState::Committed);
-        log::info!("Committed reservation {:?} successfully to the local RMS", reservation_id);
+        log::info!("[Simulation] Committed reservation {:?} successfully to the local RMS.", reservation_id);
+        self.get_base().reservation_store.update_state(reservation_id, ReservationState::Finished);
+        log::info!("[Simulation] Finished reservation {:?} successfully at local RMS.", reservation_id);
     }
 
     /// Should not be necessary in the rust implementation.  
@@ -109,12 +111,12 @@ impl RmsBase {
             let node = Node {
                 name: ResourceName::new(node_dto.id.clone()),
                 cpus: node_dto.cpus,
-                connected_to_router: node_dto.connected_to_router.iter().map(|router_id| RouterId::new(router_id)).collect(),
+                connected_to_router: node_dto.connected_to_router.iter().map(RouterId::new).collect(),
             };
 
             nodes.push(node);
         }
 
-        return (nodes, links);
+        (nodes, links)
     }
 }

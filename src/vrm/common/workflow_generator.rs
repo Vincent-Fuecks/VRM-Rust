@@ -18,13 +18,11 @@ impl WorkflowGenerator {
 
             if d == 0 || d == self.depth - 1 {
                 current_level_ids.push(level_char);
-            } else {
-                if let Some(prev_level) = levels.get(d - 1) {
-                    for parent_id in prev_level {
-                        for i in 0..self.branching_degree {
-                            let suffix = &parent_id[1..];
-                            current_level_ids.push(format!("{}{}{}", level_char, suffix, i));
-                        }
+            } else if let Some(prev_level) = levels.get(d - 1) {
+                for parent_id in prev_level {
+                    for i in 0..self.branching_degree {
+                        let suffix = &parent_id[1..];
+                        current_level_ids.push(format!("{}{}{}", level_char, suffix, i));
                     }
                 }
             }
@@ -132,8 +130,8 @@ mod tests {
     use std::io::BufWriter;
     use std::path::Path;
 
-    use crate::vrm::common::legacy_workflow_adapter::LegacyWorkflowAdapter;
     use crate::schema::client_dto::{ClientDto, ClientsDto};
+    use crate::vrm::common::legacy_workflow_adapter::LegacyWorkflowAdapter;
 
     use super::*;
 

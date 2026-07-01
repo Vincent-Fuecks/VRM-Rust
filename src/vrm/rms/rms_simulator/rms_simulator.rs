@@ -1,5 +1,3 @@
-use std::{any::Any, collections::HashMap, sync::Arc};
-
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
 use crate::vrm::resource::resource_store::ResourceStore;
 use crate::vrm::rms::common::{RmsSetupContext, get_nodes_and_links};
@@ -12,6 +10,7 @@ use crate::{
     vrm::global_clock::global_clock::GlobalClock,
 };
 use parking_lot::RwLock;
+use std::{any::Any, collections::HashMap, sync::Arc};
 
 /// Simulates both links and nodes of a cluster
 #[derive(Debug)]
@@ -66,7 +65,8 @@ impl RmsSimulator {
         reservation_store: ReservationStore,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let resource_store = ResourceStore::new();
-        let (nodes, links, _) = get_nodes_and_links(dto.topology.clone(), Some(dto.compute_nodes));
+        let gateway_name = format!("AcI-Gateway-{}", component_id);
+        let (nodes, links, _) = get_nodes_and_links(dto.topology.clone(), Some(dto.compute_nodes), &gateway_name);
         let schedule_name = format!("AcI: {}, RmsType: {}", component_id, dto.typ);
 
         let rms_setup_context = RmsSetupContext::new(
@@ -82,17 +82,13 @@ impl RmsSimulator {
             resource_store,
         );
 
-        let base = rms_setup_context.get_base()?;
+        // Build schedules first — they populate the shared resource_store with nodes and links.
+        // get_base() must be called after, because it clones the resource_store.
         let node_schedule = rms_setup_context.get_node_schedule()?;
         let network_schedule = rms_setup_context.get_network_schedule()?;
+        let base = rms_setup_context.get_base()?;
 
-        Ok(RmsSimulator {
-            base: base,
-            node_schedule: node_schedule,
-            network_schedule: network_schedule,
-            node_shadow_schedule: HashMap::new(),
-            network_shadow_schedule: HashMap::new(),
-        })
+        Ok(RmsSimulator { base, node_schedule, network_schedule, node_shadow_schedule: HashMap::new(), network_shadow_schedule: HashMap::new() })
     }
 }
 

@@ -36,17 +36,17 @@ pub struct SlurmRmsDto {
     pub scheduler_typ: String,
     pub slot_width: i64,
     pub num_of_slots: i64,
-    pub rest_api_config : SlurmConfigDto,
+    pub rest_api_config: SlurmConfigDto,
     pub topology: TopologyDto,
 }
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TopologyDto {
-    pub ingress_bandwidth_gbps: i64, 
+    pub ingress_bandwidth_gbps: i64,
     pub egress_bandwidth_gbps: i64,
     pub gateway_switch_id: String,
-    pub switches: Vec<SwitchDto>
+    pub switches: Vec<SwitchDto>,
 }
 
 #[derive(Debug, Deserialize, Clone, Serialize)]

@@ -1,12 +1,15 @@
-use crate::{vrm::schedule::{
+use crate::vrm::reservation::{
+    probe_reservations::{ProbeReservationComparator, ProbeReservations},
+    reservation::ReservationState,
+    reservation_store::ReservationId,
+};
+use crate::{
+    vrm::schedule::load_buffer::LoadMetric,
+    vrm::schedule::{
         schedule_trait::Schedule,
         slotted_schedule::{slotted_schedule_context::SlottedScheduleContext, strategy::strategy_trait::SlottedScheduleStrategy},
-    }, vrm::schedule::load_buffer::LoadMetric};
-use crate::vrm::reservation::{
-        probe_reservations::{ProbeReservationComparator, ProbeReservations},
-        reservation::ReservationState,
-        reservation_store::ReservationId,
-    };
+    },
+};
 
 impl<S: SlottedScheduleStrategy> Schedule for SlottedScheduleContext<S> {
     fn clear(&mut self) {
@@ -73,7 +76,7 @@ impl<S: SlottedScheduleStrategy> Schedule for SlottedScheduleContext<S> {
             }
         }
 
-        return candidates;
+        candidates
     }
 
     fn probe_best(&mut self, request_id: ReservationId, probe_reservation_comparator: ProbeReservationComparator) -> ProbeReservations {
@@ -96,7 +99,7 @@ impl<S: SlottedScheduleStrategy> Schedule for SlottedScheduleContext<S> {
 
         if let Some(best_probes) = probe_reservations.create_new_probe_reservation_with_best_probe(request_id, probe_reservation_comparator) {
             self.reservation_store.update_state(request_id, ReservationState::ProbeAnswer);
-            return best_probes;
+            best_probes
         } else {
             log::error!(
                 "SlottedScheduleContextProbeBestRequestEmptyProbeReservationErrorInSelectBestProbeReservationLogic: Reservation {:?} on Schedule {:?}",
@@ -105,7 +108,7 @@ impl<S: SlottedScheduleStrategy> Schedule for SlottedScheduleContext<S> {
             );
 
             self.reservation_store.update_state(request_id, ReservationState::Rejected);
-            return probe_reservations;
+            probe_reservations
         }
     }
 
@@ -142,7 +145,7 @@ impl<S: SlottedScheduleStrategy> Schedule for SlottedScheduleContext<S> {
             Some(reservation_id)
         } else {
             self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
-            return None;
+            None
         }
     }
 
@@ -156,8 +159,8 @@ impl<S: SlottedScheduleStrategy> Schedule for SlottedScheduleContext<S> {
             self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
         }
 
-        let start_slot = self.get_slot_index(self.reservation_store.get_assigned_start(reservation_id.clone()));
-        let end_slot = self.get_slot_index(self.reservation_store.get_assigned_end(reservation_id.clone()) - 1);
+        let start_slot = self.get_slot_index(self.reservation_store.get_assigned_start(reservation_id));
+        let end_slot = self.get_slot_index(self.reservation_store.get_assigned_end(reservation_id) - 1);
 
         for slot_index in start_slot..=end_slot {
             S::insert_reservation_into_slot(self, self.reservation_store.get_reserved_capacity(reservation_id), slot_index, reservation_id);

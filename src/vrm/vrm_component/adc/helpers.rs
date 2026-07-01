@@ -133,7 +133,7 @@ impl ADC {
             }
         }
         self.reservation_store.update_state(reservation_id, ReservationState::Rejected);
-        return reservation_id;
+        reservation_id
     }
 
     pub fn log_state_probe(&mut self, num_of_answers: i64, arrival_time_at_aci: i64) {

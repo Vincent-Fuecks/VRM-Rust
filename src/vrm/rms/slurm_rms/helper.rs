@@ -54,10 +54,10 @@ impl SlurmRms {
                 links.push(link);
             }
 
-            let node_ids: Vec<ResourceName> = start_switch.nodes.iter().map(|node_id| ResourceName::new(node_id)).collect();
+            let node_ids: Vec<ResourceName> = start_switch.nodes.iter().map(ResourceName::new).collect();
 
             for node_id in node_ids {
-                node_to_switches.entry(node_id).or_insert_with(Vec::new).push(switch0.clone().cast());
+                node_to_switches.entry(node_id).or_default().push(switch0.clone().cast());
             }
         }
 
@@ -80,6 +80,6 @@ impl SlurmRms {
                 );
             }
         }
-        return (nodes, links);
+        (nodes, links)
     }
 }

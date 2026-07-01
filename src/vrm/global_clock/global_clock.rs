@@ -21,7 +21,7 @@ impl GlobalClock {
         if is_simulation {
             reference_start_time = AtomicI64::new(0);
         }
-        Self { is_simulation: is_simulation, reference_start_time: reference_start_time }
+        Self { is_simulation, reference_start_time }
     }
 
     pub fn get_system_time_s(&self) -> i64 {
@@ -31,7 +31,7 @@ impl GlobalClock {
             return self.reference_start_time.load(Ordering::Relaxed);
         }
 
-        return now;
+        now
     }
 
     pub fn tick_forward(&mut self) {

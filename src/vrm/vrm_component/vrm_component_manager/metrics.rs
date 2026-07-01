@@ -1,6 +1,6 @@
 use crate::vrm::common::id::{ComponentId, ShadowScheduleId};
-use crate::vrm::schedule::load_buffer::LoadMetric;
 use crate::vrm::rms::rms::RmsLoadMetric;
+use crate::vrm::schedule::load_buffer::LoadMetric;
 
 use super::VrmComponentManager;
 
@@ -44,7 +44,7 @@ impl VrmComponentManager {
             }
         }
 
-        return if total_capacity > 0.0 { satisfaction_sum / total_capacity } else { 0.0 };
+        if total_capacity > 0.0 { satisfaction_sum / total_capacity } else { 0.0 }
     }
 
     /// Calculates the system-wide **Satisfaction Score** (0.0 to 1.0) across the full range of every schedule.
@@ -82,7 +82,7 @@ impl VrmComponentManager {
             }
         }
 
-        return if total_capacity > 0.0 { satisfaction_sum / total_capacity } else { 0.0 };
+        if total_capacity > 0.0 { satisfaction_sum / total_capacity } else { 0.0 }
     }
 
     fn calculate_averge_load_metric(
@@ -127,15 +127,15 @@ impl VrmComponentManager {
         }
 
         if num_of_valid_components > 0 {
-            return Some(LoadMetric::new(
+            Some(LoadMetric::new(
                 earliest_start,
                 latest_end,
                 total_average_reserved_capacity / num_of_valid_components as f64,
                 total_possible_reserved_capacity / num_of_valid_components as f64,
                 utilization,
-            ));
+            ))
         } else {
-            return None;
+            None
         }
     }
 
@@ -161,10 +161,10 @@ impl VrmComponentManager {
             network_metricis.push((id.clone(), load_matic.link_load_metric));
         }
 
-        return RmsLoadMetric {
+        RmsLoadMetric {
             node_load_metric: self.calculate_averge_load_metric(shadow_schedule_id.clone(), node_metricis),
             link_load_metric: self.calculate_averge_load_metric(shadow_schedule_id.clone(), network_metricis),
-        };
+        }
     }
 
     /// Computes the **Load Metric** for the entire simulation timeline.
@@ -185,9 +185,9 @@ impl VrmComponentManager {
             network_metricis.push((id.clone(), load_matic.link_load_metric));
         }
 
-        return RmsLoadMetric {
+        RmsLoadMetric {
             node_load_metric: self.calculate_averge_load_metric(shadow_schedule_id.clone(), node_metricis),
             link_load_metric: self.calculate_averge_load_metric(shadow_schedule_id.clone(), network_metricis),
-        };
+        }
     }
 }

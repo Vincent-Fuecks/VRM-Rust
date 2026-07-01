@@ -1,8 +1,8 @@
 use std::any::Any;
 
+use crate::vrm::common::id::{ResourceName, RouterId};
 use crate::vrm::schedule::slotted_schedule::slotted_schedule_context::SlottedScheduleContext;
 use crate::vrm::schedule::slotted_schedule::strategy::node::node_strategy::NodeStrategy;
-use crate::vrm::common::id::{ResourceName, RouterId};
 
 use super::resource_trait::{FeasibilityRequest, Resource};
 use super::resources::BaseResource;
@@ -44,9 +44,9 @@ impl Resource for LinkResource {
                 // Links check topology AND capacity
                 log::debug!("LinkResource check with {:?} source: {:?}, target: {:?}", self.base.name, self.source, self.target);
                 if source.compare(&self.source) && target.compare(&self.target) {
-                    return self.base.can_handle(*is_moldable, *capacity);
+                    self.base.can_handle(*is_moldable, *capacity)
                 } else {
-                    return false;
+                    false
                 }
             }
             _ => false, // A Link cannot handle a Node request

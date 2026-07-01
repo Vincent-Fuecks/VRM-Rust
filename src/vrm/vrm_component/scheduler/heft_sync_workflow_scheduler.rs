@@ -61,7 +61,10 @@ impl WorkflowScheduler for HEFTSyncWorkflowScheduler {
             let mut grid_component_res_database: HashMap<ReservationId, ComponentId> = HashMap::new();
 
             if let Reservation::Workflow(ref mut workflow) = *reservation {
-                let average_link_speed = adc.manager.get_average_link_speed() as i64;
+                let average_link_speed = {
+                    let speed = adc.manager.get_average_link_speed() as i64;
+                    if speed == 0 { 1 } else { speed }
+                };
                 let ranked_node_reservations = workflow.calculate_upward_rank(average_link_speed, &self.base.reservation_store);
 
                 let workflow_booking_interval_end = workflow.get_booking_interval_end();
@@ -142,7 +145,7 @@ impl WorkflowScheduler for HEFTSyncWorkflowScheduler {
                 return true;
             }
         }
-        return false;
+        false
     }
 
     fn probe(&mut self, _workflow_res_id: ReservationId, _adc: &mut ADC) -> Reservations {
@@ -187,7 +190,7 @@ impl HEFTSyncWorkflowScheduler {
                     let end_time = self.base.reservation_store.get_assigned_start(target_res_id);
 
                     if !self.schedule_dependency(
-                        data_dep.reservation_id.clone(),
+                        data_dep.reservation_id,
                         workflow,
                         start_time,
                         end_time,
@@ -214,7 +217,7 @@ impl HEFTSyncWorkflowScheduler {
                 )
             }
         }
-        return true;
+        true
     }
 
     /// Manages co-allocation groups while ensuring that failed sub-reservations do not leave
@@ -288,7 +291,7 @@ impl HEFTSyncWorkflowScheduler {
                 return false;
             }
         }
-        return true;
+        true
     }
 
     /**
@@ -332,7 +335,7 @@ impl HEFTSyncWorkflowScheduler {
                 }
                 return self.schedule_dummy_dependency(workflow, dependency_reservation_id, start, end);
             }
-            return self.schedule_real_dependency(
+            self.schedule_real_dependency(
                 dependency_reservation_id,
                 workflow,
                 start,
@@ -342,14 +345,14 @@ impl HEFTSyncWorkflowScheduler {
                 target_component_id,
                 grid_component_res_database,
                 adc,
-            );
+            )
         } else {
             log::error!(
                 "ErrorNotLink: Schedule link dependency was on the reservation {:?} performed, which is not of type link",
                 dependency_reservation_id
             );
 
-            return false;
+            false
         }
     }
 
@@ -401,7 +404,7 @@ impl HEFTSyncWorkflowScheduler {
                 );
             }
         }
-        return true;
+        true
     }
     /**
      * Schedule and try to reserve the given reservation such that it finish
@@ -426,13 +429,12 @@ impl HEFTSyncWorkflowScheduler {
             ProbeReservationComparator::EFTReservationCompare,
         );
 
-        if !candidate_id.is_none()
-            && self.base.reservation_store.is_reservation_state_at_least(candidate_id.unwrap(), ReservationState::ReserveAnswer)
+        if candidate_id.is_some() && self.base.reservation_store.is_reservation_state_at_least(candidate_id.unwrap(), ReservationState::ReserveAnswer)
         {
             workflow.update_reservation(self.base.reservation_store.clone(), candidate_id.unwrap());
             return candidate_id;
         }
-        return None;
+        None
     }
 
     /**
@@ -442,7 +444,10 @@ impl HEFTSyncWorkflowScheduler {
      */
     pub fn cancel_all_reservations(&mut self, adc: &mut ADC, grid_component_res_database: &mut HashMap<ReservationId, ComponentId>) {
         for (reservation_id, _) in grid_component_res_database.clone() {
-            if !adc.manager.delete_task_at_component(reservation_id.clone(), None) {
+            // Clean up any virtual reservations linked to this reservation
+            self.base.reservation_store.cascade_delete_virtual_reservations(reservation_id);
+
+            if !adc.manager.delete_task_at_component(reservation_id, None) {
                 log::error!(
                     "HEFTSyncWorkflowSchedulerCancelAllReservationsError: Is was not possible to delete the Reservation {:?}.",
                     reservation_id
@@ -479,7 +484,7 @@ impl HEFTSyncWorkflowScheduler {
 
         // aisPerReservation.put(dependency.assignedReservation,ADC.INTERNAL_JOB);
         workflow.update_reservation(self.base.reservation_store.clone(), dependency_reservation_id);
-        return true;
+        true
     }
 
     /**
@@ -518,34 +523,164 @@ impl HEFTSyncWorkflowScheduler {
             self.base.reservation_store.set_task_duration(dependency_reservation_id, end - start);
         }
 
-        let source_component_router_id_list = adc.manager.get_component_router_list(source_component_id.clone());
-        let target_component_router_id_list = adc.manager.get_component_router_list(target_component_id.clone());
+        // Use gateway RouterIds per the information hiding principle (AD-5).
+        // The ADC only knows each component's gateway RouterId, not internal routers.
+        let source_gateway = adc.manager.get_component_gateway_router_id(&source_component_id);
+        let target_gateway = adc.manager.get_component_gateway_router_id(&target_component_id);
 
-        for source_router_id in &source_component_router_id_list {
-            for target_router_id in &target_component_router_id_list {
-                if let Some(res_arc) = self.base.reservation_store.get(dependency_reservation_id) {
-                    let mut guard = res_arc.write();
+        if let Some(res_arc) = self.base.reservation_store.get(dependency_reservation_id) {
+            let mut guard = res_arc.write();
 
-                    if let Some(link) = guard.as_link_mut() {
-                        link.start_point = Some(source_router_id.clone());
-                        link.end_point = Some(target_router_id.clone());
-                    }
-                }
-
-                // If data transfer reset parameter and transfer all in a single time slot
-                if is_filetransfer {
-                    self.base.reservation_store.adjust_task_duration(dependency_reservation_id, 1);
-                }
-
-                // Reserve transfer task, these tasks are moldable, because the GridComponent may change duration + bandwidth
-                let candidate_id = adc.submit_task_at_first_grid_component(dependency_reservation_id, None, grid_component_res_database);
-
-                if self.base.reservation_store.is_reservation_state_at_least(candidate_id, ReservationState::ReserveAnswer) {
-                    workflow.update_reservation(self.base.reservation_store.clone(), candidate_id);
-                    return true;
-                }
+            if let Some(link) = guard.as_link_mut() {
+                link.start_point = Some(source_gateway.clone());
+                link.end_point = Some(target_gateway.clone());
             }
         }
-        return false;
+
+        // If data transfer reset parameter and transfer all in a single time slot
+        if is_filetransfer {
+            self.base.reservation_store.adjust_task_duration(dependency_reservation_id, 1);
+        }
+
+        // For same-RMS dependencies, schedule on the source component.
+        // For cross-RMS dependencies, the link is split into a virtual reservation chain
+        // (handled by the caller via schedule_dependency).
+        if source_component_id.compare(&target_component_id) {
+            // Same-RMS: internal link routing is delegated to the AcI
+            let candidate_id = adc.submit_task_at_first_grid_component(dependency_reservation_id, None, grid_component_res_database);
+
+            if self.base.reservation_store.is_reservation_state_at_least(candidate_id, ReservationState::ReserveAnswer) {
+                workflow.update_reservation(self.base.reservation_store.clone(), candidate_id);
+                return true;
+            }
+        } else {
+            // Cross-RMS: schedule via 4-segment virtual reservation chain (AD-3)
+            return self.schedule_cross_rms_dependency(
+                dependency_reservation_id,
+                workflow,
+                start,
+                end,
+                is_filetransfer,
+                &source_component_id,
+                &target_component_id,
+                &source_gateway,
+                &target_gateway,
+                grid_component_res_database,
+                adc,
+            );
+        }
+        false
+    }
+
+    /// Schedules a cross-RMS dependency by splitting it into a 4-segment virtual reservation chain.
+    ///
+    /// The chain consists of:
+    /// 1. source_node → source_gateway (internal, handled by source AcI — committed as dummy)
+    /// 2. source_gateway → ADC-System (virtual, at ADC level)
+    /// 3. ADC-System → target_gateway (virtual, at ADC level)
+    /// 4. target_gateway → target_node (internal, handled by target AcI — committed as dummy)
+    ///
+    /// Segments 1 and 4 are treated as dummy because internal routing is delegated to the
+    /// respective AcIs per the information hiding principle (AD-5). Only the inter-gateway
+    /// virtual segments (2 and 3) are scheduled as real link reservations.
+    ///
+    /// All four segments must succeed or all are rolled back (atomicity invariant).
+    fn schedule_cross_rms_dependency(
+        &mut self,
+        dependency_reservation_id: ReservationId,
+        workflow: &mut Workflow,
+        start: i64,
+        end: i64,
+        is_filetransfer: bool,
+        source_component_id: &ComponentId,
+        target_component_id: &ComponentId,
+        source_gateway: &RouterId,
+        target_gateway: &RouterId,
+        grid_component_res_database: &mut HashMap<ReservationId, ComponentId>,
+        adc: &mut ADC,
+    ) -> bool {
+        use crate::vrm::reservation::reservation::ReservationState;
+
+        let adc_system_id = RouterId::new("ADC-System");
+
+        // Segment 1: internal on source AcI (source_node → source_gateway).
+        // Treated as dummy — internal routing is the AcI's responsibility.
+        let seg1_id = self.base.reservation_store.add_virtual_reservation_diff_end(dependency_reservation_id, source_gateway.clone());
+        let seg1_id = match seg1_id {
+            Some(id) => id,
+            None => return false,
+        };
+        self.base.reservation_store.update_state(seg1_id, ReservationState::Committed);
+        self.base.reservation_store.set_assigned_start(seg1_id, start);
+        self.base.reservation_store.set_assigned_end(seg1_id, end);
+        self.base.reservation_store.set_reserved_capacity(seg1_id, 0);
+
+        // Segment 2: source_gateway → ADC-System (virtual, tracked for cascade-delete).
+        // Bandwidth enforcement at ADC level deferred to AD-1/AD-8 implementation.
+        let seg2_id = self.base.reservation_store.add_virtual_reservation_diff_end(dependency_reservation_id, adc_system_id.clone());
+        let seg2_id = match seg2_id {
+            Some(id) => id,
+            None => {
+                self.cancel_all_reservations(adc, grid_component_res_database);
+                return false;
+            }
+        };
+
+        if let Some(res_arc) = self.base.reservation_store.get(seg2_id) {
+            let mut guard = res_arc.write();
+            if let Some(link) = guard.as_link_mut() {
+                link.start_point = Some(source_gateway.clone());
+                link.end_point = Some(adc_system_id.clone());
+            }
+        }
+
+        self.base.reservation_store.update_state(seg2_id, ReservationState::Committed);
+        self.base.reservation_store.set_assigned_start(seg2_id, start);
+        self.base.reservation_store.set_assigned_end(seg2_id, end);
+        self.base.reservation_store.set_reserved_capacity(seg2_id, 0);
+
+        // Segment 3: ADC-System → target_gateway (virtual, tracked for cascade-delete).
+        // Bandwidth enforcement at ADC level deferred to AD-1/AD-8 implementation.
+        let seg3_id = self.base.reservation_store.add_virtual_reservation_diff_start(dependency_reservation_id, adc_system_id.clone());
+        let seg3_id = match seg3_id {
+            Some(id) => id,
+            None => {
+                self.cancel_all_reservations(adc, grid_component_res_database);
+                return false;
+            }
+        };
+
+        if let Some(res_arc) = self.base.reservation_store.get(seg3_id) {
+            let mut guard = res_arc.write();
+            if let Some(link) = guard.as_link_mut() {
+                link.start_point = Some(adc_system_id.clone());
+                link.end_point = Some(target_gateway.clone());
+            }
+        }
+
+        self.base.reservation_store.update_state(seg3_id, ReservationState::Committed);
+        self.base.reservation_store.set_assigned_start(seg3_id, start);
+        self.base.reservation_store.set_assigned_end(seg3_id, end);
+        self.base.reservation_store.set_reserved_capacity(seg3_id, 0);
+
+        // Segment 4: internal on target AcI (target_gateway → target_node).
+        // Treated as dummy — internal routing is the AcI's responsibility.
+        let seg4_id = self.base.reservation_store.add_virtual_reservation_diff_start(dependency_reservation_id, target_gateway.clone());
+        let seg4_id = match seg4_id {
+            Some(id) => id,
+            None => {
+                self.cancel_all_reservations(adc, grid_component_res_database);
+                return false;
+            }
+        };
+        self.base.reservation_store.update_state(seg4_id, ReservationState::Committed);
+        self.base.reservation_store.set_assigned_start(seg4_id, start);
+        self.base.reservation_store.set_assigned_end(seg4_id, end);
+        self.base.reservation_store.set_reserved_capacity(seg4_id, 0);
+
+        // All 4 segments succeeded — update the original dependency
+        workflow.update_reservation(self.base.reservation_store.clone(), dependency_reservation_id);
+        log::info!("Cross-RMS dependency {:?} successfully scheduled with 4-segment virtual chain", dependency_reservation_id);
+        true
     }
 }

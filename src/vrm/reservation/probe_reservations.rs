@@ -39,14 +39,14 @@ pub struct ProbeReservations {
 impl ProbeReservations {
     pub fn new(original_reservation_id: ReservationId, reservation_store: ReservationStore) -> ProbeReservations {
         if let Some(original_reservation) = reservation_store.get_reservation_snapshot(original_reservation_id) {
-            return ProbeReservations {
+            ProbeReservations {
                 original_reservation_id,
                 local_reservation_store: HashMap::new(),
                 original_reservation,
                 reservation_store,
                 reservation_idx: 0,
                 probe_meta_data: HashMap::new(),
-            };
+            }
         } else {
             panic!("ProbeReservationOriginalReservationNotFound");
         }
@@ -136,8 +136,8 @@ impl ProbeReservations {
     /// Return:
     /// If promotion was successful the component_id, is returned, where the Reservation must be reserved.
     pub fn only_promote_best(&mut self, original_res_id: ReservationId, comparator: ProbeReservationComparator) -> bool {
-        if let Some(best_probe_res_id) = self.get_best_probe_reservation_id(original_res_id, comparator) {
-            if let Some(res) = self.local_reservation_store.remove(&best_probe_res_id) {
+        if let Some(best_probe_res_id) = self.get_best_probe_reservation_id(original_res_id, comparator)
+            && let Some(res) = self.local_reservation_store.remove(&best_probe_res_id) {
                 self.reservation_store.set_booking_interval_start(original_res_id, res.get_booking_interval_start());
                 self.reservation_store.set_booking_interval_end(original_res_id, res.get_booking_interval_end());
                 self.reservation_store.set_assigned_start(original_res_id, res.get_assigned_start());
@@ -146,8 +146,7 @@ impl ProbeReservations {
 
                 return true;
             }
-        }
-        return false;
+        false
     }
 
     /// Finds in the ProbeReservations, the Reservation, which is according to the ProbeReservationComparator
@@ -204,14 +203,14 @@ impl ProbeReservations {
     /// Checks if request_id and original ReservationId are the same
     fn is_request_valid(&self, test_res_id: ReservationId) -> bool {
         if test_res_id.eq(&self.original_reservation_id) {
-            return true;
+            true
         } else {
             log::error!(
                 "ProbeReservationsGetResWithFistSlotIncorrectUse: ProbeAnswer of original Reservation {:?} was requested form ReservationId {:?}. Signals a improper use of ProbeReservations, which will lead to an unexpected outcome.",
                 self.reservation_store.get_name_for_key(test_res_id),
                 self.original_reservation_id
             );
-            return false;
+            false
         }
     }
 
@@ -234,14 +233,13 @@ impl ProbeReservations {
             return Some(new_probe_reservations);
         }
 
-        if let Some(best_id) = self.get_best_probe_reservation_id(original_res_id, comparator) {
-            if let Some(res) = self.local_reservation_store.get(&best_id) {
+        if let Some(best_id) = self.get_best_probe_reservation_id(original_res_id, comparator)
+            && let Some(res) = self.local_reservation_store.get(&best_id) {
                 let _ = new_probe_reservations.add_reservation(res.clone());
                 if let Some((component_id, shadow_schedule_id)) = self.probe_meta_data.get(&best_id) {
                     new_probe_reservations.add_probe_meta_data(component_id.clone(), shadow_schedule_id.clone());
                 }
             }
-        }
 
         Some(new_probe_reservations)
     }

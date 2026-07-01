@@ -34,6 +34,7 @@ The **VrmComponent** sub-system follows an **Actor Model** combined with a **Hie
 - Manages shadow schedule reservations with per-shadow `ReservationStore` snapshots.
 - Tracks workflow subtask relationships (`workflow_subtasks`, `reverse_workflow_subtasks`).
 - Sub-modules: `core` (CRUD), `scheduling` (reserve/probe/delete), `metrics` (satisfaction/load), `shadow` (shadow schedule lifecycle), `tracking` (mapping updates).
+- **Information Hiding:** `get_component_router_list()` has been removed. The ADC only knows each component's gateway RouterId via `get_component_gateway_router_id()`. Internal router enumeration is delegated to the AcI.
 
 ### 5. `VrmComponentContainer` (Struct — `vrm_component_container.rs`)
 - Wraps a `Box<dyn VrmComponent + Send>` with its local `Schedule`, registration metadata, link capacity, and failure counter.
@@ -60,7 +61,10 @@ The **VrmComponent** sub-system follows an **Actor Model** combined with a **Hie
 - Implements the **Heterogeneous Earliest Finish Time with Synchronization** algorithm.
 - Two-phase: Upward Rank prioritization, then EFT-based processor selection.
 - Handles co-allocation groups (sync dependencies) and data dependencies (file transfers).
-- Uses placeholder/dummy dependencies when source and target are on the same component.
+- Uses placeholder/dummy dependencies when source and target are on the same component or when capacity is zero.
+- **Gateway-based routing:** Same-RMS dependencies use gateway RouterIds as endpoints; the AcI handles internal routing per the information hiding principle (AD-5).
+- **Cross-RMS 4-segment chain:** Dependencies spanning different RMS components are split into four virtual link reservations with atomic rollback via `cancel_all_reservations()` (AD-3).
+- `schedule_cross_rms_dependency()` creates virtual reservations tracked in `ReservationStore.original_to_virtual` for cascade-delete on parent removal.
 
 ### 11. Comparators (`comparator/`)
 - `LoadCompare`: Orders components by aggregated utilization (node + link).

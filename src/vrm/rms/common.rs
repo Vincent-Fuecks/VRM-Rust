@@ -6,7 +6,6 @@ use parking_lot::RawRwLock;
 use parking_lot::lock_api::RwLock;
 
 use crate::schema::rms_dto::{ComputeNodeDto, TopologyDto};
-use crate::vrm::common::config::RMS_GATEWAY_NAME;
 use crate::vrm::common::id::{ComponentId, ResourceName, RmsId, RouterId, SlottedScheduleId};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::reservation_store::ReservationStore;
@@ -59,15 +58,16 @@ impl RmsSetupContext {
     }
 
     pub fn get_node_schedule(&self) -> Result<Arc<RwLock<RawRwLock, Box<dyn Schedule>>>, Box<dyn std::error::Error>> {
-        let resource_store = ResourceStore::new();
-
         // Setup Node Schedule
         let mut schedule_capacity = 0;
 
-        // Add nodes to ResourceStore
+        // Add nodes to the shared ResourceStore (used for feasibility checks).
+        // Skip gateway nodes (cpus == -1) — they are routing-only, not compute resources.
         for node in self.nodes.iter() {
-            schedule_capacity += node.cpus;
-            resource_store.add_node(NodeResource::new(node.name.clone(), node.cpus));
+            if node.cpus > 0 {
+                schedule_capacity += node.cpus;
+                self.resource_store.add_node(NodeResource::new(node.name.clone(), node.cpus));
+            }
         }
 
         let schedule_context = ScheduleContext {
@@ -124,29 +124,34 @@ impl RmsSetupContext {
 }
 
 /// Used for RmsSimulator and SlurmRms
+/// Generates nodes and links from the topology DTO.
+///
+/// The `gateway_name` parameter replaces the removed `RMS_GATEWAY_NAME` constant,
+/// allowing each RMS to have a unique gateway RouterId.
 pub fn get_nodes_and_links(
     topology: TopologyDto,
     compute_node_dtos: Option<Vec<ComputeNodeDto>>,
+    gateway_name: &str,
 ) -> (Vec<Node>, Vec<Link>, HashMap<ResourceName, Vec<RouterId>>) {
     let mut links = Vec::new();
     let mut nodes = Vec::new();
     let mut node_to_switches: HashMap<ResourceName, Vec<RouterId>> = HashMap::new();
 
     let entry_link_ingress = Link {
-        id: ResourceName::new(format!("{}->{}", RMS_GATEWAY_NAME, topology.gateway_switch_id)),
-        source: RouterId::new(RMS_GATEWAY_NAME),
+        id: ResourceName::new(format!("{}->{}", gateway_name, topology.gateway_switch_id)),
+        source: RouterId::new(gateway_name),
         target: RouterId::new(topology.gateway_switch_id.clone()),
         capacity: topology.ingress_bandwidth_gbps,
     };
 
     let entry_link_egress = Link {
-        id: ResourceName::new(format!("{}->{}", topology.gateway_switch_id, RMS_GATEWAY_NAME)),
+        id: ResourceName::new(format!("{}->{}", topology.gateway_switch_id, gateway_name)),
         source: RouterId::new(topology.gateway_switch_id),
-        target: RouterId::new(RMS_GATEWAY_NAME),
+        target: RouterId::new(gateway_name),
         capacity: topology.egress_bandwidth_gbps,
     };
 
-    let entry_node = Node { name: ResourceName::new(RMS_GATEWAY_NAME), connected_to_router: vec![], cpus: -1 };
+    let entry_node = Node { name: ResourceName::new(gateway_name), connected_to_router: vec![], cpus: -1 };
 
     links.push(entry_link_ingress);
     links.push(entry_link_egress);
@@ -198,10 +203,10 @@ pub fn get_nodes_and_links(
             nodes.push(node);
         }
 
-        let node_ids: Vec<ResourceName> = start_switch.nodes.iter().map(|node_id| ResourceName::new(node_id)).collect();
+        let node_ids: Vec<ResourceName> = start_switch.nodes.iter().map(ResourceName::new).collect();
 
         for node_id in node_ids {
-            node_to_switches.entry(node_id).or_insert_with(Vec::new).push(switch0.clone().cast());
+            node_to_switches.entry(node_id).or_default().push(switch0.clone().cast());
         }
     }
 
@@ -214,7 +219,7 @@ pub fn get_nodes_and_links(
         for node in nodes.iter_mut() {
             if let Some(compute_node_resources) = compute_nodes_map.get(&node.name) {
                 node.cpus = compute_node_resources.cpus;
-            } else if node.name != ResourceName::new(RMS_GATEWAY_NAME) {
+            } else if node.name != ResourceName::new(gateway_name) {
                 log::error!(
                     "VRM-JSON-TopologyAndComputeNodesContainsNotTheSameNodes: The topology node with the name {:?} is not in the ComputeNode List.",
                     node.name
@@ -223,7 +228,7 @@ pub fn get_nodes_and_links(
         }
     }
 
-    return (nodes, links, node_to_switches);
+    (nodes, links, node_to_switches)
 }
 
 pub struct ComputeNodeResources {
@@ -239,7 +244,8 @@ pub fn add_node_information(compute_node_dtos: Vec<ComputeNodeDto>, nodes: &mut 
     for node in nodes.iter_mut() {
         if let Some(compute_node_resources) = compute_nodes_map.get(&node.name) {
             node.cpus = compute_node_resources.cpus;
-        } else if node.name != ResourceName::new(RMS_GATEWAY_NAME) {
+        } else if node.cpus != -1 {
+            // cpus == -1 marks gateway nodes; skip them in this check
             log::error!(
                 "VRM-JSON-TopologyAndComputeNodesContainsNotTheSameNodes: The topology node with the name {:?} is not in the ComputeNode List.",
                 node.name

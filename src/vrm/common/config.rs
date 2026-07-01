@@ -30,6 +30,7 @@ pub const SLURM_TEST_VERSION: &str = "v0.0.41";
 pub const SLURM_TEST_JWT_TOKEN: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwOTI0MDU2MDksImlhdCI6MTc3NzA0NTYwOSwic3VuIjoicm9vdCJ9.4Bbt1MiY0fx9532zwrbXQRSFLVTStzex4wUXeLSQq7U";
 pub const SLURM_TEST_USER_NAME: &str = "root";
 
-/// Is the name of the gateway of the RMS system. 
-/// The name is uses to create a virtual network link, to provided the functionality of providing max ingressBandwidthGbps and egressBandwidthGbps of the RMS system. 
-pub const RMS_GATEWAY_NAME: &str = "AcI-Gateway";
+/// If true, use full multi-hop k-shortest-paths for inter-gateway routing.
+/// If false, treat gateway-to-gateway as a single virtual resource with
+/// capacity = min(ingress, egress bandwidth).
+pub const USE_FULL_INTER_GATEWAY_PATH_FINDING: bool = false;

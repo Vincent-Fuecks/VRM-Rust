@@ -7,9 +7,9 @@ use crate::vrm::schedule::slotted_schedule::{
     },
 };
 
-use crate::vrm::schedule::load_buffer::LoadMetric;
 use crate::vrm::reservation::{reservation::ReservationState, reservation_store::ReservationId};
 use crate::vrm::resource::resource_store::ResourceStore;
+use crate::vrm::schedule::load_buffer::LoadMetric;
 use std::collections::HashMap;
 
 /// Creates the schedule for Networks like RmsNetworkSimulator, SLURM etc.
@@ -112,7 +112,7 @@ impl SlottedScheduleStrategy for LinkStrategy {
             }
         }
 
-        return available_capacity;
+        available_capacity
     }
 
     fn insert_reservation_into_slot(ctx: &mut SlottedScheduleContext<Self>, _requirement: i64, slot_index: i64, reservation_id: ReservationId) {
@@ -244,7 +244,7 @@ impl SlottedScheduleStrategy for LinkStrategy {
                 }
             }
         }
-        return true;
+        true
     }
 
     /// Note: LinkStrategy does not currently implement fragmentation analysis for network schedules.

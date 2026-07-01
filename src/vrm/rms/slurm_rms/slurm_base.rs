@@ -57,7 +57,7 @@ impl SlurmRms {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let rest_api_client = SlurmRestApiClient::new(dto.rest_api_config.clone())?;
         let nodes_response =
-            rest_api_client.get_nodes().await.expect(&format!("Connection to Slurm based RMS of AcI {:?} was not possible", component_id));
+            rest_api_client.get_nodes().await.unwrap_or_else(|_| panic!("Connection to Slurm based RMS of AcI {:?} was not possible", component_id));
 
         let (nodes, links) = SlurmRms::get_nodes_and_links(&dto, &nodes_response);
         let resource_store = ResourceStore::new();
@@ -71,7 +71,7 @@ impl SlurmRms {
             resource_store.add_node(NodeResource::new(node.name.clone(), node.cpus));
         }
 
-        let name = format!("AcI: {}, RmsType: {}, RmsName: {}", component_id, "Slurm".to_string(), dto.id);
+        let name = format!("AcI: {}, RmsType: {}, RmsName: {}", component_id, "Slurm", dto.id);
         let schedule_context = ScheduleContext {
             id: SlottedScheduleId::new(name.clone()),
             number_of_slots: dto.num_of_slots,
@@ -113,9 +113,9 @@ impl SlurmRms {
         let base = RmsBase::new(component_id.clone(), "Slurm".to_string(), reservation_store, resource_store.clone());
 
         let slurm_rms = SlurmRms {
-            base: base,
-            component_id: component_id,
-            simulator: simulator,
+            base,
+            component_id,
+            simulator,
             node_schedule,
             network_schedule,
             node_shadow_schedule: HashMap::new(),
@@ -234,16 +234,14 @@ impl SlurmRms {
                                 rms_id,
                                 slurm_task_states
                             );
-                        } else {
-                            if let Some(first_state) = slurm_task_states.first() {
-                                if let Ok(new_state) = ReservationState::from_slurm_task_state(first_state) {
-                                    let current_state = reservation_store.get_state(*reservation_id);
-                                    if current_state != new_state {
-                                        to_update.push((*reservation_id, new_state));
-                                    }
-                                } else {
-                                    log::warn!("Job {} on RMS {:?} has no valid state.", slurm_task.job_id, rms_id);
+                        } else if let Some(first_state) = slurm_task_states.first() {
+                            if let Ok(new_state) = ReservationState::from_slurm_task_state(first_state) {
+                                let current_state = reservation_store.get_state(*reservation_id);
+                                if current_state != new_state {
+                                    to_update.push((*reservation_id, new_state));
                                 }
+                            } else {
+                                log::warn!("Job {} on RMS {:?} has no valid state.", slurm_task.job_id, rms_id);
                             }
                         }
                     }
@@ -291,7 +289,7 @@ impl SlurmRms {
 
             let mut guard = node_schedule.write();
 
-            if let Some(_) = guard.reserve(res_id) {
+            if guard.reserve(res_id).is_some() {
                 log::debug!(
                     "EXTERNAL: RESERVATION {:?} was successfully reserved in node schedule for RMS {:?}.",
                     reservation_store.get_name_for_key(res_id),
@@ -319,12 +317,11 @@ impl SlurmRms {
         let mut is_rms_clean = true;
         if let Ok(slurm_task_response) = self.slurm_rest_client.get_tasks().await {
             for job in slurm_task_response.jobs {
-                if let Ok(is_deleted) = self.slurm_rest_client.delete(job.job_id).await {
-                    if !is_deleted {
+                if let Ok(is_deleted) = self.slurm_rest_client.delete(job.job_id).await
+                    && !is_deleted {
                         log::warn!("Failed to delete task {:?} (slurm job id) from cluster {:?}", job.job_id, self.base.id);
                         is_rms_clean = false;
                     }
-                }
             }
         }
 
@@ -338,7 +335,7 @@ impl SlurmRms {
                 .jobs
                 .iter()
                 .filter(|j| {
-                    j.job_state.as_ref().map_or(false, |states| states.contains(&"RUNNING".to_string()) || states.contains(&"PENDING".to_string()))
+                    j.job_state.as_ref().is_some_and(|states| states.contains(&"RUNNING".to_string()) || states.contains(&"PENDING".to_string()))
                 })
                 .count()),
             Err(e) => {

@@ -2,17 +2,34 @@
 
 use std::collections::HashSet;
 
-use vrm_rust_workflow::vrm::reservation::{node_reservation::NodeReservation, reservation::{Reservation, ReservationProceeding, ReservationState}, reservation_store::ReservationStore};
-use vrm_rust_workflow::vrm::schedule::slotted_schedule::slot::Slot;
 use vrm_rust_workflow::vrm::common::id::{ClientId, ReservationName};
+use vrm_rust_workflow::vrm::reservation::{
+    node_reservation::NodeReservation,
+    reservation::{Reservation, ReservationProceeding, ReservationState},
+    reservation_store::ReservationStore,
+};
+use vrm_rust_workflow::vrm::schedule::slotted_schedule::slot::Slot;
 
 fn make_id(store: &ReservationStore, name: &str) -> vrm_rust_workflow::vrm::reservation::reservation_store::ReservationId {
     let r = Reservation::Node(NodeReservation::new(
         ReservationName::new(name.to_string()),
         ClientId::new("test"),
-        None, ReservationState::Open, ReservationProceeding::Reserve,
-        0, 0, 100000, 3600, 4, false, 0.0, HashSet::new(),
-        None, None, "/t".into(), None, None,
+        None,
+        ReservationState::Open,
+        ReservationProceeding::Reserve,
+        0,
+        0,
+        100000,
+        3600,
+        4,
+        false,
+        0.0,
+        HashSet::new(),
+        None,
+        None,
+        "/t".into(),
+        None,
+        None,
     ));
     store.add(r)
 }

@@ -50,6 +50,8 @@ The `ADC` functions as an abstraction layer for the requester, providing a unifi
 
 The `AcI` structure serves as a special connector for HPC environments. It enables the management and execution of atomic tasks and communication with a physical RMS.
 
+The ADC follows the **information hiding principle**: it only knows each child component's **gateway RouterId** (derived as `"AcI-Gateway-{component_id}"`), not the internal router topology. The `get_component_router_list()` method has been removed; internal routing within an RMS is the AcI's responsibility. The `get_component_gateway_router_id()` method provides the only externally visible router identifier for child components.
+
 Both the `AcI` and `ADC` are implemented following the **actor pattern**. Each component operates within its own dedicated thread, spawned by the `RegistryClient` with a descriptive name (e.g., `"Actor-MyAcI"`). Communication between components occurs exclusively via `mpsc` channels through the `VrmComponentProxy`, which serialises `VrmComponent` trait method calls into `VrmMessage` variants. The proxy uses a synchronous request-reply pattern: it sends a message containing a `oneshot` reply channel and blocks the caller until the actor responds. This design enables concurrency — if a component is blocked while waiting to receive requested information from an RMS, other parts of the system can still continue to function. However, the synchronous nature of proxy calls means that mutual cross-component calls can lead to deadlock if not carefully managed.
 
 ### 2.4 Resource Management System (RMS)
@@ -84,7 +86,7 @@ This dual-schedule approach enables the system to perform isolated optimisations
 
 The VRM system deploys object stores to handle interactions with resources and reservations. These stores oversee all operations related to their respective objects, controlling access and mutations via unique keys. The architecture defines a system-wide `ReservationStore` and a separate `ResourceStore` for each individual RMS.
 
-* **`ReservationStore`:** This store is the **central thread-safe repository** for all reservations, using `Arc<RwLock<StoreInner>>` with `parking_lot` primitives. Primary storage is via a `SlotMap<ReservationId, Arc<RwLock<Reservation>>>` with secondary indexes by name, client, and handler. It supports **snapshot isolation** via the `snapshot()` method, which creates a deep-cloned copy for schedulers to work on without lock contention. It also manages **virtual (shadow) reservations** for link path exploration. All reservation types implement the `ReservationTrait` trait, which provides a uniform interface over the three concrete types. The store includes a notification service that allows `VrmComponent`s to register as `ReservationNotificationListener`s, ensuring registered components are automatically notified of state transitions.
+* **`ReservationStore`:** This store is the **central thread-safe repository** for all reservations, using `Arc<RwLock<StoreInner>>` with `parking_lot` primitives. Primary storage is via a `SlotMap<ReservationId, Arc<RwLock<Reservation>>>` with secondary indexes by name, client, and handler. It supports **snapshot isolation** via the `snapshot()` method, which creates a deep-cloned copy for schedulers to work on without lock contention. It also manages **virtual (shadow) reservations** for link path exploration. The `original_to_virtual: HashMap<ReservationId, Vec<ReservationId>>` tracking map links original link reservations to their derived virtual reservations, enabling cascade-delete when the parent is removed. All reservation types implement the `ReservationTrait` trait, which provides a uniform interface over the three concrete types. The store includes a notification service that allows `VrmComponent`s to register as `ReservationNotificationListener`s, ensuring registered components are automatically notified of state transitions.
 * **`ResourceStore`:** This store contains all physical link and node resources belonging to the underlying RMS infrastructure. Nodes and links are stored within separate `SlotMap`-indexed structures. It also maintains a K-shortest paths cache for network topology queries and a router list for access point management. Resources implement the `Resource` trait, which provides a polymorphic interface via `as_any()` downcasting and `can_handle_request()` feasibility checks against a `FeasibilityRequest` enum (discriminating between `Node` and `Link` requests). The store provides two admission control entry points: `can_handle_adc_request()` (by value) and `can_handle_aci_request()` (by reference).
 
 ### 2.7 Reservation State Notification System
@@ -132,3 +134,53 @@ These aggregated `ProbeReservations` are returned to the requester to initiate t
 | **Finished** | Terminal | Successful completion of the associated tasks and resources is released. |
 | **Deleted** | Terminal | Explicit cancellation of the reservation by the client or VRM system. |
 | **External** | Terminal | The reservation represents an externally submitted job from a local RMS, which the VRM-Rust system only tracks. |
+
+
+### 2.9 Gateway Abstraction and Cross-RMS Routing
+
+Each RMS cluster is abstracted behind a single **gateway node** with a unique, per-RMS `RouterId` (e.g., `"AcI-Gateway-rms_0"`). The gateway name is configurable via a `GatewayConfigDto` in the VRM JSON configuration. If not explicitly set, it falls back to `"AcI-Gateway-{component_id}"`.
+
+Gateway nodes are stored in the RMS-level `ResourceStore` with `capacity = -1` (routing-only, cannot host compute tasks). Ingress and egress bandwidth limits from the `TopologyDto` are enforced via the gateway's link entries connecting to the internal switch topology.
+
+#### Cross-RMS Data Dependencies (4-Segment Virtual Reservation Chain)
+
+When a data dependency spans two different RMS components, the link is split into a chain of four virtual link reservations tracked in the `ReservationStore`:
+
+```
+source_node → source_gateway  (on source AcI, internal)
+source_gateway → ADC-System   (virtual, ADC level)
+ADC-System → target_gateway   (virtual, ADC level)
+target_gateway → target_node  (on target AcI, internal)
+```
+
+All four segments are tracked as `LinkReservation`s with `parent_reservation_id` references via the `original_to_virtual` map. Virtual reservations are **only accessible by the original parent reservation** and are automatically cascade-deleted when the parent is removed, preserving the atomicity invariant: if any segment fails to schedule, all previously scheduled segments are rolled back via `cancel_all_reservations()`.
+
+#### Configuration Toggle
+
+A boolean configuration flag `USE_FULL_INTER_GATEWAY_PATH_FINDING` controls the inter-gateway routing strategy:
+- **`false` (default):** Treat gateway-to-gateway as a direct virtual `LinkResource` with capacity = `min(ingress_bandwidth_gbps, egress_bandwidth_gbps)`.
+- **`true`:** Use full multi-hop k-shortest-paths via the global `NetworkTopology` for inter-gateway routing (requires intermediate routers/switches between gateways to be configured).
+
+#### Per-RMS Gateway Configuration
+
+Gateway configuration is specified in the JSON configuration file under a dedicated `gatewayConfig` section, separate from the existing `TopologyDto` fields:
+
+```json
+{
+  "gatewayConfig": {
+    "rms_0": {
+      "gatewayRouterId": "AcI-Gateway-rms_0",
+      "ingressBandwidthGbps": 1000,
+      "egressBandwidthGbps": 1000,
+      "gatewaySwitchId": "s0"
+    }
+  },
+  "interGatewayLinks": [
+    {
+      "sourceGateway": "AcI-Gateway-rms_0",
+      "targetGateway": "AcI-Gateway-rms_1",
+      "bandwidthGbps": 10000
+    }
+  ]
+}
+```

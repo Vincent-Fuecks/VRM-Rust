@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
+use crate::vrm::common::id::{ComponentId, ShadowScheduleId};
 use crate::vrm::reservation::reservation::ReservationState;
 use crate::vrm::reservation::reservation_store::ReservationId;
-use crate::vrm::common::id::{ComponentId, ShadowScheduleId};
 
 use super::VrmComponentManager;
 
@@ -21,11 +21,11 @@ impl VrmComponentManager {
         self.res_to_vrm_component.extend(allocations.clone());
 
         // 2. Track relationship: Parent -> Children
-        self.workflow_subtasks.insert(workflow_id.clone(), subtask_ids.clone());
+        self.workflow_subtasks.insert(workflow_id, subtask_ids.clone());
 
         // 3. Track relationship: Child -> Parent
         for subtask_id in subtask_ids.clone() {
-            self.reverse_workflow_subtasks.insert(subtask_id, workflow_id.clone());
+            self.reverse_workflow_subtasks.insert(subtask_id, workflow_id);
         }
 
         // Check if reserve of all workflow subtask worked correctly
@@ -113,7 +113,7 @@ impl VrmComponentManager {
         if shadow_schedule_id.is_none() {
             let old_value = self.not_committed_reservations.insert(reservation_id, component_id.clone());
 
-            if !old_value.is_none() {
+            if old_value.is_some() {
                 panic!(
                     "ErrorVrmManagerDuplicateReserveReservationInNotCommittedReservations: The tracking update of a reserved reservation of ADC {} failed. The Reservation {:?} was already reserved before on VrmComponent {}. The new reserve was performed for VrmComponent {}",
                     self.adc_id,
@@ -135,7 +135,7 @@ impl VrmComponentManager {
 
             let old_value = self.register_allocation(reservation_id, component_id.clone());
 
-            if !old_value.is_none() {
+            if old_value.is_some() {
                 panic!(
                     "ErrorVrmManagerDuplicateReserveInResToVrmComponent: The tracking update of a reserved reservation of ADC {} failed. The Reservation {:?} was already reserved before on VrmComponent {}. The new reserve was performed for VrmComponent {}",
                     self.adc_id,
@@ -154,7 +154,7 @@ impl VrmComponentManager {
 
             let old_value = shadow_not_committed_reservations.insert(reservation_id, component_id.clone());
 
-            if !old_value.is_none() {
+            if old_value.is_some() {
                 panic!(
                     "ErrorVrmManagerDuplicateReserve: The reservation tracking update of a reserved reservation of ADC {} on ShadowSchedule {:?} failed. The Reservation {:?} was already reserved before on VrmComponent {}. The new reserve was performed for VrmComponent {}",
                     self.adc_id,

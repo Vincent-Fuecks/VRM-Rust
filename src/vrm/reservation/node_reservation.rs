@@ -130,7 +130,7 @@ impl NodeReservation {
             duration = time.limit.val_or(0) as i64;
         }
 
-        let node_reservation = NodeReservation {
+        NodeReservation {
             base: ReservationBase {
                 name: ReservationName::new(format!("External-Task-From-AcI-{:?}-Task-Id-{:?}", aci_id, task_id)),
                 client_id: ClientId::new(format!("External-Task-From-{:?}", task_user)),
@@ -154,8 +154,6 @@ impl NodeReservation {
             task_path: "External-Task".to_string(),
             output_path: None,
             error_path: None,
-        };
-
-        return node_reservation;
+        }
     }
 }

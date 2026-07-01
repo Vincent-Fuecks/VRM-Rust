@@ -162,7 +162,7 @@ impl VrmManager {
                     simulator,
                 );
 
-                return Ok(vrm_manager).map_err(|_| ConversionError::AdcConstructionError("Master-AcI".to_string()));
+                Ok(vrm_manager).map_err(|_| ConversionError::AdcConstructionError("Master-AcI".to_string()))
             }
             None => Err(ConversionError::UnknownRmsType("Failed to find adc master".to_string())),
         }
@@ -203,7 +203,7 @@ impl VrmManager {
                 }
 
                 if self.reservation_store.is_res_commit_ready(*open_res_id) {
-                    self.try_to_commit_reservation(open_res_id.clone());
+                    self.try_to_commit_reservation(*open_res_id);
                 }
 
                 if self.reservation_store.is_workflow(*open_res_id) {
@@ -240,7 +240,7 @@ impl VrmManager {
                 }
             }
             sleep(Duration::from_secs(5)).await;
-            self.reservation_store.print_store_contents();
+            // self.reservation_store.print_store_contents();
         }
 
         log::info!("VrmManager: All reservations in the VRM system reached a terminal state.")

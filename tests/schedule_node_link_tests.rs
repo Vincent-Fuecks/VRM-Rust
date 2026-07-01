@@ -1531,6 +1531,7 @@ mod link_schedule_paths {
                 is_moldable: true,
                 moldable_work,
                 frag_delta: 0.0,
+                rejection_reason: None,
             },
             start_point: Some(RouterId::new("router-a")),
             end_point: Some(RouterId::new("router-c")),

@@ -112,7 +112,7 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
 
         let schedule_clone = self.network_schedule.read().clone_box();
         self.network_shadow_schedule.insert(shadow_schedule_id.clone(), Arc::new(RwLock::new(schedule_clone)));
-        return true;
+        true
     }
 
     fn commit_shadow_schedule(&mut self, shadow_schedule_id: &ShadowScheduleId) -> bool {
@@ -122,7 +122,7 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
         }
 
         log::error!("Finding and removing of shadow schedule with id {} was not possible", shadow_schedule_id.clone());
-        return false;
+        false
     }
 
     fn delete_shadow_schedule(&mut self, shadow_schedule_id: &ShadowScheduleId) -> bool {
@@ -131,7 +131,7 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
         }
 
         log::error!("Removing shadow schedule was not possible. Shadow schedule id ({}) was not found", shadow_schedule_id.clone());
-        return false;
+        false
     }
 
     fn get_fragmentation(&mut self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> f64 {
@@ -163,7 +163,7 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
             res.get_type(),
             res.get_name()
         );
-        return false;
+        false
     }
 
     fn can_handle_aci_request(&self, reservation_store: ReservationStore, reservation_id: ReservationId) -> bool {
@@ -177,7 +177,7 @@ impl AdvanceReservationRms for RmsNetworkSimulator {
             reservation_store.get_type(reservation_id),
             reservation_store.get_name_for_key(reservation_id)
         );
-        return false;
+        false
     }
 
     fn get_load_metric(&self, start: i64, end: i64, shadow_schedule_id: Option<ShadowScheduleId>) -> RmsLoadMetric {

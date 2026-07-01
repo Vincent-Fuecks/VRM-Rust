@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
-use crate::vrm::vrm_component::vrm_component_manager::VrmComponentContainer;
-use crate::vrm::vrm_component::vrm_component_order::VrmComponentOrder;
-use crate::vrm::vrm_component::vrm_component_registry::vrm_component_proxy::VrmComponentProxy;
-use crate::vrm::vrm_component::vrm_component_trait::VrmComponent;
 use crate::vrm::common::config::DELETE_ALL_VRM_MANAGED_RESERVATIONS_IF_VRM_COMPONENT_IS_DELETED;
 use crate::vrm::common::id::{ComponentId, RouterId};
 use crate::vrm::global_clock::global_clock::GlobalClock;
 use crate::vrm::reservation::reservation::Reservation;
 use crate::vrm::reservation::reservation_store::{ReservationId, ReservationStore};
+use crate::vrm::vrm_component::vrm_component_manager::VrmComponentContainer;
+use crate::vrm::vrm_component::vrm_component_order::VrmComponentOrder;
+use crate::vrm::vrm_component::vrm_component_registry::vrm_component_proxy::VrmComponentProxy;
+use crate::vrm::vrm_component::vrm_component_trait::VrmComponent;
 
 use rand::rng;
 use rand::seq::SliceRandom;
@@ -57,10 +57,13 @@ impl VrmComponentManager {
         self.not_committed_reservations.get(&reservation_id).cloned()
     }
 
-    // Should aggregate hte router list of all components
-    pub fn get_component_router_list(&self, component_id: ComponentId) -> Vec<RouterId> {
-        self.vrm_components.get(&component_id).unwrap();
-        todo!()
+    /// Returns the gateway RouterId for a component.
+    ///
+    /// The gateway RouterId is derived from the component ID as `"AcI-Gateway-{component_id}"`.
+    /// This is the only externally visible router identifier for a child component;
+    /// the ADC does not enumerate internal routers per the information hiding principle.
+    pub fn get_component_gateway_router_id(&self, component_id: &ComponentId) -> RouterId {
+        RouterId::new(format!("AcI-Gateway-{}", component_id))
     }
 
     pub fn can_component_handel(&self, component_id: ComponentId, res: Reservation) -> bool {
@@ -73,7 +76,7 @@ impl VrmComponentManager {
                     self.adc_id,
                     res.get_base_reservation().get_name()
                 );
-                return false;
+                false
             }
         }
     }
@@ -116,14 +119,14 @@ impl VrmComponentManager {
             }
         }
 
-        return true;
+        true
     }
 
     /// Get the total capacity of all connected VrmComponents
     pub fn get_total_capacity(&self) -> i64 {
         let mut total_capacity = 0;
 
-        for (_, container) in &self.vrm_components {
+        for container in self.vrm_components.values() {
             total_capacity += container.vrm_component.get_total_capacity()
         }
 
@@ -134,7 +137,7 @@ impl VrmComponentManager {
     pub fn get_total_link_capacity(&self) -> i64 {
         let mut total_link_capacity = 0;
 
-        for (_, container) in &self.vrm_components {
+        for container in self.vrm_components.values() {
             total_link_capacity += container.vrm_component.get_total_link_capacity()
         }
 
@@ -145,7 +148,7 @@ impl VrmComponentManager {
     pub fn get_total_node_capacity(&self) -> i64 {
         let mut total_node_capacity = 0;
 
-        for (_, container) in &self.vrm_components {
+        for container in self.vrm_components.values() {
             total_node_capacity += container.vrm_component.get_total_node_capacity()
         }
 
@@ -156,7 +159,7 @@ impl VrmComponentManager {
     pub fn get_link_resource_count(&self) -> usize {
         let mut link_resource_count = 0;
 
-        for (_, container) in &self.vrm_components {
+        for container in self.vrm_components.values() {
             link_resource_count += container.vrm_component.get_link_resource_count()
         }
 
@@ -167,7 +170,7 @@ impl VrmComponentManager {
     pub fn get_new_registration_counter(&mut self) -> usize {
         let current = self.registration_counter;
         self.registration_counter += 1;
-        return current;
+        current
     }
 
     /// Calculates the average link speed across all registered resources.
@@ -176,7 +179,7 @@ impl VrmComponentManager {
             return 0.0;
         }
 
-        return self.total_link_capacity as f64 / self.link_resource_count as f64;
+        self.total_link_capacity as f64 / self.link_resource_count as f64
     }
 
     /// Registers a new **VrmComponent** with the manager.
@@ -220,14 +223,14 @@ impl VrmComponentManager {
         );
 
         if self.vrm_components.insert(vrm_component_id.clone(), container).is_none() {
-            return true;
+            true
         } else {
             log::error!(
                 "Error happened in the process of adding a new VrmComponent: {} to the VrmComponentManager (Adc: {}). The VrmComponentManger is now compromised.",
                 vrm_component_id,
                 self.adc_id
             );
-            return false;
+            false
         }
     }
 
@@ -252,18 +255,17 @@ impl VrmComponentManager {
                 // Delete all managed Reservation by VRM form the VrmComponent
                 if DELETE_ALL_VRM_MANAGED_RESERVATIONS_IF_VRM_COMPONENT_IS_DELETED {
                     for (res_id, component_id) in self.res_to_vrm_component.clone() {
-                        if del_component_id.eq(&component_id) {
-                            if !self.delete_task_at_component(res_id, None) {
+                        if del_component_id.eq(&component_id)
+                            && !self.delete_task_at_component(res_id, None) {
                                 log::debug!(
                                     "In the process of deleting the VrmComponent {:?}, was it not possible to delete the managed reservation: {:?}.",
                                     del_component_id,
                                     res_id
                                 );
                             }
-                        }
                     }
                 }
-                return true;
+                true
             }
             None => {
                 log::error!(
@@ -271,7 +273,7 @@ impl VrmComponentManager {
                     del_component_id,
                     self.adc_id
                 );
-                return false;
+                false
             }
         }
     }
@@ -281,9 +283,9 @@ impl VrmComponentManager {
     /// # Returns
     /// A `Vec<VrmComponentId>` where the VrmComponentIds are in random order.
     pub fn get_random_ordered_vrm_components(&self) -> Vec<ComponentId> {
-        let mut keys: Vec<ComponentId> = self.vrm_components.keys().cloned().into_iter().collect();
+        let mut keys: Vec<ComponentId> = self.vrm_components.keys().cloned().collect();
         keys.shuffle(&mut rng());
-        return keys;
+        keys
     }
 
     /// Returns a list of registered VrmComponent IDs sorted according to the specified strategy.
@@ -298,6 +300,6 @@ impl VrmComponentManager {
         components_vec.sort_unstable_by(|a, b| comparator(a, b));
 
         let sorted_keys: Vec<ComponentId> = components_vec.into_iter().map(|container| container.vrm_component.get_id()).collect();
-        return sorted_keys;
+        sorted_keys
     }
 }

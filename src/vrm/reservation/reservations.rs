@@ -51,7 +51,7 @@ impl Reservations {
             self.reservation_store.update_state(*id, ReservationState::Deleted);
             return true;
         }
-        return false;
+        false
     }
 
     /// Checks if a specific `ReservationId` is currently managed in this collection.
@@ -71,10 +71,10 @@ impl Reservations {
 
     /// Selects a random `ReservationId` from the current collection.
     pub fn get_random_id(&self) -> Option<ReservationId> {
-        let ids: Vec<ReservationId> = self.reservations.iter().into_iter().cloned().collect();
+        let ids: Vec<ReservationId> = self.reservations.iter().cloned().collect();
         let mut rng = rand::rng();
 
-        return ids.choose(&mut rng).cloned();
+        ids.choose(&mut rng).cloned()
     }
 
     /// Identifies the reservation with the earliest assigned start time.
@@ -90,7 +90,7 @@ impl Reservations {
                 reservation_of_earliest_start_time = Some(*id);
             }
         }
-        return reservation_of_earliest_start_time;
+        reservation_of_earliest_start_time
     }
 
     /// Returns an iterator over the managed `ReservationId`s.

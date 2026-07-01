@@ -43,6 +43,12 @@ struct StoreInner {
     router_list: Arc<RwLock<HashSet<RouterId>>>,
 }
 
+impl Default for ResourceStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceStore {
     pub fn new() -> Self {
         Self { inner: Arc::new(RwLock::new(StoreInner::default())) }
@@ -55,22 +61,22 @@ impl ResourceStore {
         let mut guard = self.inner.write().unwrap();
         let node_resource_id = guard.nodes.insert(Arc::new(RwLock::new(node.clone())));
         guard.node_index.insert(node.base.get_name(), node_resource_id);
-        return node_resource_id;
+        node_resource_id
     }
 
     pub fn contains_node(&self, key: &ResourceName) -> bool {
         let guard = self.inner.read().unwrap();
-        return guard.node_index.contains_key(key);
+        guard.node_index.contains_key(key)
     }
 
     pub fn remove_node(&self, resource_name: ResourceName) {
         let mut guard = self.inner.write().unwrap();
         let node_resource_id = guard.node_index.remove(&resource_name);
 
-        if let Some(node_resource_id) = node_resource_id {
-            if guard.nodes.remove(node_resource_id).is_some() {
-                return;
-            }
+        if let Some(node_resource_id) = node_resource_id
+            && guard.nodes.remove(node_resource_id).is_some()
+        {
+            return;
         }
 
         log::error!(
@@ -138,14 +144,14 @@ impl ResourceStore {
         for node in guard.nodes.values() {
             let node: std::sync::RwLockReadGuard<'_, NodeResource> = node.read().unwrap();
 
-            if node.can_handle_request(&feasibility_request) {
+            if node.can_handle_request(feasibility_request) {
                 log::debug!("Feasibility result is: {}", "TRUE".green().bold());
                 return true;
             }
         }
 
         log::debug!("Feasibility result is: {}", "FALSE".red().bold());
-        return false;
+        false
     }
 
     //---------------------
@@ -169,7 +175,7 @@ impl ResourceStore {
     pub fn get_source(&self, link_id: LinkResourceId) -> RouterId {
         if let Some(handle) = self.get_link(link_id) {
             let link = handle.read().unwrap();
-            return link.source.clone();
+            link.source.clone()
         } else {
             panic!("LinkResource (id: {:?}) was not found in the ResourceStore.", link_id);
         }
@@ -178,7 +184,7 @@ impl ResourceStore {
     pub fn get_target(&self, link_id: LinkResourceId) -> RouterId {
         if let Some(handle) = self.get_link(link_id) {
             let link = handle.read().unwrap();
-            return link.target.clone();
+            link.target.clone()
         } else {
             panic!("LinkResource (id: {:?}) was not found in the ResourceStore.", link_id);
         }
@@ -187,7 +193,7 @@ impl ResourceStore {
     pub fn get_name(&self, link_id: LinkResourceId) -> ResourceName {
         if let Some(handle) = self.get_link(link_id) {
             let link = handle.read().unwrap();
-            return link.get_name();
+            link.get_name()
         } else {
             panic!("LinkResource (id: {:?}) was not found in the ResourceStore.", link_id);
         }
@@ -196,7 +202,7 @@ impl ResourceStore {
     pub fn get_capacity(&self, link_id: LinkResourceId) -> i64 {
         if let Some(handle) = self.get_link(link_id) {
             let link = handle.read().unwrap();
-            return link.get_capacity();
+            link.get_capacity()
         } else {
             panic!("LinkResource (id: {:?}) was not found in the ResourceStore.", link_id);
         }
@@ -225,9 +231,26 @@ impl ResourceStore {
     }
 
     fn can_handle_link_request(&self, source: RouterId, target: RouterId, is_moldable: bool, capacity: i64) -> bool {
-        // Early stop
+        // Early stop: same source and target
         if source.compare(&target) {
             log::debug!("Feasibility: both source and target are the same");
+            log::debug!("Feasibility result is: {}", "TRUE".green().bold());
+            return true;
+        }
+
+        // If no data needs to be transferred (capacity == 0), no paths are required.
+        // This handles pre-scheduling feasibility checks where endpoints are workflow
+        // node IDs that don't yet correspond to actual router IDs in the topology.
+        if capacity <= 0 && !is_moldable {
+            log::debug!("Feasibility: zero-capacity link requires no paths");
+            log::debug!("Feasibility result is: {}", "TRUE".green().bold());
+            return true;
+        }
+
+        // If neither endpoint is a known router, the endpoints are workflow-level
+        // node IDs that will be resolved during scheduling. Defer to scheduling.
+        if !self.contains_router_id(&source) && !self.contains_router_id(&target) {
+            log::debug!("Feasibility: neither source nor target are known routers (pre-scheduling phase)");
             log::debug!("Feasibility result is: {}", "TRUE".green().bold());
             return true;
         }
@@ -287,7 +310,7 @@ impl ResourceStore {
         }
 
         log::debug!("Feasibility result is: {}", "FALSE".red().bold());
-        return false;
+        false
     }
 
     //---------------------
@@ -349,7 +372,7 @@ impl ResourceStore {
                 (Some(source), Some(target)) => {
                     log::debug!("LinkReservation with source: {:?}, target: {:?}", source, target);
 
-                    return self.can_handle_link_request(source, target, link_reservation.is_moldable(), link_reservation.get_reserved_capacity());
+                    self.can_handle_link_request(source, target, link_reservation.is_moldable(), link_reservation.get_reserved_capacity())
                 }
 
                 (_, _) => {
@@ -358,16 +381,14 @@ impl ResourceStore {
                         link_reservation.start_point,
                         link_reservation.end_point
                     );
-                    return false;
+                    false
                 }
             },
 
-            Reservation::Node(node_reservation) => {
-                return self.can_handle_node_request(&FeasibilityRequest::Node {
-                    capacity: node_reservation.get_reserved_capacity(),
-                    is_moldable: node_reservation.is_moldable(),
-                });
-            }
+            Reservation::Node(node_reservation) => self.can_handle_node_request(&FeasibilityRequest::Node {
+                capacity: node_reservation.get_reserved_capacity(),
+                is_moldable: node_reservation.is_moldable(),
+            }),
 
             Reservation::Workflow(_) => {
                 log::error!(
@@ -375,7 +396,7 @@ impl ResourceStore {
                     res.get_name()
                 );
 
-                return false;
+                false
             }
         }
     }
@@ -416,12 +437,12 @@ impl ResourceStore {
                         reservation_store.get_end_point(reservation_id)
                     );
 
-                    return self.can_handle_link_request(
+                    self.can_handle_link_request(
                         source,
                         target,
                         reservation_store.is_moldable(reservation_id),
                         reservation_store.get_reserved_capacity(reservation_id),
-                    );
+                    )
                 }
 
                 (_, _) => {
@@ -430,21 +451,21 @@ impl ResourceStore {
                         reservation_store.get_start_point(reservation_id),
                         reservation_store.get_end_point(reservation_id)
                     );
-                    return false;
+                    false
                 }
             }
         } else if reservation_store.is_node(reservation_id) {
-            return self.can_handle_node_request(&FeasibilityRequest::Node {
+            self.can_handle_node_request(&FeasibilityRequest::Node {
                 capacity: reservation_store.get_reserved_capacity(reservation_id),
                 is_moldable: reservation_store.is_moldable(reservation_id),
-            });
+            })
         } else {
             log::error!(
                 "ERROR: Feasibility can only be checked for atomic task not for WorkflowReservations {:?}. The WorkflowScheduler should be utilized instead.",
                 reservation_store.get_name_for_key(reservation_id)
             );
 
-            return false;
+            false
         }
     }
 
