@@ -5,7 +5,7 @@ use vrm_rust_workflow::schema::client_dto::ClientsDto;
 use vrm_rust_workflow::schema::vrm_dto::VrmDto;
 use vrm_rust_workflow::vrm::client::client::Clients;
 use vrm_rust_workflow::vrm::global_clock::global_clock::{GlobalClock, GlobalClockDto};
-use vrm_rust_workflow::vrm::reservation::reservation::{Reservation, ReservationState};
+use vrm_rust_workflow::vrm::reservation::reservation::ReservationState;
 use vrm_rust_workflow::vrm::reservation::reservation_store::ReservationStore;
 use vrm_rust_workflow::vrm::vrm_component::vrm_component_registry::registry_client::RegistryClient;
 use vrm_rust_workflow::vrm::vrm_manager::VrmManager;
@@ -85,13 +85,10 @@ async fn test_full_cross_rms_workflow_10_nodes() {
 /// virtual reservation chains.
 #[tokio::test]
 async fn test_single_rms_workflow_data_dependency() {
-    use vrm_rust_workflow::schema::aci_dto::AcIDto;
-    use vrm_rust_workflow::schema::adc_dto::ADCDto;
     use vrm_rust_workflow::schema::reservation_dto::{
         DataInDto, DataOutDto, DependencyDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto,
     };
     use vrm_rust_workflow::schema::workflow_dto::{TaskDto, WorkflowDto};
-    use vrm_rust_workflow::vrm::common::id::ComponentId;
 
     use crate::vrm::common::{get_aci_dto, get_adc_dto, get_clients};
 
@@ -313,7 +310,7 @@ async fn test_single_rms_co_allocation() {
 #[tokio::test]
 async fn test_workflow_deadline_exceeded_rejected() {
     use vrm_rust_workflow::schema::reservation_dto::{
-        DataInDto, DataOutDto, DependencyDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto,
+        DataInDto, DependencyDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto,
     };
     use vrm_rust_workflow::schema::workflow_dto::{TaskDto, WorkflowDto};
 
@@ -389,7 +386,7 @@ async fn test_workflow_deadline_exceeded_rejected() {
 #[tokio::test]
 async fn test_workflow_rejection_children_consistent() {
     use vrm_rust_workflow::schema::reservation_dto::{
-        DataInDto, DataOutDto, DependencyDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto,
+        DataInDto, DependencyDto, LinkReservationDto, NodeReservationDto, ReservationProceedingDto, ReservationStateDto,
     };
     use vrm_rust_workflow::schema::workflow_dto::{TaskDto, WorkflowDto};
 
@@ -613,7 +610,6 @@ fn test_virtual_reservation_cascade_delete() {
         is_moldable: true,
         moldable_work: 100,
         frag_delta: 0.0,
-        rejection_reason: None,
     };
 
     let original = Reservation::Link(LinkReservation { base, start_point: Some(RouterId::new("node_1")), end_point: Some(RouterId::new("node_2")) });
@@ -673,7 +669,6 @@ fn test_original_to_virtual_tracking_map() {
         is_moldable: true,
         moldable_work: 100,
         frag_delta: 0.0,
-        rejection_reason: None,
     };
 
     let original = Reservation::Link(LinkReservation { base, start_point: Some(RouterId::new("A")), end_point: Some(RouterId::new("B")) });

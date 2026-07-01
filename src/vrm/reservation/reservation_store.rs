@@ -690,10 +690,12 @@ impl ReservationStore {
             if let Some(workflow) = res.as_any().downcast_ref::<Workflow>() {
                 return Some(workflow.clone().calculate_upward_rank(average_link_speed, self));
             } else {
+                let res_name = res.get_name();
+                let res_type = res.get_type();
                 log::error!(
                     "Upward Rank can only be calculated for a Reservation of type Workflow. Reservation {:?} has type {:?}",
-                    self.get_name_for_key(reservation_id),
-                    self.get_type(reservation_id)
+                    res_name,
+                    res_type
                 );
             }
         }
@@ -708,10 +710,12 @@ impl ReservationStore {
             if let Some(workflow) = res.as_any().downcast_ref::<Workflow>() {
                 return Some(workflow.get_all_reservation_ids());
             } else {
+                let res_name = res.get_name();
+                let res_type = res.get_type();
                 log::error!(
                     "Getting workflow ids is only possible, if Reservation is of type Workflow. Reservation {:?} has type {:?}",
-                    self.get_name_for_key(reservation_id),
-                    self.get_type(reservation_id)
+                    res_name,
+                    res_type
                 );
             }
         }
@@ -731,10 +735,12 @@ impl ReservationStore {
 
                 return Some(entry_res_ids);
             } else {
+                let res_name = res.get_name();
+                let res_type = res.get_type();
                 log::error!(
                     "Getting workflow ids is only possible, if Reservation is of type Workflow. Reservation {:?} has type {:?}",
-                    self.get_name_for_key(reservation_id),
-                    self.get_type(reservation_id)
+                    res_name,
+                    res_type
                 );
             }
         }
@@ -754,10 +760,12 @@ impl ReservationStore {
 
                 return Some(exit_res_ids);
             } else {
+                let res_name = res.get_name();
+                let res_type = res.get_type();
                 log::error!(
                     "Getting workflow ids is only possible, if Reservation is of type Workflow. Reservation {:?} has type {:?}",
-                    self.get_name_for_key(reservation_id),
-                    self.get_type(reservation_id)
+                    res_name,
+                    res_type
                 );
             }
         }
