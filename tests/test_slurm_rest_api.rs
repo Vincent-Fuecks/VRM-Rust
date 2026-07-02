@@ -2,22 +2,20 @@ use std::{collections::HashSet, sync::Arc};
 
 use anyhow::Result;
 use vrm_rust_workflow::{
-    api::rms_config_dto::rms_dto::{SlurmConfigDto, SlurmRmsDto, SlurmSwitchDto},
-    domain::{
-        simulator::simulator::GlobalClock,
-        vrm_system_model::{
-            reservation::reservation_store::ReservationStore,
-            rms::slurm_rms::{
-                api_client::{
-                    payload::task_properties::{JobProperties, TaskSubmission},
-                    slurm_rest_api_trait::SlurmRestApi,
-                },
-                slurm_base::SlurmRms,
+    schema::rms_dto::{SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},
+    vrm::{
+        common::{
+            config::{SLURM_TEST_BASE_URL, SLURM_TEST_JWT_TOKEN, SLURM_TEST_USER_NAME, SLURM_TEST_VERSION},
+            id::ComponentId,
+        },
+        global_clock::global_clock::GlobalClock,
+        reservation::reservation_store::ReservationStore,
+        rms::slurm_rms::{
+            api_client::{
+                payload::task_properties::{JobProperties, TaskSubmission},
+                slurm_rest_api_trait::SlurmRestApi,
             },
-            utils::{
-                config::{SLURM_TEST_BASE_URL, SLURM_TEST_JWT_TOKEN, SLURM_TEST_USER_NAME, SLURM_TEST_VERSION},
-                id::AciId,
-            },
+            slurm_base::SlurmRms,
         },
     },
 };
@@ -152,7 +150,7 @@ async fn commit_task_to_rms(slurm_rms: &mut SlurmRms) -> Result<u32> {
 
 async fn create_slurm_rms_mock() -> Result<SlurmRms, Box<dyn std::error::Error>> {
     let simulator = Arc::new(GlobalClock::new(false));
-    let aci_id = AciId::new("Test-AcI");
+    let component_id = ComponentId::new("Test-AcI");
     let reservation_store = ReservationStore::new();
     let rest_api_config: SlurmConfigDto = SlurmConfigDto {
         base_url: SLURM_TEST_BASE_URL.to_string(),
@@ -163,16 +161,16 @@ async fn create_slurm_rms_mock() -> Result<SlurmRms, Box<dyn std::error::Error>>
 
     // 2. Define the individual switches for the topology
     let slurm_switch_dto_0 =
-        SlurmSwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
+        SwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
 
-    let slurm_switch_dto_1 = SlurmSwitchDto {
+    let slurm_switch_dto_1 = SwitchDto {
         switch_name: "s1".to_string(),
         switches: vec![],
         nodes: vec!["c3".to_string(), "c4".to_string(), "c5".to_string(), "c6".to_string()],
         link_speed: 1000,
     };
 
-    let slurm_switch_dto_2 = SlurmSwitchDto {
+    let slurm_switch_dto_2 = SwitchDto {
         switch_name: "s2".to_string(),
         switches: vec!["s0".to_string(), "s1".to_string()],
         nodes: vec!["c2".to_string()],
@@ -180,7 +178,12 @@ async fn create_slurm_rms_mock() -> Result<SlurmRms, Box<dyn std::error::Error>>
     };
 
     // 3. Assemble the topology vector
-    let topology: Vec<SlurmSwitchDto> = vec![slurm_switch_dto_0, slurm_switch_dto_1, slurm_switch_dto_2];
+    let topology = TopologyDto {
+        egress_bandwidth_gbps: 1000,
+        ingress_bandwidth_gbps: 1000,
+        gateway_switch_id: "s0".to_string(),
+        switches: vec![slurm_switch_dto_0, slurm_switch_dto_1, slurm_switch_dto_2],
+    };
 
     let slurm_rms_dto: SlurmRmsDto = SlurmRmsDto {
         id: "RMS-ID".to_string(),
@@ -191,5 +194,5 @@ async fn create_slurm_rms_mock() -> Result<SlurmRms, Box<dyn std::error::Error>>
         topology: topology,
     };
 
-    return SlurmRms::new(slurm_rms_dto, simulator, aci_id, reservation_store).await;
+    return SlurmRms::new(slurm_rms_dto, simulator, component_id, reservation_store).await;
 }

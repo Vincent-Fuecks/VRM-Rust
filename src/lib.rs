@@ -1,14 +1,15 @@
-use crate::api::workflow_dto::client_dto::ClientsDto;
-use crate::domain::vrm_system_model::client::client::Clients;
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
 use crate::error::Result;
 use crate::loader::parser::parse_json_file;
+use crate::vrm::reservation::reservation_store::ReservationStore;
 
-pub mod api;
-pub mod domain;
+use self::schema::client_dto::ClientsDto;
+use self::vrm::client::client::Clients;
+use self::vrm::common::logging::logger;
+
 pub mod error;
 pub mod loader;
-pub mod logger;
+pub mod schema;
+pub mod vrm;
 
 pub fn generate_system_model(file_path: &str, reservation_store: ReservationStore) -> Result<Clients> {
     logger::init();

@@ -1,15 +1,10 @@
-use crate::domain::simulator::simulator::GlobalClock;
-use crate::domain::vrm_system_model::reservation::vrm_state_listener::VrmStateListener;
-use crate::domain::vrm_system_model::utils::statistics::AnalyticsSystem;
-use crate::domain::vrm_system_model::vrm_manager::VrmManager;
+use crate::vrm::reservation::vrm_state_listener::VrmStateListener;
+use crate::vrm::vrm_manager::VrmManager;
 
-use crate::domain::vrm_system_model::client::client::Clients;
-
-use crate::domain::vrm_system_model::grid_resource_management_system::vrm_component_registry::registry_client::RegistryClient;
-use crate::domain::vrm_system_model::reservation::reservation_store::ReservationStore;
+use crate::vrm::reservation::reservation_store::ReservationStore;
+use crate::vrm::vrm_component::vrm_component_registry::registry_client::RegistryClient;
 
 #[cfg(debug_assertions)]
-use crate::api::vrm_system_model_dto::vrm_dto::VrmDto;
 use crate::error::Result;
 use crate::loader::parser::parse_json_file;
 use clap::Parser;
@@ -18,11 +13,16 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-pub mod api;
-pub mod domain;
+use self::schema::vrm_dto::VrmDto;
+use self::vrm::client::client::Clients;
+use self::vrm::common::logging::logger;
+use self::vrm::common::logging::statistics::AnalyticsSystem;
+use self::vrm::global_clock::global_clock::GlobalClock;
+
 pub mod error;
 pub mod loader;
-pub mod logger;
+pub mod schema;
+pub mod vrm;
 
 pub fn get_vrm_dto(file_path: &str) -> Result<VrmDto> {
     log::info!("Starting VrmDto construction.");
@@ -36,7 +36,7 @@ pub fn get_vrm_dto(file_path: &str) -> Result<VrmDto> {
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Path to the workflow input file (.json)
-    #[arg(short = 'f', long, default_value = "src/data/demo/workflow_with_direct_mapping.json")]
+    #[arg(short = 'f', long, default_value = "data/test/workflow_cross_rms_10_nodes.json")]
     input_file: String,
 
     /// Path to the output results/statistics file (.csv)
@@ -44,7 +44,7 @@ struct Args {
     output_file: String,
 
     /// Path to the VRM node simulator config
-    #[arg(short = 'c', long, default_value = "src/data/demo/vrm_with_slurm.json")]
+    #[arg(short = 'c', long, default_value = "data/test/vrm_config_two_rms.json")]
     config_file: String,
 
     /// Disables Logging
@@ -93,12 +93,20 @@ pub fn start_deadlock_detector() {
         loop {
             thread::sleep(Duration::from_secs(10));
             let deadlocks = deadlock::check_deadlock();
-            if !deadlocks.is_empty() {
-                for (i, threads) in deadlocks.iter().enumerate() {
-                    eprintln!("Deadlock #{} detected with {} threads:", i, threads.len());
-                    for t in threads {
-                        eprintln!("Thread ID: {:?}", t.thread_id());
-                    }
+
+            if deadlocks.is_empty() {
+                continue;
+            }
+
+            eprintln!("\n========== {} DEADLOCK(S) DETECTED ==========", deadlocks.len());
+
+            for (i, threads) in deadlocks.iter().enumerate() {
+                eprintln!("\nDeadlock #{}", i);
+
+                for t in threads {
+                    eprintln!("Thread ID: {:?}", t.thread_id());
+                    eprintln!("Backtrace:");
+                    eprintln!("{:#?}", t.backtrace());
                 }
             }
         }

@@ -1,0 +1,82 @@
+{
+    "adcMasterId" : "ADC-Master",
+    "simulator": {
+        "endTime": 3600000,
+        "isSimulation": true
+    },
+    "adc": [
+        {
+            "id": "ADC-Master",
+            "schedulerTyp": "HEFT",
+            "requestOrder": "Start-First",
+            "numOfSlots": 265,
+            "slotWidth": 256,
+            "timeout": 256,
+            "maxOptimizationTime": 256,
+            "rejectNewReservationsAt": 1000000,
+            "children": ["AcI-rms_0", "AcI-rms_1"]
+        }
+    ],
+    "aci": [
+        {
+            "id": "AcI-rms_0",
+            "adcId": "ADC-Master",
+            "commitTimeout": 256,
+            "rmsSystem": {
+                "typ": "RmsSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 60,
+                "numOfSlots": 1000,
+                "computeNodes": [
+                    { "id": "n0_c0", "cpus": 8 },
+                    { "id": "n0_c1", "cpus": 8 },
+                    { "id": "n0_c2", "cpus": 8 },
+                    { "id": "n0_c3", "cpus": 8 }
+                ],
+                "topology": {
+                    "ingressBandwidthGbps": 10000,
+                    "egressBandwidthGbps": 10000,
+                    "gatewaySwitchId": "s0",
+                    "switches": [
+                        {
+                            "switchName": "s0",
+                            "switches": [],
+                            "nodes": ["n0_c0", "n0_c1", "n0_c2", "n0_c3"],
+                            "linkSpeed": 10000
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": "AcI-rms_1",
+            "adcId": "ADC-Master",
+            "commitTimeout": 256,
+            "rmsSystem": {
+                "typ": "RmsSimulator",
+                "schedulerTyp": "SlottedSchedule",
+                "slotWidth": 60,
+                "numOfSlots": 1000,
+                "computeNodes": [
+                    { "id": "n1_c0", "cpus": 8 },
+                    { "id": "n1_c1", "cpus": 8 },
+                    { "id": "n1_c2", "cpus": 8 },
+                    { "id": "n1_c3", "cpus": 8 }
+                ],
+                "topology": {
+                    "ingressBandwidthGbps": 10000,
+                    "egressBandwidthGbps": 10000,
+                    "gatewaySwitchId": "s1",
+                    "switches": [
+                        {
+                            "switchName": "s1",
+                            "switches": [],
+                            "nodes": ["n1_c0", "n1_c1", "n1_c2", "n1_c3"],
+                            "linkSpeed": 10000
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

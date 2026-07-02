@@ -1,9 +1,26 @@
+# Rust build artifacts
 /target
+
+# AI / agent artifacts
+.continue/
+.reasonix/
+reasonix.toml
+
+# Logs
 *.log
+logs/
 
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Added by cargo
-#
-# already existing elements were commented out
+# OS
+.DS_Store
+Thumbs.db
 
-#/target
+# Statistics output
+statistics/
+results.csv

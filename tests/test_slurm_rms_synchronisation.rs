@@ -1,14 +1,13 @@
 use std::sync::Arc;
+use vrm_rust_workflow::vrm::global_clock::global_clock::GlobalClock;
 
 use vrm_rust_workflow::{
-    api::{
-        rms_config_dto::rms_dto::{RmsSystemWrapper, SlurmConfigDto, SlurmRmsDto, SlurmSwitchDto},
-        vrm_system_model_dto::aci_dto::AcIDto,
+    schema::{
+        aci_dto::AcIDto,
+        rms_dto::{RmsSystemWrapper, SlurmConfigDto, SlurmRmsDto, SwitchDto, TopologyDto},
     },
-    domain::{
-        simulator::simulator::GlobalClock,
-        vrm_system_model::{grid_resource_management_system::aci::AcI, reservation::reservation_store::ReservationStore},
-    },
+    vrm::reservation::reservation_store::ReservationStore,
+    vrm::vrm_component::aci::AcI,
 };
 
 async fn create_slurm_rms_mock() -> Result<SlurmRmsDto, Box<dyn std::error::Error>> {
@@ -21,16 +20,16 @@ async fn create_slurm_rms_mock() -> Result<SlurmRmsDto, Box<dyn std::error::Erro
 
     // 2. Define the individual switches for the topology
     let slurm_switch_dto_0 =
-        SlurmSwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
+        SwitchDto { switch_name: "s0".to_string(), switches: vec![], nodes: vec!["c0".to_string(), "c1".to_string()], link_speed: 1000 };
 
-    let slurm_switch_dto_1 = SlurmSwitchDto {
+    let slurm_switch_dto_1 = SwitchDto {
         switch_name: "s1".to_string(),
         switches: vec![],
         nodes: vec!["c3".to_string(), "c4".to_string(), "c5".to_string(), "c6".to_string()],
         link_speed: 1000,
     };
 
-    let slurm_switch_dto_2 = SlurmSwitchDto {
+    let slurm_switch_dto_2 = SwitchDto {
         switch_name: "s2".to_string(),
         switches: vec!["s0".to_string(), "s1".to_string()],
         nodes: vec!["c2".to_string()],
@@ -38,7 +37,12 @@ async fn create_slurm_rms_mock() -> Result<SlurmRmsDto, Box<dyn std::error::Erro
     };
 
     // 3. Assemble the topology vector
-    let topology: Vec<SlurmSwitchDto> = vec![slurm_switch_dto_0, slurm_switch_dto_1, slurm_switch_dto_2];
+    let topology = TopologyDto {
+        egress_bandwidth_gbps: 1000,
+        ingress_bandwidth_gbps: 1000,
+        gateway_switch_id: "s0".to_string(),
+        switches: vec![slurm_switch_dto_0, slurm_switch_dto_1, slurm_switch_dto_2],
+    };
 
     return Ok(SlurmRmsDto {
         id: "RMS-ID".to_string(),

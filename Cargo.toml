@@ -40,7 +40,4 @@ logtest = "2.0.0"
 parking_lot = { version = "0.12", features = ["deadlock_detection"] }
 
 [profile.release]
-lto = true          # Enables Link Time Optimization
-codegen-units = 1   # Allows for better optimization at the cost of slower compile time
-panic = 'abort'     # Reduces binary size and overhead by removing stack unwinding
-strip = true        # Removes symbols to make the binary as small as possible
+debug = true  

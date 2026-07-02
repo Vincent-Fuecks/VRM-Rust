@@ -5,28 +5,29 @@ A hierarchical Virtual Resource Manager (VRM) implementation in Rust, designed t
 ## Table of Contents
 
 - [VRM-Rust](#vrm-rust)
-    - [Table of Contents](#table-of-contents)
-    - [Overview](#overview)
-        - [Features and Capabilities](#features-and-capabilities)
-        - [Reservation](#reservation)
-            - [Probe Reservation Process](#probe-reservation-process)
-            - [Reservation State Definitions](#reservation-state-definitions)
-    - [Pre-Requirements](#pre-requirements)
-        - [Installation](#installation)
-        - [Usage Modes](#usage-modes)
-            - [Option A: RmsNodeSimulator (Quick Start)](#option-a-rmsnodesimulator-quick-start)
-            - [Option B: SlurmRms](#option-b-slurmrms)
-                - [Step 1 Clone and Initialize Environment](#step-1-clone-and-initialize-environment)
-                - [Step 2 Configure Authentication](#step-2-configure-authentication)
-                - [Step 3 Generate Access Token](#step-3-generate-access-token)
-                - [Step 4 Verify Connection](#step-4-verify-connection)
-                - [Step 5 Configure VRM-Rust](#step-5-configure-vrm-rust)
-                - [Step 6 Run the VRM-Rust with Demo data](#step-6-run-the-vrm-rust-with-demo-data)
-    - [Project Structure (Overview)](#project-structure-overview)
-    - [VRM-Rust Prototype Documentation: Ideas, Unimplemented Features, and Optimizations](#vrm-rust-prototype-documentation-ideas-unimplemented-features-and-optimizations)
-        - [Ideas](#ideas)
-        - [Not Implemented](#not-implemented)
-        - [Optimizations](#optimizations)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+    - [Features and Capabilities](#features-and-capabilities)
+    - [Reservation](#reservation)
+      - [Probe Reservation Process](#probe-reservation-process)
+      - [Reservation State Definitions](#reservation-state-definitions)
+  - [Pre-Requirements](#pre-requirements)
+    - [Installation](#installation)
+    - [Usage Modes](#usage-modes)
+      - [Option A: RmsNodeSimulator (Quick Start)](#option-a-rmsnodesimulator-quick-start)
+      - [Option B: SlurmRms](#option-b-slurmrms)
+        - [Step 1 Clone and Initialize Environment](#step-1-clone-and-initialize-environment)
+        - [Step 2 Configure Authentication](#step-2-configure-authentication)
+        - [Step 3 Generate Access Token](#step-3-generate-access-token)
+        - [Step 4 Verify Connection (Optional)](#step-4-verify-connection-optional)
+        - [Step 5: Verify Container Configuration (Optional)](#step-5-verify-container-configuration-optional)
+        - [Step 6 Configure VRM-Rust](#step-6-configure-vrm-rust)
+        - [Step 7 Run the VRM-Rust with Demo data](#step-7-run-the-vrm-rust-with-demo-data)
+  - [Project Structure (Overview)](#project-structure-overview)
+  - [VRM-Rust Prototype Documentation: Ideas, Unimplemented Features, and Optimizations](#vrm-rust-prototype-documentation-ideas-unimplemented-features-and-optimizations)
+    - [Ideas](#ideas)
+    - [Not Implemented](#not-implemented)
+    - [Optimizations](#optimizations)
 
 <details><summary>VRM-Rust Overview</summary>
 
@@ -38,9 +39,9 @@ The system architecture allows for atomic task or workflow submission from **Cli
 
 The **VrmComponentManager** then submits the tasks to the underlying **VrmComponent**s, which consist of **AcI**s and/or **ADC**s. These components distribute the requests to their connected subsystems. The **ADC** tracks reservations on underlying components and aggregates performance data and results from requested operations.
 
-The **AcI** features an **AdvanceReservationRms** adapter that links the RMS of the HPC cluster to the VRM system. For Slurm-based RMSs, the **SlurmRms** adapter connects the physical RMS system to the VRM system through the Slurm REST API, facilitating task and node synchronisation as well as task submission. Additionally, three simulation adapter mocks are implemented: **RmsNetworkSimulator**, **RmsNodeSimulator**, and **RmsSimulator**. Furthermore, the **AdvanceReservationRms** interface provides the functionality of shadow scheduling**. This capability allows for what-if planning phases or schedule optimisations in a sandbox environment, without executing actions on the official schedule. 
+The **AcI** features an **AdvanceReservationRms** adapter that links the RMS of the HPC cluster to the VRM system. For Slurm-based RMSs, the **SlurmRms** adapter connects the physical RMS system to the VRM system through the Slurm REST API, facilitating task and node synchronisation as well as task submission. Additionally, three simulation adapter mocks are implemented: **RmsNetworkSimulator**, **RmsNodeSimulator**, and **RmsSimulator**. Furthermore, the **AdvanceReservationRms** interface provides the functionality of **shadow scheduling**. This capability allows for what-if planning phases or schedule optimisations in a sandbox environment, without executing actions on the official schedule. 
 
-In instances where the underlying RMS employs a queuing-based system rather than a planning-based one (such as Slurm), the adapter reflects the current reservation state of the physical RMS in the **Schedule** (which contains the current state of the RMS system and the requested Advance Reservation for a specific RMS). The only currently available implementation represents a slotted time model. There exist two distinct versions of this **Schedule**: one for nodes, referred to as the **SlottedNodeSchedule**, and another for links, known as the **SlottedLinkSchedule**. The latter incorporates the **NetworkTopology**, which contains the underlying link infrastructure to facilitate path routing within the network.
+In instances where the underlying RMS employs a queuing-based system rather than a planning-based one (such as Slurm), the adapter reflects the current reservation state of the physical RMS in the **Schedule** (which contains the current state of the RMS system and the requested Advance Reservation for a specific RMS). The **Schedule** implementation uses a generic **strategy pattern** via `SlottedScheduleContext<S: SlottedScheduleStrategy>`, where the strategy type is resolved at compile time. Two concrete strategies exist: **NodeStrategy** for compute node capacity tracking, and **LinkStrategy** for network bandwidth management across paths. The latter incorporates the **NetworkTopology**, which contains the underlying link infrastructure and a K-shortest-paths cache to facilitate path routing within the network.
 
 <a name="arch-diagram"></a>
 ![Architecture Diagram](./diagrams/architecture.svg)
@@ -49,7 +50,7 @@ In instances where the underlying RMS employs a queuing-based system rather than
 ### Features and Capabilities
 
 - **Abstraction & Usability:** Provides a high-level interface for virtual resources and SLAs.
-- **Slurm Support:** Integrates with Slurm-based RMSs via a the Slurm REST API.
+- **Slurm Support:** Integrates with Slurm-based RMSs via the Slurm REST API.
 - **Security & Information Hiding:** Uses a hierarchical aggregation model (ADC) to hide underlying resource topologies from higher layers.
 - **SLA Enforcement:** Guarantees Advance Reservations and execution deadlines.
 - **System Simulation:** Built-in support for emulating cluster nodes and network topologies for testing and development.
@@ -58,7 +59,8 @@ In instances where the underlying RMS employs a queuing-based system rather than
 
 A reservation in the VRM system represents a resource request made by a **Client**. These reservations are derived from the workflow or atomic task submitted by the **Client**. There are three kinds of reservations: **NodeReservation**, **LinkReservation** and **WorkflowReservation** (contains all link- or node reservations for the corresponding workflow). 
 
-The life cycle of these reservations is defined by the four **ReservationProceeding**s that specify the requested action for each reservation made by the **Client**. 
+The life cycle of these reservations is defined by the five **ReservationProceeding**s that specify the requested action for each reservation made by the **Client**. 
+
 
 These reservation proceedings are the following:
 
@@ -129,7 +131,7 @@ git clone https://github.com/Vincent-Fuecks/VRM-Rust.git
 To test VRM-Rust against a Slurm-based system, you must first set up the virtual cluster.
 
 ```bash
-cargo run -- --input-file src/data/demo/workflow_with_direct_mapping.json --config-file src/data/demo/vrm_node_simulator.json
+cargo run -- --input-file data/workflow_with_direct_mapping.json --config-file data/vrm_node_simulator.json
 ```
 
 #### Option B: SlurmRms 
@@ -283,9 +285,7 @@ sudo docker exec -it slurmctld ls -la /data
 ```
 
 ##### Step 6 Configure VRM-Rust
-
-Finally, update the project configuration to point to your new cluster. Open `VRM-Rust/src/data/demo/vrm_with_slurm.json` and update the following fields:
-
+Finally, update the project configuration to point to your new cluster. Open `VRM-Rust/data/demo/vrm_with_slurm.json` and update the following fields:
 ```json
 {
   "userName": "vrmUser",
@@ -296,32 +296,38 @@ Finally, update the project configuration to point to your new cluster. Open `VR
 ##### Step 7 Run the VRM-Rust with Demo data 
 
 ```bash
-cargo run -- --input-file src/data/demo/workflow_with_direct_mapping.json --config-file src/data/demo/vrm_with_slurm.json
+cargo run -- --input-file data/workflow_with_direct_mapping.json --config-file data/vrm_with_slurm.json
 ```
 
 ## Project Structure (Overview)
 
 ```plaintext
+├── data/                                # Configuration and input files
+│   ├── demo/                            # Demo data to run the VRM-Rust system
+│   └── test/                            # Test configuration and workflow data
 ├── src/
-│   ├── api/                             # Contains the Transferable Objects  
-│   ├── data/                            # Contains examples input for the VRM-Rust system 
-│   │   ├── benchmark/                   # Benchmark data for the VRM-Rust vs. Java legacy system benchmark 
-│   │   ├── demo/                        # Demo data to run the VRM-Rust system 
-│   │   ├── generated_workflows/         # Directory, where generated workflows are stored
-│   │   └── test/                        # Utilized VRM-Rust configuration and workflow for tests 
-│   ├──domain  
-│   │   ├── simulator/                   # Manges the system time of the VRM-Rust system (GlobalClock) 
-│   │   ├── client/                      # Contains the parses the client DTO object
-│   │   ├── reservation/                 # Contains the reservation types and reservation management logic
-│   │   ├── resource/                    # Contains the resource types and the resource management logic 
-│   │   ├── rms/                         # Contains the VRM simulator and the Slurm adapter (Adapter logic for AcI and HPC) 
-│   │   ├── schedule/                    # Contains the link and node schedules 
-│   │   ├── utils/                       # Contains the id system, static variables, logging and dummy workflow generator
-│   │   ├── vrm_component/               # Contains the ADC and AcI
-│   │   └── workflow/                    # Manges the workflow construction process
-|   └──  loader/                         # Parser to load JSON files
-├── tests/              # Integration tests with sample avatars
-└── Cargo.toml          # Build configuration
+│   ├── error.rs                         # Centralized error types
+│   ├── lib.rs                           # Library root
+│   ├── main.rs                          # Binary entry point
+│   ├── loader/                          # JSON file parser and configuration loader
+│   ├── schema/                          # DTO (Data Transfer Object) definitions
+│   ├── gui/                             # TODO 
+│   └── vrm/                             # Core VRM domain logic
+│       ├── vrm.rs                       # VRM root struct and lifecycle
+│       ├── vrm_manager.rs               # Top-level reservation orchestration
+│       ├── client/                      # Client abstraction and parsing
+│       ├── common/                      # Shared utilities (Configuration, ID System, Logging and more)
+│       ├── global_clock/                # System time management (GlobalClock)
+│       ├── reservation/                 # Reservation types and management
+│       ├── resource/                    # Resource types and management
+│       ├── rms/                         # RMS adapters (AcI ↔ HPC)
+│       ├── schedule/                    # Time-slotted scheduling (for Advance Reservation)
+│       ├── vrm_component/               # Hierarchical VRM components (ADC/AcI)
+│       └── workflow/                    # Workflow construction and management
+├── tests/                               # Integration tests
+├── diagrams/                            # Architecture and state diagrams
+├── logs/                                # Runtime log output
+└── Cargo.toml                           # Build configuration
 ```
 
 ## VRM-Rust Prototype Documentation: Ideas, Unimplemented Features, and Optimizations
