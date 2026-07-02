@@ -34,9 +34,17 @@ impl GlobalClock {
         now
     }
 
-    pub fn tick_forward(&mut self) {
+    pub fn tick_forward(&self) {
         if self.is_simulation {
-            self.reference_start_time = AtomicI64::new(self.reference_start_time.load(Ordering::Relaxed) + 1);
+            self.reference_start_time.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
+    /// Advances the simulation clock by `seconds`.
+    /// Does only something in simulation mode.
+    pub fn tick_forward_by(&self, seconds: i64) {
+        if self.is_simulation {
+            self.reference_start_time.fetch_add(seconds, Ordering::Relaxed);
         }
     }
 }

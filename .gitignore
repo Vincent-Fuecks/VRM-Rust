@@ -1,3 +1,26 @@
+# Rust build artifacts
 /target
+
+# AI / agent artifacts
 .continue/
+.reasonix/
+reasonix.toml
+
+# Logs
 *.log
+logs/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Statistics output
+statistics/
+results.csv

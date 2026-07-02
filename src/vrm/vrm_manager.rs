@@ -239,7 +239,14 @@ impl VrmManager {
                     }
                 }
             }
-            sleep(Duration::from_secs(5)).await;
+            // In simulation mode, advance the clock so tasks can progress through
+            // their lifecycle (e.g., move from Committed → Finished).
+            // In non-simulation mode, wait for real time to pass.
+            if self.simulator.is_simulation {
+                self.simulator.tick_forward();
+            } else {
+                sleep(Duration::from_secs(5)).await;
+            }
             // self.reservation_store.print_store_contents();
         }
 
@@ -354,8 +361,10 @@ impl VrmManager {
                 guard.insert(process_res_id);
 
                 // Add all workflow sub-jobs to the open_reservation list (these are properly not in state committed)
-                for w_sub_job in self.reservation_store.get_workflow_res_ids(process_res_id).unwrap() {
-                    guard.insert(w_sub_job);
+                if let Some(w_sub_jobs) = self.reservation_store.get_workflow_res_ids(process_res_id) {
+                    for w_sub_job in w_sub_jobs {
+                        guard.insert(w_sub_job);
+                    }
                 }
                 log::info!("Reservation {:?} was committed successful.", self.reservation_store.get_name_for_key(process_res_id));
             } else {

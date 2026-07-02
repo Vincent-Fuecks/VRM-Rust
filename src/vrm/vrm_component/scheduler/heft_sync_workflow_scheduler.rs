@@ -252,7 +252,6 @@ impl HEFTSyncWorkflowScheduler {
         workflow.update_reservation(self.base.reservation_store.clone(), first_task_candidate);
 
         // Get Co-Allocation constrains
-        let duration = self.base.reservation_store.get_task_duration(first_task_candidate);
         let start = self.base.reservation_store.get_assigned_start(first_task_candidate);
         let end = self.base.reservation_store.get_assigned_end(first_task_candidate);
 
@@ -267,7 +266,6 @@ impl HEFTSyncWorkflowScheduler {
 
             self.base.reservation_store.set_booking_interval_start(member_id, start);
             self.base.reservation_store.set_booking_interval_end(member_id, end);
-            self.base.reservation_store.adjust_capacity(member_id, duration);
 
             // Try to reserve this task
             let co_allocation_candidate_id = adc.submit_task_at_first_grid_component(member_id, None, grid_component_res_database);
